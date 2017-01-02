@@ -1,9 +1,11 @@
+bin/
 *.class
 
 # Eclim/vim files
 .lvimrc
 .classpath
 .project
+.settings/
 *.swp
 *.xmi
 
