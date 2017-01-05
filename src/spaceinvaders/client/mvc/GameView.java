@@ -7,7 +7,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import spaceinvaders.client.ClientConfig;
-import spaceinvaders.client.ErrorsEnum;
 import spaceinvaders.client.gui.GameGraphics;
 import spaceinvaders.client.gui.Menu;
 
@@ -53,10 +52,10 @@ public class GameView implements View {
   }
 
   @Override
-  public void displayError(ErrorsEnum error) {
+  public void displayError(Exception exception) {
     JOptionPane.showMessageDialog(currentFrame,
-        error.getDescription(),
-        "Error " + error.getCode(),
+        exception.toString(),
+        exception.getMessage(),
         JOptionPane.ERROR_MESSAGE);
   }
 
@@ -83,7 +82,7 @@ public class GameView implements View {
   @Override
   public void update(String data) {
     updateLock.lock();
-    System.err.println("update " + data);
+    //TODO update
     updateLock.unlock();
   }
 }

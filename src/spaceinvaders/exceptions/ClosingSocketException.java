@@ -7,7 +7,13 @@ import java.io.IOException;
  */
 @SuppressWarnings("serial")
 public class ClosingSocketException extends IOException {
+  private static final String MESSAGE = "An error occurred while closing a socket!";
+
+  public ClosingSocketException() {
+    super(MESSAGE);
+  }
+
   public ClosingSocketException(Throwable cause) {
-    super("An error occurred while closing a socket!",cause);
+    super(MESSAGE,cause);
   }
 }

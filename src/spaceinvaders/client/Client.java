@@ -15,6 +15,7 @@ import spaceinvaders.client.mvc.View;
  * as it only provides the GUI.
  */
 public class Client implements Callable<Void> {
+  private ClientConfig config;
   private Controller controller;
   private Model model;
   private View userView;
@@ -23,7 +24,8 @@ public class Client implements Callable<Void> {
    * Construct a client and assemble together the MVC.
    */
   public Client() {
-    model = new GameModel();
+    config = ClientConfig.getInstance();
+    model = new GameModel(config);
     controller = new GameController(model);
     userView = new GameView();
     controller.registerView(userView);

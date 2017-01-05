@@ -5,7 +5,13 @@ package spaceinvaders.exceptions;
  */
 @SuppressWarnings("serial")
 public class InterruptedServiceException extends Exception {
+  private static final String MESSAGE = "Service has been interrupted!";
+
+  public InterruptedServiceException() {
+    super(MESSAGE);
+  }
+
   public InterruptedServiceException(Throwable cause) {
-    super("Service has been interrupted!",cause);
+    super(MESSAGE,cause);
   }
 }

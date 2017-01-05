@@ -7,7 +7,13 @@ import java.io.IOException;
  */
 @SuppressWarnings("serial")
 public class ReceivingPacketException extends IOException {
+  private static final String MESSAGE = "An error occured while receiving an UDP packet!";
+
+  public ReceivingPacketException() {
+    super(MESSAGE);
+  }
+
   public ReceivingPacketException(Throwable cause) {
-    super("An error occured while receiving an UDP packet!",cause);
+    super(MESSAGE,cause);
   }
 }

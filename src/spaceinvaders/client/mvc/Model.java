@@ -1,10 +1,6 @@
 package spaceinvaders.client.mvc;
 
-import spaceinvaders.client.ClientConfig;
-import spaceinvaders.client.network.ConnectionNotAllowedException;
-import spaceinvaders.client.network.InvalidConnectionConfigurationException;
-import spaceinvaders.client.network.ServerNotFoundException;
-import spaceinvaders.client.network.SocketIoException;
+import spaceinvaders.command.Command;
 
 /**
  * Application data.
@@ -19,31 +15,22 @@ public interface Model {
   public void addController(Controller controller);
 
   /**
-   * Get game state updates.
+   * Do a specified command.
    */
-  public String[] getData();
+  public void doCommand(Command command);
+
+  /**
+   * Prepare the model for a new game.
+   */
+  public void initNewGame();
 
   /**
    * Exit the game.
    */
-  public void exitGame() throws SocketIoException;
-
-  /**
-   * Initialize the model for a new game.
-   */
-  public void initNewGame(ClientConfig config) throws
-      ServerNotFoundException,
-      SocketIoException,
-      ConnectionNotAllowedException,
-      InvalidConnectionConfigurationException;
+  public void exitGame();
 
   /**
    * Stop all threads started.
    */
   public void shutdown();
-
-  /**
-   * Update the model in conformity with the view.
-   */
-  public void update(String data);
 }

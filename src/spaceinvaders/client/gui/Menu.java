@@ -13,9 +13,11 @@ import spaceinvaders.client.ClientConfig;
 /**
  * Game menu.
  *
- * <p>This is the first UI element encountered by the user. It can be used to configure the game.
+ * <p>This is the first UI element encountered by the user. It can be used to CONFIGure the game.
  */
 public class Menu implements GraphicalObject {
+  public static final ClientConfig CONFIG = ClientConfig.getInstance();
+
   private JFrame menuFrame;
   private JButton playBtn;
   private JButton quitBtn;
@@ -30,8 +32,6 @@ public class Menu implements GraphicalObject {
    * Construct a new menu with the defaults already entered.
    */
   public Menu() {
-    ClientConfig config = new ClientConfig();
-
     menuFrame = new JFrame("SpaceInvaders - Menu");
     menuFrame.setSize(500,500);
     menuFrame.setResizable(false);
@@ -41,16 +41,16 @@ public class Menu implements GraphicalObject {
     serverLbl = new JLabel("Game server");
     menuFrame.add(serverLbl);
 
-    serverAddrTxt = new JTextField(config.getServerAddr());
+    serverAddrTxt = new JTextField(CONFIG.getServerAddr());
     menuFrame.add(serverAddrTxt);
 
-    serverPortTxt = new JTextField(config.getServerPort().toString());
+    serverPortTxt = new JTextField(Integer.valueOf(CONFIG.getServerPort()).toString());
     menuFrame.add(serverPortTxt);
 
     userNameLbl = new JLabel("User name");
     menuFrame.add(userNameLbl);
 
-    userNameTxt = new JTextField(config.getUserName(),10);
+    userNameTxt = new JTextField(CONFIG.getUserName(),10);
     menuFrame.add(userNameTxt);
 
     noOfPlayersSpn = new JSpinner(new SpinnerNumberModel(1,1,3,1));
@@ -95,15 +95,14 @@ public class Menu implements GraphicalObject {
   }
 
   /**
-   * Get the game configuration from the UI elements.
+   * Get the game CONFIGuration from the UI elements.
    */
   public ClientConfig getConfig() {
-    ClientConfig config = new ClientConfig();
-    config.setNoOfPlayers((Integer) noOfPlayersSpn.getValue());
-    config.setServerAddr(serverAddrTxt.getText());
-    config.setServerPort(Integer.parseInt(serverPortTxt.getText()));
-    config.setUserName(userNameTxt.getText());
-    return config;
+    CONFIG.setNoOfPlayers((Integer) noOfPlayersSpn.getValue());
+    CONFIG.setServerAddr(serverAddrTxt.getText());
+    CONFIG.setServerPort(Integer.parseInt(serverPortTxt.getText()));
+    CONFIG.setUserName(userNameTxt.getText());
+    return CONFIG;
   }
 
   public JFrame getFrame() {

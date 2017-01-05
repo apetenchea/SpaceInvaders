@@ -1,15 +1,6 @@
 package spaceinvaders.client.mvc;
 
 import static java.awt.event.KeyEvent.VK_ESCAPE;
-import static spaceinvaders.client.ErrorsEnum.AMBIGUOUS_CONFIG_SETTINGS;
-import static spaceinvaders.client.ErrorsEnum.BLOCKED_CONNECTION;
-import static spaceinvaders.client.ErrorsEnum.BROKEN_CONNECTION;
-import static spaceinvaders.client.ErrorsEnum.INVALID_CONNCTION;
-import static spaceinvaders.client.ErrorsEnum.INVALID_SERVER_ADDRESS;
-import static spaceinvaders.client.ErrorsEnum.INVALID_SERVER_PORT;
-import static spaceinvaders.client.ErrorsEnum.INVALID_USER_NAME;
-import static spaceinvaders.client.ErrorsEnum.SERVER_NOT_FOUND;
-import static spaceinvaders.client.ErrorsEnum.UNEXPECTED_ERROR;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -20,14 +11,12 @@ import java.util.List;
 import java.util.Observable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import spaceinvaders.client.ClientConfig;
-import spaceinvaders.client.ErrorsEnum;
-import spaceinvaders.client.network.ConnectionNotAllowedException;
-import spaceinvaders.client.network.InvalidConnectionConfigurationException;
-import spaceinvaders.client.network.ServerNotFoundException;
-import spaceinvaders.client.network.SocketIoException;
+import spaceinvaders.exceptions.IllegalPortNumberException;
+import spaceinvaders.exceptions.InvalidServerAddressException;
+import spaceinvaders.exceptions.InvalidUserNameException;
 
 /**
  * Handles communication between one or more views and a model.
@@ -36,24 +25,22 @@ import spaceinvaders.client.network.SocketIoException;
  * @see spaceinvaders.client.mvc.GameView
  */
 public class GameController implements Controller {
+  private static final Logger LOGGER = Logger.getLogger(GameController.class.getName());
+
   private Model model;
   private List<View> views;
-  private Lock updateViewsLock;
-  private ExecutorService executor;
+
+  private ExecutorService updateViewsExecutor;
 
   /**
    * Construct a controller and couple it with a model.
    */
   public GameController(Model model) {
-    this();
     model.addController(this);
     this.model = model;
-  }
-
-  private GameController() {
     views = new ArrayList<>();
-    updateViewsLock = new ReentrantLock();
-    executor = Executors.newCachedThreadPool();
+
+    updateViewsExecutor = Executors.newCachedThreadPool();
   }
 
   /**
@@ -72,61 +59,36 @@ public class GameController implements Controller {
   @Override
   public void update(Observable obs, Object arg) {
     System.err.println("controller nofified");
-    if (arg == null) {
-      executor.execute(new Runnable() {
-        @Override
-        public void run() {
-          updateViews();
-        }
-      });
-    } else {
-      displayErrorOnViews((ErrorsEnum)arg);
-      try {
-        model.exitGame();
-      } catch (SocketIoException exception) {
-        displayErrorOnViews(UNEXPECTED_ERROR);
-      }
+    if (arg instanceof String) {
+      updateViews((String) arg);
+    } else if (arg instanceof Exception) {
+      displayErrorOnViews((Exception) arg);
+      model.exitGame();
       for (View view : views) {
         view.showMenu();
       }
     }
   }
 
-  private void displayErrorOnViews(ErrorsEnum error) {
+  private void displayErrorOnViews(Exception exception) {
     for (View view : views) {
-      view.displayError(error);
+      view.displayError(exception);
     }
   }
 
-  private void updateViews() {
-    updateViewsLock.lock();
-    String[] updates = model.getData();
-    for (String data : updates) {
-      for (View view : views) {
-        executor.execute(new Runnable() {
-          @Override
-          public void run() {
-            view.update(data);
-          }
-        });
-      }
-    }
-    updateViewsLock.unlock();
+  private void updateViews(String data) {
+    LOGGER.info("Update views" + data);
   }
 
   private class QuitAppListener implements ActionListener {
     public void actionPerformed(ActionEvent event) {
-      System.out.println("Quit");
-      try {
-        model.exitGame();
-      } catch (SocketIoException exception) {
-        // The app is going to exit anyway, so do nothing in this case.
-      }
+      System.err.println("Quit");
+      model.exitGame();
       model.shutdown();
       for (View view : views) {
         view.shutdown();
       }
-      executor.shutdown();
+      updateViewsExecutor.shutdownNow();
     }
   }
 
@@ -134,11 +96,7 @@ public class GameController implements Controller {
     @Override
     public void keyPressed(KeyEvent event) {
       if (event.getKeyCode() == VK_ESCAPE) {
-        try {
-          model.exitGame();
-        } catch (SocketIoException exception) {
-          displayErrorOnViews(UNEXPECTED_ERROR);
-        }
+        model.exitGame();
         for (View view : views) {
           view.showMenu();
         }
@@ -149,62 +107,21 @@ public class GameController implements Controller {
   private class StartGameListener implements ActionListener {
     public void actionPerformed(ActionEvent event) {
       assert views.size() > 0;
-      System.out.println("Play");
+      LOGGER.info("Play");
 
       ClientConfig config;
-      List<ClientConfig> viewConfigs = new ArrayList<>();
-      for (View view : views) {
-        config = view.getConfig();
-        if (!viewConfigs.contains(config)) {
-          viewConfigs.add(config);
-        }
-        if (viewConfigs.size() > 1) {
-          break;
-        }
+      config = views.get(0).getConfig();
+      try {
+        config.verify();
+      } catch (InvalidServerAddressException | IllegalPortNumberException
+          | InvalidUserNameException exception) {
+        displayErrorOnViews(exception);
+        LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+        return;
       }
-      if (viewConfigs.size() == 1) {
-        config = viewConfigs.get(0);
-        if (!config.isAddrValid()) {
-          displayErrorOnViews(INVALID_SERVER_ADDRESS);
-          return;
-        }
-        if (!config.isPortValid()) {
-          displayErrorOnViews(INVALID_SERVER_PORT);
-          return;
-        }
-        if (!config.isUserNameValid()) {
-          displayErrorOnViews(INVALID_USER_NAME);
-          return;
-        }
-        boolean gameExceptionFlag = false;
-        try {
-          model.initNewGame(config);
-        } catch (ConnectionNotAllowedException exception) {
-          displayErrorOnViews(BLOCKED_CONNECTION);
-          gameExceptionFlag = true;
-        } catch (InvalidConnectionConfigurationException exception) {
-          displayErrorOnViews(INVALID_CONNCTION); 
-          gameExceptionFlag = true;
-        } catch (ServerNotFoundException exception) {
-          displayErrorOnViews(SERVER_NOT_FOUND);
-          gameExceptionFlag = true;
-        } catch (SocketIoException exception) {
-          displayErrorOnViews(BROKEN_CONNECTION);
-          gameExceptionFlag = true;
-        }
-        if (gameExceptionFlag) {
-          try {
-            model.exitGame();
-          } catch (SocketIoException exception) {
-            displayErrorOnViews(UNEXPECTED_ERROR);
-          }
-        } else {
-          for (View view : views) {
-            view.showGame();
-          }
-        }
-      } else {
-        displayErrorOnViews(AMBIGUOUS_CONFIG_SETTINGS);
+      model.initNewGame();
+      for (View view : views) {
+        view.showGame();
       }
     }
   }

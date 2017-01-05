@@ -1,28 +1,22 @@
 package spaceinvaders.client.mvc;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static spaceinvaders.client.ErrorsEnum.LOST_CONNECTION;
-import static spaceinvaders.client.ErrorsEnum.SERVER_TIMEOUT;
-import static spaceinvaders.client.ErrorsEnum.UNEXPECTED_ERROR;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Observable;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import spaceinvaders.client.ClientConfig;
-import spaceinvaders.client.network.ConnectionNotAllowedException;
-import spaceinvaders.client.network.InvalidConnectionConfigurationException;
 import spaceinvaders.client.network.NetworkConnection;
-import spaceinvaders.client.network.ServerNotFoundException;
-import spaceinvaders.client.network.SocketIoException;
-import spaceinvaders.client.network.TcpConnection;
-import spaceinvaders.client.network.UdpConnection;
+import spaceinvaders.command.Command;
+import spaceinvaders.exceptions.ClosingSocketException;
+import spaceinvaders.exceptions.ConnectionTimeoutException;
+import spaceinvaders.exceptions.InterruptedServiceException;
+import spaceinvaders.utility.ServiceState;
 
 /**
  * Provides the game data.
@@ -34,225 +28,129 @@ import spaceinvaders.client.network.UdpConnection;
  * @see spaceinvaders.client.mvc.GameView
  */
 public class GameModel extends Observable implements Model {
-  private static final long PING_TIME_INTERVAL_MILLISECONDS = 2000;
-  private static final long SERVER_TIMEOUT_SECONDS = 10;
+  private static final Logger LOGGER = Logger.getLogger(GameModel.class.getName());
+  private static final long SERVER_TIMEOUT_SECONDS = 3;
 
-  private BlockingQueue<String> receivingQueue;
   private BlockingQueue<String> forwardingQueue;
-  private AtomicBoolean gameState;
-  private ReadWriteLock checkGameStateLock;
-  private ExecutorService outgoingPing;
-  private ExecutorService dataReceiver;
-  private ExecutorService transferWorker;
-  private NetworkConnection tcp;
-  private NetworkConnection udp;
-  private Integer playerId;
+  private BlockingQueue<String> receivingQueue;
+  private NetworkConnection serverConnection;
+  private ServiceState state;
+
+  private ExecutorService dataReceiverExecutor;
+  private ExecutorService networkExecutor;
+  private ExecutorService notifyObserversExecutor;
 
   /**
-   * Constructs a new model that is initially inactive.
+   * Constructs a new model that uses the specified config.
    */
-  public GameModel() {
+  public GameModel(ClientConfig config) {
     forwardingQueue = new LinkedBlockingQueue<>();
     receivingQueue = new LinkedBlockingQueue<>();
-    gameState = new AtomicBoolean(false);
-    checkGameStateLock = new ReentrantReadWriteLock();
-    outgoingPing = Executors.newSingleThreadExecutor();
-    dataReceiver = Executors.newSingleThreadExecutor();
-    transferWorker = Executors.newSingleThreadExecutor();
-  }
+    serverConnection = new NetworkConnection(config,receivingQueue,forwardingQueue);
+    state = new ServiceState(false);
 
-  @Override
-  public String[] getData() {
-    List<String> data = new ArrayList<>();
-    forwardingQueue.drainTo(data);
-    return data.toArray(new String[0]);
+    dataReceiverExecutor = Executors.newSingleThreadExecutor();
+    networkExecutor = Executors.newSingleThreadExecutor();
+    notifyObserversExecutor = Executors.newSingleThreadExecutor();
   }
-
+  
   @Override
   public void addController(Controller controller) {
     addObserver(controller);
   }
 
   @Override
-  public void exitGame() throws SocketIoException {
-    setGameState(false);
+  public void doCommand(Command command) {
     try {
-      if (tcp != null) {
-        tcp.close();
-      }
-      if (udp != null) {
-        udp.close();
-      }
-    } catch (SocketIoException exception) {
-      throw exception;
+      forwardingQueue.put(command.toJson());
+    } catch (InterruptedException exception) {
+      setChanged();
+      notifyObserversInSeparateThread(new InterruptedServiceException(exception));
+      LOGGER.log(Level.SEVERE,exception.toString(),exception);
     }
   }
 
   @Override
-  public void initNewGame(ClientConfig config) throws
-      ServerNotFoundException,
-      SocketIoException,
-      ConnectionNotAllowedException,
-      InvalidConnectionConfigurationException {
-    playerId = config.getId();
-    String address = config.getServerAddr();
-    Integer port = config.getServerPort();
-    tcp = new TcpConnection(address,port);
-    udp = new UdpConnection(address,port);
-    try {
-      tcp.connect();
-      udp.connect();
-    } catch (ServerNotFoundException exception) {
-      throw exception;
-    } catch (SocketIoException exception) {
-      throw exception;
-    } catch (ConnectionNotAllowedException exception) {
-      throw exception;
-    } catch (InvalidConnectionConfigurationException exception) {
-      throw exception;
-    }
-    setGameState(true);
+  public void initNewGame() {
+    state.set(true);
     forwardingQueue.clear();
     receivingQueue.clear();
-    startReceivingGameData();
-    startPinging();
+
+    dataReceiverExecutor.submit(new Callable<Void>() {
+      @Override
+      public Void call() {
+        while (state.get()) {
+          String data = null;
+          try {
+            data = receivingQueue.poll(SERVER_TIMEOUT_SECONDS,SECONDS);
+          } catch (InterruptedException exception) {
+            if (state.get()) {
+              exceptionFired(new InterruptedServiceException(exception));
+            }
+            break;
+          }
+          if (data == null) {
+            if (state.get()) {
+              exceptionFired(new ConnectionTimeoutException());
+              break;
+            }
+          }
+          setChanged();
+          notifyObserversInSeparateThread(data);
+        }
+        return null;
+      }
+    });
+
+    networkExecutor.submit(new Callable<Void>() {
+      @Override
+      public Void call() {
+        try {
+          serverConnection.call();
+        } catch (Exception exception) {
+          exceptionFired(exception);
+        }
+        return null;
+      }
+    });
+  }
+
+  @Override
+  public void exitGame() {
+    state.set(false);
+    if (serverConnection != null) {
+      try {
+        serverConnection.close();   
+      } catch (ClosingSocketException exception) {
+        LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+      }
+    }
   }
 
   @Override
   public void shutdown() {
-    dataReceiver.shutdownNow();
-    transferWorker.shutdownNow();
-    outgoingPing.shutdownNow();
+    serverConnection.shutdown();
+    dataReceiverExecutor.shutdownNow();
+    networkExecutor.shutdownNow();
+    notifyObserversExecutor.shutdownNow();
   }
 
-  @Override
-  public void update(String data) {
-    sendData(data);
+  /**
+   * Handles an exception that gets fired in a child thread.
+   */
+  private void exceptionFired(Exception exception) {
+    state.set(false);
+    setChanged();
+    notifyObserversInSeparateThread(exception);
+    LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
   }
 
-  private void setGameState(Boolean gameState) {
-    checkGameStateLock.writeLock().lock();
-    this.gameState.set(gameState);
-    checkGameStateLock.writeLock().unlock();
-  }
-
-  private boolean checkGameState() {
-    boolean result;
-    checkGameStateLock.readLock().lock();
-    result = gameState.get();
-    checkGameStateLock.readLock().unlock();
-    return result;
-  }
-
-  private void sendData(String data) {
-    try {
-      tcp.send(data);
-    } catch (SocketIoException exception) {
-      // This should never happen when using TCP.
-      setGameState(false);
-      exception.printStackTrace();
-      setChanged();
-      notifyObservers();
-    }
-  }
-
-  private void startPinging() {
-    Runnable ping = new Runnable() {
+  private void notifyObserversInSeparateThread(Object obj) {
+    notifyObserversExecutor.submit(new Callable<Void>() {
       @Override
-      public void run() {
-        while (checkGameState()) {
-          try {
-            udp.send(playerId.toString());
-          } catch (SocketIoException exception) {
-            setGameState(false);
-          }
-          try {
-            Thread.sleep(PING_TIME_INTERVAL_MILLISECONDS);
-          } catch (InterruptedException exception) {
-            if (checkGameState()) {
-              setGameState(false);
-              exception.printStackTrace();
-              setChanged();
-              notifyObservers(LOST_CONNECTION);
-            }
-            break;
-          } catch (IllegalArgumentException exception) {
-            // This should never happen.
-            setGameState(false);
-            exception.printStackTrace();
-            setChanged();
-            notifyObservers(UNEXPECTED_ERROR);
-          }
-        }
-      }
-    };
-    outgoingPing.execute(ping);
-  }
-
-  private void startReceivingGameData() {
-    /*
-     * Get data from the TCP connection and enqueue it.
-     */
-    dataReceiver.execute(new Runnable() {
-      @Override
-      public void run() {
-        String data = null;
-        while (checkGameState()) {
-          try {
-            data = tcp.read();
-          } catch (SocketIoException exception) {
-              if (checkGameState()) {
-              setGameState(false);
-              setChanged();
-              notifyObservers(LOST_CONNECTION);
-              break;
-            }
-          }
-          if (data != null) {
-            receivingQueue.add(data);
-          } else {
-            // EOF.
-            setGameState(false);
-          }
-        }
-      }
-    });
-
-    /*
-     * Transfer data between queues.
-     */
-    transferWorker.execute(new Runnable() {
-      @Override
-      public void run() {
-        String data = null;
-        while (checkGameState() || !receivingQueue.isEmpty()) {
-          try {
-            data = receivingQueue.poll(SERVER_TIMEOUT_SECONDS,SECONDS);
-          } catch (InterruptedException exception) {
-            if (checkGameState()) {
-              setGameState(false);
-              exception.printStackTrace();
-              setChanged();
-              notifyObservers(UNEXPECTED_ERROR);
-            }
-            break;
-          }
-          if (data != null) {
-            forwardingQueue.add(data);
-            // Notify if the queue used for forwading was consumed.
-            if (forwardingQueue.size() == 1) {
-              setChanged();
-              notifyObservers();
-            }
-          } else {
-            // When there was nothing to poll from the queue.
-            if (checkGameState()) {
-              setGameState(false);
-              setChanged();
-              notifyObservers(SERVER_TIMEOUT);
-            }
-          }
-        }
+      public Void call() {
+        notifyObservers(obj);
+        return null;
       }
     });
   }

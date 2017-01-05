@@ -1,0 +1,9 @@
+Refactored client side
+
+The Client is able to perform basic tcp data exchange.
+I contributed to and updated the exception package, now each one has two constructors.
+The model and the networking part are more separated now.
+Client Config is now a singleton.
+ErrorsEnum has been eliminated, only exceptions are being used now.
+Logging was added.
+The Command package was started.

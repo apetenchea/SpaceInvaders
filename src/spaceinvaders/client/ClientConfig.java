@@ -1,56 +1,42 @@
 package spaceinvaders.client;
 
 import java.util.regex.Pattern;
+import spaceinvaders.exceptions.IllegalPortNumberException;
+import spaceinvaders.exceptions.InvalidServerAddressException;
+import spaceinvaders.exceptions.InvalidUserNameException;
 
 /**
  * Client's configuration.
  */
 public class ClientConfig {
-  private Integer id;
+  private static ClientConfig singleton;
+
   private Integer noOfPlayers;
   private String serverAddr;
   private Integer serverPort;
   private String userName;
 
   /**
-   * Default configuration.
+   * Get a ClientConfig instance.
    */
-  public ClientConfig() {
-    id = 0;
+  public static ClientConfig getInstance() {
+    if (singleton == null) {
+      singleton = new ClientConfig();
+    }
+    return singleton;
+  }
+
+  private ClientConfig() {
     serverAddr = "localhost";
     serverPort = 5412;
     userName = "default";
     noOfPlayers = 1;
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (obj != null && obj instanceof ClientConfig) {
-      ClientConfig other = (ClientConfig)obj;
-      return other.id.equals(id)
-        && other.serverAddr.equals(serverAddr)
-        && other.serverPort.equals(serverPort)
-        && other.userName.equals(userName)
-        && other.noOfPlayers.equals(noOfPlayers);
-    }
-    return false;
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 71;
-    int hash = id.hashCode();
-    hash = (prime * hash) ^ serverAddr.hashCode();
-    hash = (prime * hash) ^ serverPort.hashCode();
-    hash = (prime * hash) ^ userName.hashCode();
-    hash = (prime * hash) ^ noOfPlayers.hashCode();
-    return hash;
-  }
-
   /**
    * Check if the server address is valid.
    */
-  public Boolean isAddrValid() {
+  public boolean isAddrValid() {
     final Pattern validIpAddressRegex = Pattern.compile(
         "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}"
         + "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$");
@@ -64,31 +50,39 @@ public class ClientConfig {
   /**
    * Check if the port number is valid.
    */
-  public Boolean isPortValid() {
+  public boolean isPortValid() {
     return 0 <= serverPort && serverPort <= 65535;
   }
 
   /**
    * Check if the user name is valid.
    */
-  public Boolean isUserNameValid() {
+  public boolean isUserNameValid() {
     final Pattern validUserName = Pattern.compile("^([a-z]|[A-Z])([a-z]|[A-z]|\\d)+$");
     return userName.length() <= 10 && validUserName.matcher(userName).matches();
   }
 
-  public Integer getId() {
-    return id;
+  /**
+   * Verify the data integrity.
+   */
+  public void verify() throws InvalidServerAddressException, IllegalPortNumberException,
+         InvalidUserNameException {
+    if (!isPortValid()) {
+      throw new IllegalPortNumberException();
+    }
+    if (!isAddrValid()) {
+      throw new InvalidServerAddressException();
+    }
+    if (!isUserNameValid()) {
+      throw new InvalidUserNameException();
+    }
   }
 
-  public void setId(Integer newId) {
-    id = newId;
-  }
-
-  public Integer getNoOfPlayers() {
+  public int getNoOfPlayers() {
     return noOfPlayers;
   }
 
-  public void setNoOfPlayers(Integer newNoOfPlayers) {
+  public void setNoOfPlayers(int newNoOfPlayers) {
     noOfPlayers = newNoOfPlayers;
   }
 
@@ -100,11 +94,11 @@ public class ClientConfig {
     serverAddr = newServerAddr;
   }
 
-  public Integer getServerPort() {
+  public int getServerPort() {
     return serverPort;
   }
 
-  public void setServerPort(Integer newServerPort) {
+  public void setServerPort(int newServerPort) {
     serverPort = newServerPort;
   }
 

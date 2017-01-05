@@ -7,7 +7,14 @@ import java.io.IOException;
  */
 @SuppressWarnings("serial")
 public class ServerSocketConnectionException extends IOException {
+  private static final String MESSAGE =
+    "An error occurred while the server was waiting for new connections!";
+
+  public ServerSocketConnectionException() {
+    super(MESSAGE);
+  }
+
   public ServerSocketConnectionException(Throwable cause) {
-    super("An error occurred while the server was waiting for new connections!",cause);
+    super(MESSAGE,cause);
   }
 }

@@ -7,7 +7,14 @@ import java.io.IOException;
  */
 @SuppressWarnings("serial")
 public class SocketOutputStreamException extends IOException {
+  private static final String MESSAGE =
+    "Could not retrive data from the output stream of a socket!";
+
+  public SocketOutputStreamException() {
+    super(MESSAGE);
+  }
+
   public SocketOutputStreamException(Throwable cause) {
-    super("Could not retrive data from the output stream of a socket!",cause);
+    super(MESSAGE,cause);
   }
 }

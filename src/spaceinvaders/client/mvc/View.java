@@ -3,7 +3,6 @@ package spaceinvaders.client.mvc;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyListener;
 import spaceinvaders.client.ClientConfig;
-import spaceinvaders.client.ErrorsEnum;
 
 /**
  * View component of the application.
@@ -35,7 +34,7 @@ public interface View {
   /**
    * Display an error message and stop the game.
    */
-  public void displayError(ErrorsEnum error);
+  public void displayError(Exception exception);
 
   /**
    * Play game.
