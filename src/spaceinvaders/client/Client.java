@@ -1,5 +1,6 @@
 package spaceinvaders.client;
 
+import java.util.concurrent.Callable;
 import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.GameController;
 import spaceinvaders.client.mvc.GameModel;
@@ -13,13 +14,13 @@ import spaceinvaders.client.mvc.View;
  * <p>The client is the player's interface for the game. No actual game logic lies in here,
  * as it only provides the GUI.
  */
-public class Client implements Runnable {
+public class Client implements Callable<Void> {
   private Controller controller;
   private Model model;
   private View userView;
 
   /**
-   * Construct a client having the GUI as a view.
+   * Construct a client and assemble together the MVC.
    */
   public Client() {
     model = new GameModel();
@@ -29,7 +30,8 @@ public class Client implements Runnable {
   }
 
   @Override
-  public void run() {
+  public Void call() {
     userView.showMenu();
+    return null;
   }
 }
