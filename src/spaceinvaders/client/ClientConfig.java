@@ -11,6 +11,7 @@ import spaceinvaders.exceptions.InvalidUserNameException;
 public class ClientConfig {
   private static ClientConfig singleton;
 
+  private Integer id;
   private Integer noOfPlayers;
   private String serverAddr;
   private Integer serverPort;
@@ -76,6 +77,14 @@ public class ClientConfig {
     if (!isUserNameValid()) {
       throw new InvalidUserNameException();
     }
+  }
+
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  public int getId() {
+    return id;
   }
 
   public int getNoOfPlayers() {

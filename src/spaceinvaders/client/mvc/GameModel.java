@@ -34,6 +34,7 @@ public class GameModel extends Observable implements Model {
   private BlockingQueue<String> forwardingQueue;
   private BlockingQueue<String> receivingQueue;
   private NetworkConnection serverConnection;
+  private ClientConfig config;
   private ServiceState state;
 
   private ExecutorService dataReceiverExecutor;
@@ -44,6 +45,7 @@ public class GameModel extends Observable implements Model {
    * Constructs a new model that uses the specified config.
    */
   public GameModel(ClientConfig config) {
+    this.config = config;
     forwardingQueue = new LinkedBlockingQueue<>();
     receivingQueue = new LinkedBlockingQueue<>();
     serverConnection = new NetworkConnection(config,receivingQueue,forwardingQueue);
@@ -113,6 +115,16 @@ public class GameModel extends Observable implements Model {
         return null;
       }
     });
+  }
+
+  @Override
+  public void setPlayerId(int id) {
+    config.setId(id);
+  }
+
+  @Override
+  public void startSendingPackets() {
+    LOGGER.info("Sending packets");
   }
 
   @Override

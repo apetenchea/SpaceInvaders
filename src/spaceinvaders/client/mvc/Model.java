@@ -25,6 +25,16 @@ public interface Model {
   public void initNewGame();
 
   /**
+   * Set the ID of the player.
+   */
+  public void setPlayerId(int id);
+
+  /**
+   * Start sending UDP packets to the server.
+   */
+  public void startSendingPackets();
+
+  /**
    * Exit the game.
    */
   public void exitGame();

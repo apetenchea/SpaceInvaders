@@ -8,6 +8,7 @@ bin/
 .settings/
 *.swp
 *.xmi
+execute.sh
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/

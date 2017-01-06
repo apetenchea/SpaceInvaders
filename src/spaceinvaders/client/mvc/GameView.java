@@ -2,6 +2,7 @@ package spaceinvaders.client.mvc;
 
 import java.awt.event.ActionListener;
 import java.awt.event.KeyListener;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.swing.JFrame;
@@ -9,6 +10,8 @@ import javax.swing.JOptionPane;
 import spaceinvaders.client.ClientConfig;
 import spaceinvaders.client.gui.GameGraphics;
 import spaceinvaders.client.gui.Menu;
+import spaceinvaders.game.GameWorld;
+import spaceinvaders.utility.Couple;
 
 /**
  * User interface for the game.
@@ -57,6 +60,17 @@ public class GameView implements View {
         exception.toString(),
         exception.getMessage(),
         JOptionPane.ERROR_MESSAGE);
+  }
+  
+  @Override
+  public void setPlayers(List<Couple<Integer,String>> players) {
+    // TODO.
+  }
+
+
+  @Override
+  public void initGameWorld(GameWorld world) {
+    // TODO.
   }
 
   @Override

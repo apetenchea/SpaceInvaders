@@ -1,14 +1,13 @@
 package spaceinvaders.command;
 
+import com.google.gson.Gson;
+
 /**
  * Command to be executed by the client or by the server.
  */
 public abstract class Command {
   private String name;
 
-  /**
-   * Construct a command with the specified name.
-   */
   public Command(String name) {
     this.name = name;
   }
@@ -21,5 +20,12 @@ public abstract class Command {
   /**
    * Get the JSON representation of this command.
    */
-  public abstract String toJson();
+  public String toJson() {
+    Gson gson = new Gson();
+    return gson.toJson(this);
+  }
+
+  public String getName() {
+    return name;
+  }
 }

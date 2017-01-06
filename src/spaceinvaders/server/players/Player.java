@@ -27,6 +27,9 @@ import spaceinvaders.utility.ServiceState;
 public class Player extends Observable implements Callable<Void> {
   private static final Logger LOGGER = Logger.getLogger(Player.class.getName());
 
+  private String name;
+  private Integer teamSize;
+
   private Socket socket;
   private BufferedReader reader;
   private PrintWriter writer;
@@ -173,5 +176,13 @@ public class Player extends Observable implements Callable<Void> {
         throw new ClosingSocketException(exception);
       }
     }
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setTeamSize(int teamSize) {
+    this.teamSize = teamSize;
   }
 }

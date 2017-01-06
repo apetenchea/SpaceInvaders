@@ -9,7 +9,7 @@ import spaceinvaders.server.Server;
  */
 public class SpaceInvaders {
   public static void main(String[] args) throws Exception {
-    (new Client()).call();
-    //(new Server(5412)).call();
+    //(new Client()).call();
+    (new Server(5412)).call();
   }
 }

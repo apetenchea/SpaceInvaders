@@ -2,7 +2,10 @@ package spaceinvaders.client.mvc;
 
 import java.awt.event.ActionListener;
 import java.awt.event.KeyListener;
+import java.util.List;
 import spaceinvaders.client.ClientConfig;
+import spaceinvaders.game.GameWorld;
+import spaceinvaders.utility.Couple;
 
 /**
  * View component of the application.
@@ -35,6 +38,16 @@ public interface View {
    * Display an error message and stop the game.
    */
   public void displayError(Exception exception);
+
+  /**
+   * Set the IDs and names of the players participating in the game.
+   */
+  public void setPlayers(List<Couple<Integer,String>> players);
+
+  /**
+   * Initial view for the game world.
+   */
+  public void initGameWorld(GameWorld world);
 
   /**
    * Play game.
