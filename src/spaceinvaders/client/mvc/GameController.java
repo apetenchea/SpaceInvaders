@@ -14,6 +14,10 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import spaceinvaders.client.ClientConfig;
+import spaceinvaders.command.Command;
+import spaceinvaders.command.CommandDirector;
+import spaceinvaders.command.client.builder.ClientCommandBuilder;
+import spaceinvaders.command.server.ConfigurePlayerCommand;
 import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.InvalidServerAddressException;
 import spaceinvaders.exceptions.InvalidUserNameException;
@@ -43,9 +47,6 @@ public class GameController implements Controller {
     updateViewsExecutor = Executors.newCachedThreadPool();
   }
 
-  /**
-   * Prepare and register a view. 
-   */
   @Override
   public void registerView(View view) {
     if (!views.contains(view)) {
@@ -58,9 +59,12 @@ public class GameController implements Controller {
 
   @Override
   public void update(Observable obs, Object arg) {
-    System.err.println("controller nofified");
     if (arg instanceof String) {
-      updateViews((String) arg);
+      CommandDirector director = new CommandDirector(new ClientCommandBuilder());
+      director.makeCommand((String) arg);
+      Command command = director.getCommand();
+      command.setExecutor(this);
+      command.execute();
     } else if (arg instanceof Exception) {
       displayErrorOnViews((Exception) arg);
       model.exitGame();
@@ -68,6 +72,14 @@ public class GameController implements Controller {
         view.showMenu();
       }
     }
+  }
+
+  @Override
+  public void configurePlayer(int id) {
+    ClientConfig config = ClientConfig.getInstance();
+    model.setPlayerId(id);
+    model.startSendingPackets();
+    model.doCommand(new ConfigurePlayerCommand(config.getUserName(),config.getTeamSize()));
   }
 
   private void displayErrorOnViews(Exception exception) {
@@ -120,9 +132,6 @@ public class GameController implements Controller {
         return;
       }
       model.initNewGame();
-      for (View view : views) {
-        view.showGame();
-      }
     }
   }
 }

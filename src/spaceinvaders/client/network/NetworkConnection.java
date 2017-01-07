@@ -4,10 +4,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,6 +25,7 @@ import spaceinvaders.exceptions.InterruptedServiceException;
 import spaceinvaders.exceptions.ServerNotFoundException;
 import spaceinvaders.exceptions.SocketCreationException;
 import spaceinvaders.exceptions.SocketInputStreamException;
+import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.exceptions.SocketOutputStreamException;
 import spaceinvaders.utility.ServiceState;
 
@@ -30,17 +36,24 @@ import spaceinvaders.utility.ServiceState;
  */
 public class NetworkConnection implements Callable<Void> {
   private static final Logger LOGGER = Logger.getLogger(NetworkConnection.class.getName());
+  private static final int PING_TIME_INTERVAL_MILLISECONDS = 1000; 
+
   private ClientConfig config;
-  private Socket tcpSocket;
   private ServiceState state;
+  private Socket tcpSocket;
+  private DatagramSocket udpSocket;
 
   private BufferedReader reader;
   private PrintWriter printer;
   private BlockingQueue<String> readingQueue;
   private BlockingQueue<String> printingQueue;
+  private Future<Void> readingExecutorFuture;
+  private Future<Void> printingExecutorFuture;
+  private Future<Void> pingExecutorFuture;
 
   private ExecutorService readingExecutor;
   private ExecutorService printingExecutor;
+  private ExecutorService pingExecutor;
 
   /**
    * Construct a network connection that will use the provided configuration.
@@ -54,6 +67,7 @@ public class NetworkConnection implements Callable<Void> {
 
     readingExecutor = Executors.newSingleThreadExecutor();
     printingExecutor = Executors.newSingleThreadExecutor();
+    pingExecutor = Executors.newSingleThreadExecutor();
   }
 
   @Override
@@ -77,7 +91,7 @@ public class NetworkConnection implements Callable<Void> {
     }
     state.set(true);
 
-    Future<Void> readingExecutorFuture = readingExecutor.submit(new Callable<Void>() {
+    readingExecutorFuture = readingExecutor.submit(new Callable<Void>() {
       @Override
       public Void call() throws SocketInputStreamException, InterruptedServiceException {
         while (state.get()) {
@@ -95,6 +109,7 @@ public class NetworkConnection implements Callable<Void> {
             state.set(false);
             break;
           }
+          LOGGER.info(data);
           try {
             readingQueue.put(data);
           } catch (InterruptedException exception) {
@@ -108,7 +123,7 @@ public class NetworkConnection implements Callable<Void> {
       }
     }); 
 
-    Future<Void> printingExecutorFuture = printingExecutor.submit(new Callable<Void>() {
+    printingExecutorFuture = printingExecutor.submit(new Callable<Void>() {
       @Override
       public Void call() {
         while (state.get()) {
@@ -136,8 +151,49 @@ public class NetworkConnection implements Callable<Void> {
       if (state.get()) {
         throw new InterruptedServiceException(exception);
       }
+    } catch (CancellationException exception) {
+      LOGGER.warning("Suppressing " + exception.toString());
     }
     return null;
+  }
+
+  public void startUdp() throws SocketOpeningException, ServerNotFoundException {
+    try {
+      udpSocket = new DatagramSocket();
+    } catch (SocketException exception) {
+      throw new SocketOpeningException(exception);
+    }
+    InetAddress ipAddress = null;
+    try {
+      ipAddress = InetAddress.getByName(config.getServerAddr());
+    } catch (UnknownHostException exception) {
+      throw new ServerNotFoundException(exception);
+    }
+    byte[] data = Integer.valueOf(config.getId()).toString().getBytes();
+
+    DatagramPacket packet = new DatagramPacket(data,data.length,ipAddress,config.getServerPort());
+    pingExecutorFuture = pingExecutor.submit(new Callable<Void>() {
+      @Override
+      public Void call() {
+        while (state.get()) {
+          try {
+            udpSocket.send(packet);
+          } catch (IOException exception) {
+            if (state.get()) {
+              LOGGER.log(Level.SEVERE,exception.toString(),exception);
+            }
+          }
+          try {
+            Thread.sleep(PING_TIME_INTERVAL_MILLISECONDS);
+          } catch (InterruptedException exception) {
+            if (state.get()) {
+              LOGGER.log(Level.SEVERE,exception.toString(),exception);
+            }
+          }
+        }
+        return null;       
+      }
+    });
   }
 
   /**
@@ -145,6 +201,18 @@ public class NetworkConnection implements Callable<Void> {
    */
   public void close() throws ClosingSocketException {
     state.set(false);
+    if (readingExecutorFuture != null) {
+      readingExecutorFuture.cancel(true);
+    }
+    if (printingExecutorFuture != null) {
+      printingExecutorFuture.cancel(true);
+    }
+    if (pingExecutorFuture != null) {
+      pingExecutorFuture.cancel(true);
+    }
+    if (udpSocket != null && !udpSocket.isClosed()) {
+      udpSocket.close();
+    }
     if (tcpSocket != null && !tcpSocket.isClosed()) {
       try {
         tcpSocket.close();
@@ -162,5 +230,6 @@ public class NetworkConnection implements Callable<Void> {
   public void shutdown() {
     readingExecutor.shutdownNow();
     printingExecutor.shutdownNow();
+    pingExecutor.shutdownNow();
   }
 }

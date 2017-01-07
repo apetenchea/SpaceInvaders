@@ -65,7 +65,6 @@ public class GameManager implements Observer {
             } catch (ClosingSocketException exception) {
               LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
             }
-            LOGGER.info("player closed");
             return null;
           }
         });

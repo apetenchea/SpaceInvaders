@@ -9,6 +9,7 @@ import java.util.Observable;
 import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -29,7 +30,7 @@ import spaceinvaders.utility.ServiceState;
  */
 public class Player extends Observable implements Callable<Void> {
   private static final Logger LOGGER = Logger.getLogger(Player.class.getName());
-  private static final long PLAYER_TIMEOUT_SECONDS = 10;
+  private static final long PLAYER_TIMEOUT_SECONDS = 1000;
 
   private String name;
   private Integer teamSize;
@@ -103,6 +104,7 @@ public class Player extends Observable implements Callable<Void> {
             }
             break;
           }
+          LOGGER.info("Got " + data);
           try {
             incomingQueue.put(data);
           } catch (InterruptedException exception) {
@@ -139,8 +141,12 @@ public class Player extends Observable implements Callable<Void> {
     });
 
     try {
-      readerFuture.get();
-      writerFuture.cancel(true);
+      try {
+        readerFuture.get();
+        writerFuture.cancel(true);
+      } catch (CancellationException exception) {
+        LOGGER.warning("Suppressed " + exception);
+      }
     } catch (ExecutionException exception) {
       Exception cause = new Exception(exception.getCause());
       LOGGER.log(Level.SEVERE,cause.getMessage(),cause);
@@ -196,7 +202,6 @@ public class Player extends Observable implements Callable<Void> {
     long timeDiff = now.getTime() - lastPing.getTime();
     lastPing = now;
     pingFrequency = (pingFrequency > 0 ? (pingFrequency * 3 + timeDiff) / 4 : 1);
-    LOGGER.info(pingFrequency.toString());
   }
 
   /**

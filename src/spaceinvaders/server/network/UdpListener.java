@@ -43,7 +43,7 @@ public class UdpListener extends Observable implements Callable<Void> {
         socket.receive(packet);
       } catch (IOException exception) {
         if (state.get()) {
-          LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+          LOGGER.log(Level.SEVERE,exception.toString(),exception);
         }
       }
       String data = new String(packet.getData()).trim();

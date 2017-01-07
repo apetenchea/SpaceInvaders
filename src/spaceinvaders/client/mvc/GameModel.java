@@ -16,6 +16,8 @@ import spaceinvaders.command.Command;
 import spaceinvaders.exceptions.ClosingSocketException;
 import spaceinvaders.exceptions.ConnectionTimeoutException;
 import spaceinvaders.exceptions.InterruptedServiceException;
+import spaceinvaders.exceptions.ServerNotFoundException;
+import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.utility.ServiceState;
 
 /**
@@ -29,7 +31,7 @@ import spaceinvaders.utility.ServiceState;
  */
 public class GameModel extends Observable implements Model {
   private static final Logger LOGGER = Logger.getLogger(GameModel.class.getName());
-  private static final long SERVER_TIMEOUT_SECONDS = 3;
+  private static final long SERVER_TIMEOUT_SECONDS = 1000;
 
   private BlockingQueue<String> forwardingQueue;
   private BlockingQueue<String> receivingQueue;
@@ -125,6 +127,14 @@ public class GameModel extends Observable implements Model {
   @Override
   public void startSendingPackets() {
     LOGGER.info("Sending packets");
+    try {
+      serverConnection.startUdp();
+    } catch (SocketOpeningException | ServerNotFoundException exception) {
+      state.set(false);
+      setChanged();
+      notifyObserversInSeparateThread(exception);
+      LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+    }
   }
 
   @Override
