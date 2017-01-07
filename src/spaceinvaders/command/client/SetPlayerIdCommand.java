@@ -24,7 +24,11 @@ public class SetPlayerIdCommand extends Command {
     executor.startSendingPackets();
   }
 
-  public void setExecutor(Model executor) {
-    this.executor = executor;
+  @Override
+  public void setExecutor(Object executor) {
+    if (executor instanceof Model) {
+      this.executor = (Model) executor;
+    }
   }
+
 }

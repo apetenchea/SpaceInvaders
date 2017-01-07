@@ -25,7 +25,11 @@ public class InitGameWorldCommand extends Command {
     executor.initGameWorld(world);
   }
 
-  public void setExecutor(View executor) {
-    this.executor = executor;
+  @Override
+  public void setExecutor(Object executor) {
+    if (executor instanceof View) {
+      this.executor = (View) executor;
+    }
   }
+
 }

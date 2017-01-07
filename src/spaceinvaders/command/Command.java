@@ -28,4 +28,6 @@ public abstract class Command {
   public String getName() {
     return name;
   }
+
+  public abstract void setExecutor(Object executor);
 }

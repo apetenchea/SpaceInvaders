@@ -27,7 +27,10 @@ public class ConfigurePlayerCommand extends Command {
     executor.setTeamSize(teamSize);
   }
 
-  public void setExecutor(Player executor) {
-    this.executor = executor;
+  @Override
+  public void setExecutor(Object executor) {
+    if (executor instanceof Object) {
+      this.executor = (Player) executor;
+    }
   }
 } 
