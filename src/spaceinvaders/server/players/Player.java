@@ -204,8 +204,12 @@ public class Player extends Observable implements Callable<Void> {
    */
   public void close() throws ClosingSocketException {
     state.set(false);
-    readerFuture.cancel(true);
-    writerFuture.cancel(true);
+    if (readerFuture != null) {
+      readerFuture.cancel(true);
+    }
+    if (writerFuture != null) {
+      writerFuture.cancel(true);
+    }
     if (!socket.isClosed()) {
       try {
         socket.close();
