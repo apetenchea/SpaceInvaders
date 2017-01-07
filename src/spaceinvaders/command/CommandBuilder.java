@@ -16,6 +16,7 @@ public abstract class CommandBuilder {
   private Command command;
 
   public CommandBuilder(Command... commands) {
+    commandMap = new HashMap<>();
     for (Command command : commands) {
       commandMap.put(command.getName(),command);
     }
