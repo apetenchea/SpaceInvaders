@@ -26,7 +26,7 @@ public class Menu implements GraphicalObject {
   private JTextField serverAddrTxt;
   private JTextField serverPortTxt;
   private JTextField userNameTxt;
-  private JSpinner noOfPlayersSpn;
+  private JSpinner teamSizeSpn;
 
   /**
    * Construct a new menu with the defaults already entered.
@@ -53,10 +53,10 @@ public class Menu implements GraphicalObject {
     userNameTxt = new JTextField(CONFIG.getUserName(),10);
     menuFrame.add(userNameTxt);
 
-    noOfPlayersSpn = new JSpinner(new SpinnerNumberModel(1,1,3,1));
+    teamSizeSpn = new JSpinner(new SpinnerNumberModel(1,1,3,1));
     // Disable spinner's text editing feature
-    ((JSpinner.DefaultEditor) noOfPlayersSpn.getEditor()).getTextField().setEditable(false);
-    menuFrame.add(noOfPlayersSpn);
+    ((JSpinner.DefaultEditor) teamSizeSpn.getEditor()).getTextField().setEditable(false);
+    menuFrame.add(teamSizeSpn);
 
     playBtn = new JButton("Play");
     menuFrame.add(playBtn);
@@ -98,7 +98,7 @@ public class Menu implements GraphicalObject {
    * Get the game CONFIGuration from the UI elements.
    */
   public ClientConfig getConfig() {
-    CONFIG.setNoOfPlayers((Integer) noOfPlayersSpn.getValue());
+    CONFIG.setTeamSize((Integer) teamSizeSpn.getValue());
     CONFIG.setServerAddr(serverAddrTxt.getText());
     CONFIG.setServerPort(Integer.parseInt(serverPortTxt.getText()));
     CONFIG.setUserName(userNameTxt.getText());

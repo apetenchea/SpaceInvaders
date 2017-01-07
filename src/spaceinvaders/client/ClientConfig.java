@@ -12,7 +12,7 @@ public class ClientConfig {
   private static ClientConfig singleton;
 
   private Integer id;
-  private Integer noOfPlayers;
+  private Integer teamSize;
   private String serverAddr;
   private Integer serverPort;
   private String userName;
@@ -31,7 +31,7 @@ public class ClientConfig {
     serverAddr = "localhost";
     serverPort = 5412;
     userName = "default";
-    noOfPlayers = 1;
+    teamSize = 1;
   }
 
   /**
@@ -87,35 +87,35 @@ public class ClientConfig {
     return id;
   }
 
-  public int getNoOfPlayers() {
-    return noOfPlayers;
+  public int getTeamSize() {
+    return teamSize;
   }
 
-  public void setNoOfPlayers(int newNoOfPlayers) {
-    noOfPlayers = newNoOfPlayers;
+  public void setTeamSize(int teamSize) {
+    this.teamSize = teamSize;
   }
 
   public String getServerAddr() {
     return serverAddr;
   }
 
-  public void setServerAddr(String newServerAddr) {
-    serverAddr = newServerAddr;
+  public void setServerAddr(String serverAddr) {
+    this.serverAddr = serverAddr ;
   }
 
   public int getServerPort() {
     return serverPort;
   }
 
-  public void setServerPort(int newServerPort) {
-    serverPort = newServerPort;
+  public void setServerPort(int serverPort) {
+    this.serverPort = serverPort;
   }
 
   public String getUserName() {
     return userName;
   }
 
-  public void setUserName(String newUserName) {
-    userName = newUserName;
+  public void setUserName(String userName) {
+    this.userName = userName ;
   }
 }
