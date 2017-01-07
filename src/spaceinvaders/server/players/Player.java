@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Observable;
+import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -29,6 +30,9 @@ public class Player extends Observable implements Callable<Void> {
 
   private String name;
   private Integer teamSize;
+  private Integer totalPings;
+  private volatile Double pingFrequency;
+  private Date lastPing;
 
   private Socket socket;
   private BufferedReader reader;
@@ -36,8 +40,9 @@ public class Player extends Observable implements Callable<Void> {
 
   private BlockingQueue<String> incomingQueue;
   private BlockingQueue<String> outgoingQueue;
-  private ExecutorService ioExecutor;
   private ServiceState state;
+
+  private ExecutorService ioExecutor;
 
   /**
    * Construct a player using the provided socket.
@@ -46,6 +51,11 @@ public class Player extends Observable implements Callable<Void> {
          SocketOutputStreamException {
     this.socket = socket;
     this.ioExecutor = ioExecutor;
+    name = new String();
+    teamSize = new Integer(0);
+    totalPings = new Integer(0);
+    pingFrequency = new Double(0.0);
+    lastPing = new Date();
 
     try {
       reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -75,6 +85,7 @@ public class Player extends Observable implements Callable<Void> {
             data = reader.readLine();
           } catch (IOException exception) {
             if (state.get()) {
+              state.set(false);
               throw new SocketInputStreamException(exception);
             }
             break;
@@ -82,6 +93,7 @@ public class Player extends Observable implements Callable<Void> {
           if (data == null) {
             // EOF.
             if (state.get()) {
+              state.set(false);
               throw new SocketDisconnectedException(new IOException());
             }
             break;
@@ -90,6 +102,7 @@ public class Player extends Observable implements Callable<Void> {
             incomingQueue.put(data);
           } catch (InterruptedException exception) {
             if (state.get()) {
+              state.set(false);
               throw new InterruptedServiceException(exception);
             }
             break;
@@ -102,15 +115,17 @@ public class Player extends Observable implements Callable<Void> {
 
     Future<Void> writerFuture = ioExecutor.submit(new Callable<Void>() {
       @Override
-      public Void call() throws InterruptedServiceException {
+      public Void call() {
         while (state.get()) {
           String data = null;
           try {
             data = outgoingQueue.take();
           } catch (InterruptedException exception) {
             if (state.get()) {
-              throw new InterruptedServiceException(exception);
+              state.set(false);
+              LOGGER.log(Level.SEVERE,exception.toString(),exception);
             }
+            break;
           }
           writer.println(data);
         }
@@ -120,7 +135,7 @@ public class Player extends Observable implements Callable<Void> {
 
     try {
       readerFuture.get();
-      writerFuture.get();
+      writerFuture.cancel(true);
     } catch (ExecutionException exception) {
       Exception cause = new Exception(exception.getCause());
       LOGGER.log(Level.SEVERE,cause.getMessage(),cause);
@@ -166,7 +181,12 @@ public class Player extends Observable implements Callable<Void> {
    * A new ping from this player.
    */
   public void updatePingStatus() {
-    LOGGER.info("ping");
+    ++totalPings;
+    Date now = new Date();
+    long timeDiff = now.getTime() - lastPing.getTime();
+    lastPing = now;
+    pingFrequency = (pingFrequency > 0 ? (pingFrequency * 3 + timeDiff) / 4 : 1);
+    LOGGER.info(pingFrequency.toString());
   }
 
   /**
@@ -183,6 +203,10 @@ public class Player extends Observable implements Callable<Void> {
         throw new ClosingSocketException(exception);
       }
     }
+  }
+
+  public double getPingFrequency() {
+    return pingFrequency;
   }
 
   public void setName(String name) {
