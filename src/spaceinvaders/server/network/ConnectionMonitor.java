@@ -36,7 +36,7 @@ public class ConnectionMonitor extends Observable implements Callable<Void> {
 
   @Override
   public Void call() throws ServerSocketConnectionException {
-    Socket clientSocket;
+    Socket clientSocket = null;
     while (state.get()) {
       clientSocket = null;
       try {

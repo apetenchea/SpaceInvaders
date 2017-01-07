@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,7 +31,7 @@ public class PlayerManager extends Observable implements Callable<Void>, Observe
 
   private BlockingQueue<Socket> connectionQueue;
   private BlockingQueue<String> packetQueue;
-  private ConcurrentMap<Integer, Player> playersMap;
+  private Map<Integer, Player> playersMap;
 
   private ExecutorService connectionHandler;
   private ExecutorService packetHandler;
@@ -96,13 +96,24 @@ public class PlayerManager extends Observable implements Callable<Void>, Observe
 
     Future<Void> packetHandlerFuture = packetHandler.submit(new Callable<Void>() {
       @Override
-      public Void call() throws InterruptedServiceException {
+      public Void call() {
         while (state.get()) {
           try {
             String data = packetQueue.take();
+            Integer key = null;
+            try {
+              key = Integer.parseInt(data);
+            } catch (NumberFormatException exception) {
+              LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+              continue;
+            }
+            Player player = playersMap.get(key);
+            if (player != null) {
+              player.updatePingStatus();
+            }
           } catch (InterruptedException exception) {
             if (state.get()) {
-              throw new InterruptedServiceException(exception);
+              LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
             }
           }
         }
@@ -112,7 +123,7 @@ public class PlayerManager extends Observable implements Callable<Void>, Observe
 
     try {
       connectionHandlerFuture.get();
-      packetHandlerFuture.get();
+      packetHandlerFuture.cancel(true);
     } catch (ExecutionException exception) {
       throw new Exception(exception.getCause());
     } catch (InterruptedException exception) {
@@ -140,7 +151,7 @@ public class PlayerManager extends Observable implements Callable<Void>, Observe
     state.set(false);
     connectionHandler.shutdownNow();
     packetHandler.shutdownNow();
-    for (ConcurrentMap.Entry<Integer, Player> entry : playersMap.entrySet()) {
+    for (Map.Entry<Integer, Player> entry : playersMap.entrySet()) {
       try {
         entry.getValue().close();
       } catch (ClosingSocketException exception) {

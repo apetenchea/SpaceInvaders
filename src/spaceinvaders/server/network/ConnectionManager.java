@@ -23,27 +23,35 @@ public class ConnectionManager implements Callable<Void>, Observer {
   private static final Logger LOGGER = Logger.getLogger(ConnectionManager.class.getName());
 
   private ConnectionMonitor connectionListener;
+  private UdpListener packetListener;
   private BlockingQueue<Socket> connectionQueue;
   private BlockingQueue<String> packetQueue;
 
   private ExecutorService connectionListenerExecutor;
+  private ExecutorService packetListenerExecutor;
 
   /**
    * Construct a connection manager for connections coming from the specified port.
    */
   public ConnectionManager(int port) throws SocketOpeningException {
     connectionListener = new ConnectionMonitor(port);
+    packetListener = new UdpListener(port);
     connectionListener.addObserver(this);
+    packetListener.addObserver(this);
     connectionQueue = new LinkedBlockingQueue<>();
     packetQueue = new LinkedBlockingQueue<>();
+
     connectionListenerExecutor = Executors.newSingleThreadExecutor();
+    packetListenerExecutor = Executors.newSingleThreadExecutor();
   }
 
   @Override
   public Void call() throws Exception {
     Future<Void> connectionListenerFuture = connectionListenerExecutor.submit(connectionListener);
+    Future<Void> packetListenerFuture = packetListenerExecutor.submit(packetListener);
     try {
       connectionListenerFuture.get();
+      packetListenerFuture.get();
     } catch (ExecutionException exception) {
       throw new Exception(exception.getCause());
     } catch (InterruptedException exception) {
@@ -58,6 +66,12 @@ public class ConnectionManager implements Callable<Void>, Observer {
       try {
         connectionQueue.put((Socket) data);
       } catch (InterruptedException exception) {
+        LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+      }
+    } else if (data instanceof String) {
+      try {
+        packetQueue.put((String) data);
+      } catch(InterruptedException exception) {
         LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
       }
     }
@@ -75,6 +89,8 @@ public class ConnectionManager implements Callable<Void>, Observer {
       LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
     }
     connectionListenerExecutor.shutdownNow();
+    packetListener.close();
+    packetListenerExecutor.shutdownNow();
   }
 
   public BlockingQueue<Socket> getConnectionQueue() {

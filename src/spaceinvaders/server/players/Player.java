@@ -163,6 +163,13 @@ public class Player extends Observable implements Callable<Void> {
   }
 
   /**
+   * A new ping from this player.
+   */
+  public void updatePingStatus() {
+    LOGGER.info("ping");
+  }
+
+  /**
    * Close connection.
    */
   public void close() throws ClosingSocketException {
