@@ -8,22 +8,22 @@ import spaceinvaders.server.players.Player;
  */
 public class ConfigurePlayerCommand extends Command {
   private transient Player executor;
-  private String name;
+  private String playerName;
   private Integer teamSize;
 
   public ConfigurePlayerCommand() {
     super(ConfigurePlayerCommand.class.getName());
   }
 
-  public ConfigurePlayerCommand(String name, int teamSize) {
+  public ConfigurePlayerCommand(String playerName, int teamSize) {
     this();
-    this.name = name;
+    this.playerName = playerName;
     this.teamSize = teamSize;
   }
 
   @Override
   public void execute() {
-    executor.setName(name);
+    executor.setName(playerName);
     executor.setTeamSize(teamSize);
   }
 

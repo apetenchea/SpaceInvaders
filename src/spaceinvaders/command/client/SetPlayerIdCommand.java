@@ -1,13 +1,13 @@
 package spaceinvaders.command.client;
 
-import spaceinvaders.client.mvc.Model;
+import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.command.Command;
 
 /**
  * Set the ID of the player.
  */
 public class SetPlayerIdCommand extends Command {
-  private transient Model executor;
+  private transient Controller executor;
   private Integer id;
 
   public SetPlayerIdCommand() {
@@ -20,14 +20,13 @@ public class SetPlayerIdCommand extends Command {
 
   @Override
   public void execute() {
-    executor.setPlayerId(id);
-    executor.startSendingPackets();
+    executor.configurePlayer(id);
   }
 
   @Override
   public void setExecutor(Object executor) {
-    if (executor instanceof Model) {
-      this.executor = (Model) executor;
+    if (executor instanceof Controller) {
+      this.executor = (Controller) executor;
     }
   }
 
