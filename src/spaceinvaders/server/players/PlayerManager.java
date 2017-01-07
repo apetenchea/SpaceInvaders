@@ -27,8 +27,6 @@ public class PlayerManager extends Observable implements Callable<Void>, Observe
   private static final Logger LOGGER = Logger.getLogger(PlayerManager.class.getName());
   private static final int MAX_PLAYERS = 15;
 
-  private PlayerManager thisInstance;
-
   private BlockingQueue<Socket> connectionQueue;
   private BlockingQueue<String> packetQueue;
   private Map<Integer, Player> playersMap;
@@ -42,7 +40,6 @@ public class PlayerManager extends Observable implements Callable<Void>, Observe
    * Construct a manager that will two queues for taking data in.
    */
   public PlayerManager(BlockingQueue<Socket> connectionQueue, BlockingQueue<String> packetQueue) {
-    thisInstance = this;
     this.connectionQueue = connectionQueue;
     this.packetQueue = packetQueue;
     playersMap = new ConcurrentHashMap<>();
@@ -56,6 +53,7 @@ public class PlayerManager extends Observable implements Callable<Void>, Observe
 
   @Override
   public Void call() throws Exception {
+    PlayerManager thisInstance = this;
     Future<Void> connectionHandlerFuture = connectionHandler.submit(new Callable<Void>() {
       @Override
       public Void call() throws InterruptedServiceException {
@@ -140,6 +138,8 @@ public class PlayerManager extends Observable implements Callable<Void>, Observe
     if (observable instanceof Player) {
       Player leavingPlayer = (Player) observable;
       playersMap.remove(leavingPlayer.hashCode());
+      setChanged();
+      notifyObservers(leavingPlayer);
     }
   }
   /**

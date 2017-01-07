@@ -13,10 +13,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import spaceinvaders.exceptions.ClosingSocketException;
 import spaceinvaders.exceptions.InterruptedServiceException;
+import spaceinvaders.exceptions.PlayerTimeoutException;
 import spaceinvaders.exceptions.SocketDisconnectedException;
 import spaceinvaders.exceptions.SocketInputStreamException;
 import spaceinvaders.exceptions.SocketOutputStreamException;
@@ -27,6 +29,7 @@ import spaceinvaders.utility.ServiceState;
  */
 public class Player extends Observable implements Callable<Void> {
   private static final Logger LOGGER = Logger.getLogger(Player.class.getName());
+  private static final long PLAYER_TIMEOUT_SECONDS = 10;
 
   private String name;
   private Integer teamSize;
@@ -40,6 +43,8 @@ public class Player extends Observable implements Callable<Void> {
 
   private BlockingQueue<String> incomingQueue;
   private BlockingQueue<String> outgoingQueue;
+  private Future<Void> readerFuture;
+  private Future<Void> writerFuture;
   private ServiceState state;
 
   private ExecutorService ioExecutor;
@@ -75,7 +80,7 @@ public class Player extends Observable implements Callable<Void> {
 
   @Override
   public Void call() {
-    Future<Void> readerFuture = ioExecutor.submit(new Callable<Void>() {
+    readerFuture = ioExecutor.submit(new Callable<Void>() {
       @Override
       public Void call() throws SocketInputStreamException, SocketDisconnectedException,
              InterruptedServiceException {
@@ -94,7 +99,7 @@ public class Player extends Observable implements Callable<Void> {
             // EOF.
             if (state.get()) {
               state.set(false);
-              throw new SocketDisconnectedException(new IOException());
+              throw new SocketDisconnectedException();
             }
             break;
           }
@@ -113,7 +118,7 @@ public class Player extends Observable implements Callable<Void> {
       }
     });
 
-    Future<Void> writerFuture = ioExecutor.submit(new Callable<Void>() {
+    writerFuture = ioExecutor.submit(new Callable<Void>() {
       @Override
       public Void call() {
         while (state.get()) {
@@ -144,10 +149,12 @@ public class Player extends Observable implements Callable<Void> {
         LOGGER.log(Level.SEVERE,exception.toString(),exception);
       }
     } finally {
-      try {
-        close();
-      } catch (ClosingSocketException exception) {
-        LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+      if (!socket.isClosed()) {
+        try {
+          socket.close();
+        } catch (IOException exception) {
+          LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+        }
       }
     }
     return null;
@@ -167,12 +174,15 @@ public class Player extends Observable implements Callable<Void> {
   /**
    * Get data.
    */
-  public String pull() throws InterruptedServiceException  {
+  public String pull() throws InterruptedServiceException, PlayerTimeoutException {
     String data = null;
     try {
-      data = incomingQueue.take();
+      data = incomingQueue.poll(PLAYER_TIMEOUT_SECONDS,TimeUnit.SECONDS);
     } catch (InterruptedException exception) {
       throw new InterruptedServiceException(exception);
+    }
+    if (data == null) {
+      throw new PlayerTimeoutException();
     }
     return data;
   }
@@ -194,23 +204,37 @@ public class Player extends Observable implements Callable<Void> {
    */
   public void close() throws ClosingSocketException {
     state.set(false);
+    readerFuture.cancel(true);
+    writerFuture.cancel(true);
     if (!socket.isClosed()) {
-      setChanged();
-      notifyObservers();
       try {
         socket.close();
       } catch (IOException exception) {
         throw new ClosingSocketException(exception);
       }
     }
+    setChanged();
+    notifyObservers();
   }
 
   public double getPingFrequency() {
     return pingFrequency;
   }
 
+  public boolean getState() {
+    return state.get();
+  }
+
+  public String getName() {
+    return name;
+  }
+
   public void setName(String name) {
     this.name = name;
+  }
+
+  public int getTeamSize() {
+    return teamSize;
   }
 
   public void setTeamSize(int teamSize) {
