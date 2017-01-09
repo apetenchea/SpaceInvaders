@@ -59,11 +59,6 @@ public class GameManager implements Observer {
           @Override
           public Void call() {
             processPlayer(joiningPlayer);
-            try {
-              joiningPlayer.close();
-            } catch (ClosingSocketException exception) {
-              LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
-            }
             return null;
           }
         });

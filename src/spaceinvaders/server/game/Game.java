@@ -38,6 +38,7 @@ import spaceinvaders.command.client.FlushScreenCommand;
 import spaceinvaders.command.client.MoveEntityCommand;
 import spaceinvaders.command.client.DestroyEntityCommand;
 import spaceinvaders.utility.ServiceState;
+import spaceinvaders.exceptions.ClosingSocketException;
 
 /**
  * Game logic and physics happen here.
@@ -108,7 +109,13 @@ public class Game implements Callable<Void> {
       }));
     }
     playGame();
-    //sendQuitSignal();
+    for (Player player : players) {
+      try {
+        player.close();
+      } catch (ClosingSocketException exception) {
+        LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+      }
+    }
     return null;
   }
 

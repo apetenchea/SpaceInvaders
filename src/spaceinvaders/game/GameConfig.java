@@ -18,7 +18,6 @@ public class GameConfig {
 
   private Couple<Integer,Integer> gameFrameSize;
 
-  private String gamePanelBackgroundImage;
   private Color gamePanelForegroundColor;
   private Color gamePanelTextColor;
   private Font gamePanelTextFont;
@@ -44,7 +43,6 @@ public class GameConfig {
 
     gameFrameSize = new Couple<>(1280,760);
 
-    gamePanelBackgroundImage = RESOURCES_FOLDER + "background.jpg";
     gamePanelForegroundColor = Color.BLACK;
     gamePanelTextColor = Color.WHITE;
     gamePanelTextFont = new Font("Courier",Font.BOLD,15);
@@ -82,10 +80,6 @@ public class GameConfig {
   public int getGameFrameHeight() {
     return gameFrameSize.getSecond();
   }
-
-  public String getGamePanelBackgroundImage() {
-    return gamePanelBackgroundImage;
-  } 
 
   public Color getGamePanelForegroundColor() {
     return gamePanelForegroundColor;
