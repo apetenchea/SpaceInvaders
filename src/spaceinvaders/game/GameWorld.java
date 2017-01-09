@@ -19,13 +19,17 @@ public class GameWorld {
 
   private Integer invadersRows;
   private Integer invadersColumns;
-  private Integer invaderSpeed;
+  private Integer invaderJump;
+  private Integer invaderSpeedMilliseconds;
   private Couple<Integer,Integer> invadersOffset;
   private Couple<Integer,Integer> distanceBetweenInvaders;
 
-  private Integer playerSpeed;
+  private Integer playerJump;
   private Couple<Integer,Integer> playersOffset;
   private Integer distanceBetweenPlayers;
+
+  private Integer bulletJump;
+  private Integer bulletSpeedMilliseconds;
 
   private List<Entity> invaders;
   private List<Entity> players;
@@ -44,7 +48,8 @@ public class GameWorld {
 
     invadersRows = 3;
     invadersColumns = 5;
-    invaderSpeed = 64;
+    invaderJump = config.getInvaderWidth();
+    invaderSpeedMilliseconds = 1000;
     int frameWidth = config.getGameFrameWidth();
     int invaderWidth = config.getInvaderWidth();
     int invadersGap = 32;
@@ -54,7 +59,10 @@ public class GameWorld {
     distanceBetweenInvaders = new Couple<>(config.getInvaderWidth() + invadersGap,
         config.getInvaderHeight() + invadersGap);
 
-    playerSpeed = 64;
+    playerJump = config.getPlayerWidth();
+
+    bulletJump = config.getBulletHeight();
+    bulletSpeedMilliseconds = 500;
   }
 
   public synchronized Map<EnumEntity,List<Entity>> makeGame(List<Integer> playersId) {
@@ -75,11 +83,11 @@ public class GameWorld {
         distanceBetweenPlayers = 0;
         break;
       case 2:
-        playersOffset = new Couple<>((frameWidth - (2 * playerWidth + playersGap)) / 2,1200);
+        playersOffset = new Couple<>((frameWidth - (2 * playerWidth + playersGap)) / 2,600);
         distanceBetweenPlayers = config.getPlayerWidth() + playersGap;
         break;
       case 3:
-        playersOffset = new Couple<>((frameWidth - (3 * playerWidth + 2 * playersGap)) / 2,1200);
+        playersOffset = new Couple<>((frameWidth - (3 * playerWidth + 2 * playersGap)) / 2,600);
         distanceBetweenPlayers = config.getPlayerWidth() + playersGap;
         break;
     }
@@ -91,6 +99,30 @@ public class GameWorld {
       pos = new Couple<>(pos.getFirst() + distanceBetweenPlayers,pos.getSecond());
     }
     return world;
+  }
+
+  public int getInvaderJump() {
+    return invaderJump;
+  }
+
+  public int getInvaderSpeed() {
+    return invaderSpeedMilliseconds;
+  }
+
+  public int getPlayersOffsetY() {
+    return playersOffset.getSecond();
+  }
+
+  public int getPlayerJump() {
+    return playerJump;
+  }
+
+  public int getBulletJump() {
+    return bulletJump;
+  }
+
+  public int getBulletSpeed() {
+    return bulletSpeedMilliseconds;
   }
 
   private void addInvaders() {
@@ -108,7 +140,7 @@ public class GameWorld {
 
   private void addShield(Couple<Integer,Integer> pos) {
     Couple<Integer,Integer> shieldPos = new Couple<>(pos.getFirst() - config.getShieldWidth() / 2,
-        pos.getSecond() - config.getShieldHeight() * 2);
+        pos.getSecond() - config.getShieldHeight() * 3);
     for (int shieldBrick = 0; shieldBrick < 3; ++shieldBrick) {
       shields.add(new Entity(entityId++,shieldPos));
       shieldPos = new Couple<>(shieldPos.getFirst() + config.getShieldWidth(),shieldPos.getSecond()); 

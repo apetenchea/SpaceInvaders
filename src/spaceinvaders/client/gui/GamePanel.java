@@ -53,16 +53,16 @@ class GamePanel extends JPanel {
     graphics.drawImage(backgroundImage,0,0,null);
     for (Map.Entry<Integer,GraphicalEntity> entry : entitiesMap.entrySet()) {
       GraphicalEntity entity = entry.getValue();
-      System.err.println("Id : " + entity.getId() + " " + entity.getX() + " " + entity.getY());
       graphics.drawImage(entity.getImage(),entity.getX(),entity.getY(),this);
     }
     graphics.setColor(config.getGamePanelTextColor());
 		graphics.setFont(config.getGamePanelTextFont());
     for (Map.Entry<Integer,String> entry : playerNamesMap.entrySet()) {
       GraphicalEntity player = entitiesMap.get(entry.getKey());
-      System.err.println(player);
-      graphics.drawString(entry.getValue(),player.getX(),player.getY() + config.getPlayerHeight()
-          + config.getPlayerNameOffset());
+      if (player != null) {
+        graphics.drawString(entry.getValue(),player.getX(),player.getY() + config.getPlayerHeight()
+            + config.getPlayerNameOffset());
+      }
     }
   }
 
@@ -78,8 +78,22 @@ class GamePanel extends JPanel {
     }
   }
 
-  public void removeEntity(GraphicalEntity entity) {
-    entitiesMap.remove(entity.getId());
+  public void moveEntity(int id, int newX, int newY) {
+    GraphicalEntity entity = entitiesMap.get(id);
+    if (entity == null) {
+      LOGGER.warning("Trying to move inexistent entity");
+      return;
+    }
+    entity.move(newX,newY);
+  }
+
+  public void destroyEntity(int id) {
+    GraphicalEntity entity = entitiesMap.get(id);
+    if (entity == null) {
+      LOGGER.warning("Trying to remove an inexistent entity");
+      return;
+    }
+    entitiesMap.remove(id);
   }
 
   public void addPlayer(Integer id, String name) {

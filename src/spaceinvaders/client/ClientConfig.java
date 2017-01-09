@@ -20,7 +20,7 @@ public class ClientConfig {
   /**
    * Get a ClientConfig instance.
    */
-  public static ClientConfig getInstance() {
+  public static synchronized ClientConfig getInstance() {
     if (singleton == null) {
       singleton = new ClientConfig();
     }

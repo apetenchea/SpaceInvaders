@@ -5,19 +5,29 @@ import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 
 /**
- * Flush all readed data on the screen.
+ * Reset the position of a game entity.
  */
-public class FlushScreenCommand extends Command {
+public class MoveEntityCommand extends Command {
   private transient Controller executor;
+  private Integer id;
+  private Integer newX;
+  private Integer newY;
 
-  public FlushScreenCommand() {
-    super(FlushScreenCommand.class.getName());
+  public MoveEntityCommand() {
+    super(MoveEntityCommand.class.getName());
+  }
+
+  public MoveEntityCommand(int id, int newX, int newY) {
+    this();
+    this.id = id;
+    this.newX = newX;
+    this.newY = newY;
   }
 
   @Override
   public void execute() {
     for (View view : executor.getViews()) {
-      view.flush();
+      view.moveEntity(id,newX,newY);
     }
   }
 
@@ -29,3 +39,4 @@ public class FlushScreenCommand extends Command {
   }
 
 }
+

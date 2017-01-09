@@ -60,37 +60,13 @@ public class GameController implements Controller {
   }
 
   @Override
-  public void configurePlayer(int id) {
-    ClientConfig config = ClientConfig.getInstance();
-    config.setId(id);
-    model.startSendingPackets();
-    model.doCommand(new ConfigurePlayerCommand(config.getUserName(),config.getTeamSize()));
-    for (View view : views) {
-      view.showGame();
-    }
+  public Model getModel() {
+    return model;
   }
 
   @Override
-  public void addEntity(String type, Entity body) {
-    LOGGER.info("add entity");
-    for (View view : views) {
-      view.addEntity(type,body);
-    }
-  }
-
-  @Override
-  public void setPlayerNames(List<Couple<Integer,String>> list) {
-    LOGGER.info("set player names");
-    for (View view : views) {
-      view.setPlayerNames(list);
-    }
-  }
-
-  @Override
-  public void flushViews() {
-    for (View view : views) {
-      view.flush();
-    }
+  public List<View> getViews() {
+    return views;
   }
 
   @Override

@@ -5,6 +5,9 @@ import spaceinvaders.command.client.AddEntityCommand;
 import spaceinvaders.command.client.SetPlayerIdCommand;
 import spaceinvaders.command.client.SetPlayerNamesCommand;
 import spaceinvaders.command.client.FlushScreenCommand;
+import spaceinvaders.command.client.MoveEntityCommand;
+import spaceinvaders.command.client.GameOverCommand;
+import spaceinvaders.command.client.DestroyEntityCommand;
 
 /**
  * Builds commands for the client.
@@ -18,6 +21,9 @@ public class ClientCommandBuilder extends CommandBuilder {
     super(new SetPlayerIdCommand(),
         new AddEntityCommand(),
         new SetPlayerNamesCommand(),
-        new FlushScreenCommand());
+        new FlushScreenCommand(),
+        new MoveEntityCommand(),
+        new GameOverCommand(),
+        new DestroyEntityCommand());
   }
 }

@@ -4,13 +4,31 @@ import java.awt.image.BufferedImage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import spaceinvaders.game.Entity;
+import spaceinvaders.game.GameConfig;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
+import spaceinvaders.exceptions.ResourceNotFoundException;
 
 /**
  * Game entities that appear on the screen.
  */
-public abstract class GraphicalEntity implements Cloneable, Movable {
+public abstract class GraphicalEntity implements Cloneable {
   private static final Logger LOGGER = Logger.getLogger(GraphicalEntity.class.getName());
+  private BufferedImage avatar; 
   private Entity entity;
+
+  protected GraphicalEntity(String imagePath) throws ResourceNotFoundException {
+    try {
+      avatar = ImageIO.read(new File(imagePath));
+    } catch (IOException exception) {
+      throw new ResourceNotFoundException(exception);
+    }
+  }
 
   @Override
   public Object clone() {
@@ -22,31 +40,17 @@ public abstract class GraphicalEntity implements Cloneable, Movable {
     return null;
   }
 
-  @Override
-  public void moveUp(int pixels) {
-    entity.move(getX(),getY() - pixels); 
-  }
-
-  @Override
-  public void moveRight(int pixels) {
-    entity.move(getX() + pixels,getY());
-  }
-
-  @Override
-  public void moveDown(int pixels) {
-    entity.move(getX(),getY() + pixels);
-  }
-
-  @Override
-  public void moveLeft(int pixels) {
-    entity.move(getX() - pixels,getY());
-  }
-
   public void setEntity(Entity entity) {
     this.entity = entity;
   }
 
-  public abstract BufferedImage getImage();
+  public void move(int xCoord, int yCoord) {
+    entity.move(xCoord,yCoord);
+  }
+
+  public BufferedImage getImage() {
+    return avatar;
+  }
 
    public int getId() {
     return entity.getId();
@@ -58,9 +62,5 @@ public abstract class GraphicalEntity implements Cloneable, Movable {
 
   public int getY() {
     return entity.getY();
-  }
-
-  public void setPos(int xCoord, int yCoord) {
-    entity.move(xCoord,yCoord);
   }
 }

@@ -2,6 +2,7 @@ package spaceinvaders.command.client;
 
 import java.util.List;
 import spaceinvaders.client.mvc.Controller;
+import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 import spaceinvaders.utility.Couple;
 
@@ -22,7 +23,9 @@ public class SetPlayerNamesCommand extends Command {
 
   @Override
   public void execute() {
-    executor.setPlayerNames(list);
+    for (View view : executor.getViews()) {
+      view.setPlayerNames(list);
+    }
   }
 
   @Override

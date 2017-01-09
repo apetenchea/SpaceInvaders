@@ -20,32 +20,12 @@ public interface Controller extends Observer {
   public void registerView(View view);
 
   /**
-   * Configure player for the start of the game.
-   *
-   * <p>Used in order to execute the command:
-   * {@link spaceinvaders.command.client.SetPlayerIdCommand}
+   * Return the only model registered with this controller.
    */
-  public void configurePlayer(int id);
+  public Model getModel(); 
 
   /**
-   * Add an entity in the game.
-   *
-   * <p>Used in order to execute the command:
-   * {@link spaceinvaders.command.client.AddEntityCommand}
+   * Return a list of all views registered with this controller.
    */
-  public void addEntity(String type, Entity body);
-
-  /**
-   * Associate player names with their IDs.
-   * <p>Used in order to execute the command:
-   * {@link spaceinvaders.command.client.SetPlayerNamesCommand}
-   */
-  public void setPlayerNames(List<Couple<Integer,String>> list);
-
-  /**
-   * Make views flush their accumulated data.
-   * <p>Used in order to execute the command:
-   * {@link spaceinvaders.command.client.FlushScreenCommand}
-   */
-  public void flushViews();
+  public List<View> getViews();
 }

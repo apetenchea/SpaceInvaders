@@ -58,13 +58,24 @@ public class GameView implements View {
         JOptionPane.ERROR_MESSAGE);
   }
   
+  @Override
   public void addEntity(String type, Entity body) {
     game.addEntity(type,body);
   }
 
   @Override
+  public void destroyEntity(int id) {
+    game.destroyEntity(id);
+  }
+
+  @Override
   public void setPlayerNames(List<Couple<Integer,String>> players) {
     game.setPlayerNames(players);
+  }
+
+  @Override
+  public void moveEntity(int id, int newX, int newY) {
+    game.moveEntity(id,newX,newY);
   }
 
   @Override

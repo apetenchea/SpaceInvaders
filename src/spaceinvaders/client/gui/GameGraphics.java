@@ -73,8 +73,16 @@ public class GameGraphics implements GraphicalObject {
     gameFrame.setVisible(true);
   }
 
-  public void addEntity(String type, Entity body) {
+  public synchronized void addEntity(String type, Entity body) {
     gamePanel.addEntity(type,body);
+  }
+
+  public synchronized void destroyEntity(int id) {
+    gamePanel.destroyEntity(id);
+  }
+
+  public synchronized void moveEntity(int id, int newX, int newY) {
+    gamePanel.moveEntity(id,newX,newY);
   }
 
 
@@ -86,9 +94,9 @@ public class GameGraphics implements GraphicalObject {
   }
 
   /**
-   * Repaing data on the screen.
+   * Repainting data on the screen.
    */
-  public void flush() {
+  public synchronized void flush() {
     gamePanel.repaint();
   }
 

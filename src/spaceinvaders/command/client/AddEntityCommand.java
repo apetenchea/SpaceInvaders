@@ -1,6 +1,8 @@
 package spaceinvaders.command.client;
 
+import java.util.List;
 import spaceinvaders.client.mvc.Controller;
+import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 import spaceinvaders.game.Entity;
 import spaceinvaders.game.EnumEntity;
@@ -30,25 +32,29 @@ public class AddEntityCommand extends Command {
 
   @Override
   public void execute() {
+    String typeName;
     switch (type) {
       case INVADER:
-        executor.addEntity(Invader.class.getName(),body);
+        typeName = Invader.class.getName();
         break;
       case PLAYER:
-        executor.addEntity(Player.class.getName(),body);
+        typeName = Player.class.getName();
         break;
       case SHIELD:
-        executor.addEntity(Shield.class.getName(),body);
+        typeName = Shield.class.getName();
         break;
       case INVADER_BULLET:
-        executor.addEntity(InvaderBullet.class.getName(),body);
+        typeName = InvaderBullet.class.getName();
         break;
       case PLAYER_BULLET:
-        executor.addEntity(PlayerBullet.class.getName(),body);
+        typeName = PlayerBullet.class.getName();
         break;
       default:
-        /* do nothing */
+        typeName = null;
         break;
+    }
+    for (View view : executor.getViews()) {
+      view.addEntity(typeName,body);
     }
   }
 

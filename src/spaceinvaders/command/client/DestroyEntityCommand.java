@@ -5,19 +5,25 @@ import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 
 /**
- * Flush all readed data on the screen.
+ * Remove an entity from the game.
  */
-public class FlushScreenCommand extends Command {
+public class DestroyEntityCommand extends Command {
   private transient Controller executor;
+  private Integer id;
 
-  public FlushScreenCommand() {
-    super(FlushScreenCommand.class.getName());
+  public DestroyEntityCommand() {
+    super(DestroyEntityCommand.class.getName());
+  }
+
+  public DestroyEntityCommand(int id) {
+    this();
+    this.id = id;
   }
 
   @Override
   public void execute() {
     for (View view : executor.getViews()) {
-      view.flush();
+      view.destroyEntity(id);
     }
   }
 
@@ -29,3 +35,4 @@ public class FlushScreenCommand extends Command {
   }
 
 }
+

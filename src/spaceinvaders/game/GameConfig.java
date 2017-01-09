@@ -37,6 +37,8 @@ public class GameConfig {
   private Couple<Integer,Integer> shieldSize;
   private String shieldImage;
 
+  private String destroyedEntityImage;
+
   private GameConfig() {
     title = "SpaceInvaders";
 

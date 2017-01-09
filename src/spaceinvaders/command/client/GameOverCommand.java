@@ -1,24 +1,24 @@
 package spaceinvaders.command.client;
 
+import java.util.List;
 import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
+import spaceinvaders.utility.Couple;
 
 /**
- * Flush all readed data on the screen.
+ * The game is over.
  */
-public class FlushScreenCommand extends Command {
+public class GameOverCommand extends Command {
   private transient Controller executor;
 
-  public FlushScreenCommand() {
-    super(FlushScreenCommand.class.getName());
+  public GameOverCommand() {
+    super(GameOverCommand.class.getName());
   }
 
   @Override
   public void execute() {
-    for (View view : executor.getViews()) {
-      view.flush();
-    }
+    executor.getModel().exitGame();
   }
 
   @Override
@@ -29,3 +29,4 @@ public class FlushScreenCommand extends Command {
   }
 
 }
+

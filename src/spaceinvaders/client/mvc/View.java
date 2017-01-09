@@ -50,6 +50,16 @@ public interface View {
   public void setPlayerNames(List<Couple<Integer,String>> players);
 
   /**
+   * Change the position of an entity.
+   */
+  public void moveEntity(int id, int newX, int newY);
+
+  /**
+   * Destroy an entity.
+   */
+  public void destroyEntity(int id);
+
+  /**
    * Flush all accumulated data that has been given by the model.
    */
   public void flush();
