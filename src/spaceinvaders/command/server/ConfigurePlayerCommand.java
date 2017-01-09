@@ -29,7 +29,7 @@ public class ConfigurePlayerCommand extends Command {
 
   @Override
   public void setExecutor(Object executor) {
-    if (executor instanceof Object) {
+    if (executor instanceof Player) {
       this.executor = (Player) executor;
     }
   }

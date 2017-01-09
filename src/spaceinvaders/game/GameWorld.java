@@ -59,9 +59,9 @@ public class GameWorld {
     distanceBetweenInvaders = new Couple<>(config.getInvaderWidth() + invadersGap,
         config.getInvaderHeight() + invadersGap);
 
-    playerJump = config.getPlayerWidth();
+    playerJump = config.getPlayerWidth() / 2;
 
-    bulletJump = config.getBulletHeight();
+    bulletJump = config.getBulletHeight() / 2;
     bulletSpeedMilliseconds = 500;
   }
 
@@ -73,6 +73,8 @@ public class GameWorld {
     world.put(EnumEntity.INVADER,invaders);
     world.put(EnumEntity.PLAYER,players);
     world.put(EnumEntity.SHIELD,shields);
+    world.put(EnumEntity.INVADER_BULLET,new ArrayList<Entity>());
+    world.put(EnumEntity.PLAYER_BULLET,new ArrayList<Entity>());
     addInvaders();
     int frameWidth = config.getGameFrameWidth();
     int playerWidth = config.getPlayerWidth();

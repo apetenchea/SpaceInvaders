@@ -1,6 +1,9 @@
 package spaceinvaders.client.mvc;
 
 import static java.awt.event.KeyEvent.VK_ESCAPE;
+import static java.awt.event.KeyEvent.VK_LEFT;
+import static java.awt.event.KeyEvent.VK_RIGHT;
+import static java.awt.event.KeyEvent.VK_SPACE;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,6 +26,9 @@ import spaceinvaders.exceptions.InvalidServerAddressException;
 import spaceinvaders.exceptions.InvalidUserNameException;
 import spaceinvaders.game.Entity;
 import spaceinvaders.utility.Couple;
+import spaceinvaders.command.server.MovePlayerLeftCommand;
+import spaceinvaders.command.server.MovePlayerRightCommand;
+import spaceinvaders.command.server.PlayerShootCommand;
 
 /**
  * Handles communication between one or more views and a model.
@@ -36,8 +42,6 @@ public class GameController implements Controller {
   private Model model;
   private List<View> views;
 
-  private ExecutorService updateViewsExecutor;
-
   /**
    * Construct a controller and couple it with a model.
    */
@@ -45,8 +49,6 @@ public class GameController implements Controller {
     model.addController(this);
     this.model = model;
     views = new ArrayList<>();
-
-    updateViewsExecutor = Executors.newCachedThreadPool();
   }
 
   @Override
@@ -55,6 +57,9 @@ public class GameController implements Controller {
       view.addStartGameListener(new StartGameListener());
       view.addQuitAppListener(new QuitAppListener());
       view.addQuitGameListener(new QuitGameListener());
+      view.addMoveLeftListener(new MoveLeftListener());
+      view.addMoveRightListener(new MoveRightListener());
+      view.addShootListener(new ShootListener());
       views.add(view);
     }
   }
@@ -101,7 +106,6 @@ public class GameController implements Controller {
       for (View view : views) {
         view.shutdown();
       }
-      updateViewsExecutor.shutdownNow();
     }
   }
 
@@ -113,6 +117,33 @@ public class GameController implements Controller {
         for (View view : views) {
           view.showMenu();
         }
+      }
+    }
+  }
+
+  private class MoveLeftListener extends KeyAdapter {
+    @Override
+    public void keyPressed(KeyEvent event) {
+      if (event.getKeyCode() == VK_LEFT) {
+        model.doCommand(new MovePlayerLeftCommand(ClientConfig.getInstance().getId()));
+      }
+    }
+  }
+
+  private class MoveRightListener extends KeyAdapter {
+    @Override
+    public void keyPressed(KeyEvent event) {
+      if (event.getKeyCode() == VK_RIGHT) {
+        model.doCommand(new MovePlayerRightCommand(ClientConfig.getInstance().getId()));
+      }
+    }
+  }
+
+  private class ShootListener extends KeyAdapter {
+    @Override
+    public void keyPressed(KeyEvent event) {
+      if (event.getKeyCode() == VK_SPACE) {
+        model.doCommand(new PlayerShootCommand(ClientConfig.getInstance().getId()));
       }
     }
   }

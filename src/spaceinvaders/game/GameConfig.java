@@ -107,6 +107,10 @@ public class GameConfig {
     return playerSize.getSecond();
   }
 
+  public Couple<Integer,Integer> getPlayerSize() {
+    return playerSize;
+  }
+
   public int getPlayerNameOffset() {
     return playerNameOffset;
   }
@@ -123,6 +127,10 @@ public class GameConfig {
     return invaderSize.getSecond();
   }
 
+  public Couple<Integer,Integer> getInvaderSize() {
+    return invaderSize;
+  }
+
   public String getInvaderImage() {
     return invaderImage;
   }
@@ -133,6 +141,10 @@ public class GameConfig {
 
   public int getBulletHeight() {
     return bulletSize.getSecond();
+  }
+
+  public Couple<Integer,Integer> getBulletSize() {
+    return bulletSize;
   }
 
   public String getInvaderBulletImage() {
@@ -149,6 +161,10 @@ public class GameConfig {
 
   public int getShieldHeight() {
     return shieldSize.getSecond();
+  }
+
+  public Couple<Integer,Integer> getShieldSize() {
+    return shieldSize;
   }
 
   public String getShieldImage() {

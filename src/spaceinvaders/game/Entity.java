@@ -9,6 +9,16 @@ public class Entity {
   private Integer id;
   private Couple<Integer,Integer> pos;
 
+  public Entity(Entity entity) {
+    id = entity.id;
+    pos = entity.pos;
+  }
+
+  public Entity(Couple <Integer,Integer> pos) {
+    id = hashCode();
+    this.pos = pos;
+  }
+
   public Entity(int id, Couple<Integer,Integer> pos) {
     this.id = id;
     this.pos = pos;

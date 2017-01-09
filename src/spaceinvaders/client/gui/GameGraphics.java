@@ -101,9 +101,9 @@ public class GameGraphics implements GraphicalObject {
   }
 
   /**
-   * Add a listener for the ESC key.
+   * Add a listener keys.
    */
-  public void addEscKeyListener(KeyListener listener) {
+  public void addKeyListener(KeyListener listener) {
     gameFrame.addKeyListener(listener);
   }
 

@@ -29,6 +29,10 @@ public interface View {
    */
   public void addStartGameListener(ActionListener listener);
 
+  public void addMoveLeftListener(KeyListener listener);
+  public void addMoveRightListener(KeyListener listener);
+  public void addShootListener(KeyListener listener);
+
   /**
    * Get player's configuration.
    */

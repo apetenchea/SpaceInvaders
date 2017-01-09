@@ -81,7 +81,7 @@ class GamePanel extends JPanel {
   public void moveEntity(int id, int newX, int newY) {
     GraphicalEntity entity = entitiesMap.get(id);
     if (entity == null) {
-      LOGGER.warning("Trying to move inexistent entity");
+      LOGGER.warning("Trying to move inexistent entity " + id);
       return;
     }
     entity.move(newX,newY);
@@ -90,7 +90,7 @@ class GamePanel extends JPanel {
   public void destroyEntity(int id) {
     GraphicalEntity entity = entitiesMap.get(id);
     if (entity == null) {
-      LOGGER.warning("Trying to remove an inexistent entity");
+      LOGGER.warning("Trying to remove an inexistent entity " + id);
       return;
     }
     entitiesMap.remove(id);

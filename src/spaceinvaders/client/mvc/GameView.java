@@ -37,7 +37,22 @@ public class GameView implements View {
 
   @Override
   public void addQuitGameListener(KeyListener listener) {
-    game.addEscKeyListener(listener);
+    game.addKeyListener(listener);
+  }
+
+  @Override
+  public void addMoveLeftListener(KeyListener listener) {
+    game.addKeyListener(listener);
+  }
+
+  @Override
+  public void addMoveRightListener(KeyListener listener) {
+    game.addKeyListener(listener);
+  }
+
+  @Override
+  public void addShootListener(KeyListener listener) {
+    game.addKeyListener(listener);
   }
 
   @Override

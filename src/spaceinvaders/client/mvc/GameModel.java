@@ -99,7 +99,7 @@ public class GameModel extends Observable implements Model {
               break;
             }
           }
-          LOGGER.info("Data " + data);
+          //LOGGER.info("Data " + data);
           setChanged();
           notifyObservers(data);
         }
