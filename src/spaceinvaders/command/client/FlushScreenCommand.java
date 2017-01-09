@@ -4,23 +4,18 @@ import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.command.Command;
 
 /**
- * Set the ID of the player.
+ * Flush all readed data on the screen.
  */
-public class SetPlayerIdCommand extends Command {
+public class FlushScreenCommand extends Command {
   private transient Controller executor;
-  public Integer id;
 
-  public SetPlayerIdCommand() {
-    super(SetPlayerIdCommand.class.getName());
-  }
-  public SetPlayerIdCommand(int id) {
-    this();
-    this.id = id;
+  public FlushScreenCommand() {
+    super(FlushScreenCommand.class.getName());
   }
 
   @Override
   public void execute() {
-    executor.configurePlayer(id);
+    executor.flushViews();
   }
 
   @Override

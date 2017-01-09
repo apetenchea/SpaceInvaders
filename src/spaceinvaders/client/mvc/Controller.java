@@ -1,6 +1,9 @@
 package spaceinvaders.client.mvc;
 
+import java.util.List;
 import java.util.Observer;
+import spaceinvaders.game.Entity;
+import spaceinvaders.utility.Couple;
 
 /**
  * Separates application data and user interface.
@@ -19,8 +22,30 @@ public interface Controller extends Observer {
   /**
    * Configure player for the start of the game.
    *
-   * <p>Used in order to execute the {@link spaceinvaders.command.client.SetPlayerIdCommand}.
-   * The ID of the player is set and UDP packets can then be sent to the server.
+   * <p>Used in order to execute the command:
+   * {@link spaceinvaders.command.client.SetPlayerIdCommand}
    */
   public void configurePlayer(int id);
+
+  /**
+   * Add an entity in the game.
+   *
+   * <p>Used in order to execute the command:
+   * {@link spaceinvaders.command.client.AddEntityCommand}
+   */
+  public void addEntity(String type, Entity body);
+
+  /**
+   * Associate player names with their IDs.
+   * <p>Used in order to execute the command:
+   * {@link spaceinvaders.command.client.SetPlayerNamesCommand}
+   */
+  public void setPlayerNames(List<Couple<Integer,String>> list);
+
+  /**
+   * Make views flush their accumulated data.
+   * <p>Used in order to execute the command:
+   * {@link spaceinvaders.command.client.FlushScreenCommand}
+   */
+  public void flushViews();
 }

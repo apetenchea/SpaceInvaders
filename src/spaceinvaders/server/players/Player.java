@@ -27,6 +27,8 @@ import spaceinvaders.utility.ServiceState;
 
 /**
  * A player connected to the server.
+ *
+ * <p> Observers are notified when the player is no longer available.
  */
 public class Player extends Observable implements Callable<Void> {
   private static final Logger LOGGER = Logger.getLogger(Player.class.getName());
@@ -205,7 +207,7 @@ public class Player extends Observable implements Callable<Void> {
   }
 
   /**
-   * Close connection.
+   * Close connection and notify observers.
    */
   public void close() throws ClosingSocketException {
     state.set(false);

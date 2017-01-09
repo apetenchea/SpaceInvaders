@@ -21,6 +21,8 @@ import spaceinvaders.command.server.ConfigurePlayerCommand;
 import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.InvalidServerAddressException;
 import spaceinvaders.exceptions.InvalidUserNameException;
+import spaceinvaders.game.Entity;
+import spaceinvaders.utility.Couple;
 
 /**
  * Handles communication between one or more views and a model.
@@ -58,7 +60,41 @@ public class GameController implements Controller {
   }
 
   @Override
-  public void update(Observable obs, Object arg) {
+  public void configurePlayer(int id) {
+    ClientConfig config = ClientConfig.getInstance();
+    config.setId(id);
+    model.startSendingPackets();
+    model.doCommand(new ConfigurePlayerCommand(config.getUserName(),config.getTeamSize()));
+    for (View view : views) {
+      view.showGame();
+    }
+  }
+
+  @Override
+  public void addEntity(String type, Entity body) {
+    LOGGER.info("add entity");
+    for (View view : views) {
+      view.addEntity(type,body);
+    }
+  }
+
+  @Override
+  public void setPlayerNames(List<Couple<Integer,String>> list) {
+    LOGGER.info("set player names");
+    for (View view : views) {
+      view.setPlayerNames(list);
+    }
+  }
+
+  @Override
+  public void flushViews() {
+    for (View view : views) {
+      view.flush();
+    }
+  }
+
+  @Override
+  public synchronized void update(Observable obs, Object arg) {
     if (arg instanceof String) {
       CommandDirector director = new CommandDirector(new ClientCommandBuilder());
       director.makeCommand((String) arg);
@@ -74,22 +110,11 @@ public class GameController implements Controller {
     }
   }
 
-  @Override
-  public void configurePlayer(int id) {
-    ClientConfig config = ClientConfig.getInstance();
-    model.setPlayerId(id);
-    model.startSendingPackets();
-    model.doCommand(new ConfigurePlayerCommand(config.getUserName(),config.getTeamSize()));
-  }
-
   private void displayErrorOnViews(Exception exception) {
     for (View view : views) {
+      view.showMenu();
       view.displayError(exception);
     }
-  }
-
-  private void updateViews(String data) {
-    LOGGER.info("Update views" + data);
   }
 
   private class QuitAppListener implements ActionListener {

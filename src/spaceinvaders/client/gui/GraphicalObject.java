@@ -1,11 +1,11 @@
 package spaceinvaders.client.gui;
 
 /**
- * Everything that appears on the screen.
+ * Everything that can appear on the screen.
  */
 public interface GraphicalObject {
   /**
-   * The object is no longer needed.
+   * Free resources.
    */
   public void destroy();
 

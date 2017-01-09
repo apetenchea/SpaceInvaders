@@ -4,8 +4,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyListener;
 import java.util.List;
 import spaceinvaders.client.ClientConfig;
-import spaceinvaders.game.GameWorld;
 import spaceinvaders.utility.Couple;
+import spaceinvaders.game.Entity;
 
 /**
  * View component of the application.
@@ -40,15 +40,20 @@ public interface View {
   public void displayError(Exception exception);
 
   /**
-   * Set the IDs and names of the players participating in the game.
+   * Add a visual entity in the game.
    */
-  public void setPlayers(List<Couple<Integer,String>> players);
+  public void addEntity(String type, Entity body);
 
   /**
-   * Initial view for the game world.
+   * Associate the IDs of the participating players with their names.
    */
-  public void initGameWorld(GameWorld world);
+  public void setPlayerNames(List<Couple<Integer,String>> players);
 
+  /**
+   * Flush all accumulated data that has been given by the model.
+   */
+  public void flush();
+ 
   /**
    * Play game.
    */
@@ -63,9 +68,4 @@ public interface View {
    * Terminate all threads started by the view.
    */
   public void shutdown();
-
-  /**
-   * Update the view in conformity with the model.
-   */
-  public void update(String data);
 }

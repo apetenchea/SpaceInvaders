@@ -1,22 +1,59 @@
 package spaceinvaders.client.gui;
 
+import java.util.List;
 import java.awt.event.KeyListener;
+import java.util.logging.Logger;
+import java.util.logging.Level;
+
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+
+
+import java.awt.BorderLayout;
+
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+
+import spaceinvaders.game.GameConfig;
+import spaceinvaders.game.Entity;
+import spaceinvaders.utility.Couple;
 
 /**
  * Display the game as the user plays it.
  */
 public class GameGraphics implements GraphicalObject {
+  private static final Logger LOGGER = Logger.getLogger(GameGraphics.class.getName());
+
   private JFrame gameFrame;
+  private GamePanel gamePanel;
+  private JLabel messageLbl;
 
   /**
    * Construct an empty game frame.
    */
   public GameGraphics() {
-    gameFrame = new JFrame("SpaceInvaders - Game");
-    gameFrame.setSize(500,500);
+    GameConfig config = GameConfig.getInstance();
+
+    gameFrame = new JFrame(config.getTitle());
     gameFrame.setResizable(false);
     gameFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    gameFrame.setSize(config.getGameFrameWidth(),config.getGameFrameHeight());
+
+    JPanel contentPane = new JPanel();
+    contentPane.setBorder(new EmptyBorder(5,5,5,5));
+    contentPane.setLayout(new BorderLayout(0,0));
+    gameFrame.setContentPane(contentPane);
+
+		JPanel messagePanel = new JPanel();
+		contentPane.add(messagePanel,BorderLayout.NORTH);
+    messageLbl = new JLabel();
+		messageLbl.setHorizontalAlignment(SwingConstants.LEFT);
+		messagePanel.add(messageLbl);
+
+    gamePanel = new GamePanel();
+		gamePanel.setForeground(config.getGamePanelForegroundColor());
+		contentPane.add(gamePanel,BorderLayout.CENTER);
   }
 
   @Override
@@ -31,7 +68,28 @@ public class GameGraphics implements GraphicalObject {
 
   @Override
   public void show() {
+    gamePanel.init();
+    messageLbl.setText("Waiting for server...");
     gameFrame.setVisible(true);
+  }
+
+  public void addEntity(String type, Entity body) {
+    gamePanel.addEntity(type,body);
+  }
+
+
+  public void setPlayerNames(List<Couple<Integer,String>> players) {
+    for (Couple<Integer,String> couple : players) {
+      gamePanel.addPlayer(couple.getFirst(),couple.getSecond());
+    }
+    messageLbl.setText("Score: 0");
+  }
+
+  /**
+   * Repaing data on the screen.
+   */
+  public void flush() {
+    gamePanel.repaint();
   }
 
   /**

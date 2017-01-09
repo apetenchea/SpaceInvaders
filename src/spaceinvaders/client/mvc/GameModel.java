@@ -4,7 +4,9 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.Observable;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -36,18 +38,17 @@ public class GameModel extends Observable implements Model {
   private BlockingQueue<String> forwardingQueue;
   private BlockingQueue<String> receivingQueue;
   private NetworkConnection serverConnection;
-  private ClientConfig config;
   private ServiceState state;
 
+  private Future<Void> dataReceiverFuture;
+  private Future<Void> networkFuture;
   private ExecutorService dataReceiverExecutor;
   private ExecutorService networkExecutor;
-  private ExecutorService notifyObserversExecutor;
 
   /**
    * Constructs a new model that uses the specified config.
    */
   public GameModel(ClientConfig config) {
-    this.config = config;
     forwardingQueue = new LinkedBlockingQueue<>();
     receivingQueue = new LinkedBlockingQueue<>();
     serverConnection = new NetworkConnection(config,receivingQueue,forwardingQueue);
@@ -55,7 +56,6 @@ public class GameModel extends Observable implements Model {
 
     dataReceiverExecutor = Executors.newSingleThreadExecutor();
     networkExecutor = Executors.newSingleThreadExecutor();
-    notifyObserversExecutor = Executors.newSingleThreadExecutor();
   }
   
   @Override
@@ -69,7 +69,7 @@ public class GameModel extends Observable implements Model {
       forwardingQueue.put(command.toJson());
     } catch (InterruptedException exception) {
       setChanged();
-      notifyObserversInSeparateThread(new InterruptedServiceException(exception));
+      notifyObservers(new InterruptedServiceException(exception));
       LOGGER.log(Level.SEVERE,exception.toString(),exception);
     }
   }
@@ -80,7 +80,7 @@ public class GameModel extends Observable implements Model {
     forwardingQueue.clear();
     receivingQueue.clear();
 
-    dataReceiverExecutor.submit(new Callable<Void>() {
+    dataReceiverFuture = dataReceiverExecutor.submit(new Callable<Void>() {
       @Override
       public Void call() {
         while (state.get()) {
@@ -99,14 +99,15 @@ public class GameModel extends Observable implements Model {
               break;
             }
           }
+          LOGGER.info("Data " + data);
           setChanged();
-          notifyObserversInSeparateThread(data);
+          notifyObservers(data);
         }
         return null;
       }
     });
 
-    networkExecutor.submit(new Callable<Void>() {
+    networkFuture = networkExecutor.submit(new Callable<Void>() {
       @Override
       public Void call() {
         try {
@@ -120,11 +121,6 @@ public class GameModel extends Observable implements Model {
   }
 
   @Override
-  public void setPlayerId(int id) {
-    config.setId(id);
-  }
-
-  @Override
   public void startSendingPackets() {
     LOGGER.info("Sending packets");
     try {
@@ -132,7 +128,7 @@ public class GameModel extends Observable implements Model {
     } catch (SocketOpeningException | ServerNotFoundException exception) {
       state.set(false);
       setChanged();
-      notifyObserversInSeparateThread(exception);
+      notifyObservers(exception);
       LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
     }
   }
@@ -147,6 +143,16 @@ public class GameModel extends Observable implements Model {
         LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
       }
     }
+    try {
+      if (dataReceiverFuture != null) {
+        dataReceiverFuture.cancel(true);
+      }
+      if (networkFuture != null) {
+        networkFuture.cancel(true);
+      }
+    } catch (CancellationException exception) {
+      LOGGER.warning("Suppressing " + exception.toString());
+    }
   }
 
   @Override
@@ -154,7 +160,6 @@ public class GameModel extends Observable implements Model {
     serverConnection.shutdown();
     dataReceiverExecutor.shutdownNow();
     networkExecutor.shutdownNow();
-    notifyObserversExecutor.shutdownNow();
   }
 
   /**
@@ -163,17 +168,7 @@ public class GameModel extends Observable implements Model {
   private void exceptionFired(Exception exception) {
     state.set(false);
     setChanged();
-    notifyObserversInSeparateThread(exception);
+    notifyObservers(exception);
     LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
-  }
-
-  private void notifyObserversInSeparateThread(Object obj) {
-    notifyObserversExecutor.submit(new Callable<Void>() {
-      @Override
-      public Void call() {
-        notifyObservers(obj);
-        return null;
-      }
-    });
   }
 }

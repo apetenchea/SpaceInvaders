@@ -1,9 +1,10 @@
 package spaceinvaders.command.client.builder;
 
 import spaceinvaders.command.CommandBuilder;
-import spaceinvaders.command.client.InitGameWorldCommand;
-import spaceinvaders.command.client.InitPlayersCommand;
+import spaceinvaders.command.client.AddEntityCommand;
 import spaceinvaders.command.client.SetPlayerIdCommand;
+import spaceinvaders.command.client.SetPlayerNamesCommand;
+import spaceinvaders.command.client.FlushScreenCommand;
 
 /**
  * Builds commands for the client.
@@ -15,7 +16,8 @@ public class ClientCommandBuilder extends CommandBuilder {
    */
   public ClientCommandBuilder() {
     super(new SetPlayerIdCommand(),
-        new InitGameWorldCommand(),
-        new InitPlayersCommand());
+        new AddEntityCommand(),
+        new SetPlayerNamesCommand(),
+        new FlushScreenCommand());
   }
 }

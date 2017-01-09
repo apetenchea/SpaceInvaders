@@ -109,7 +109,6 @@ public class NetworkConnection implements Callable<Void> {
             state.set(false);
             break;
           }
-          LOGGER.info(data);
           try {
             readingQueue.put(data);
           } catch (InterruptedException exception) {
@@ -154,6 +153,7 @@ public class NetworkConnection implements Callable<Void> {
     } catch (CancellationException exception) {
       LOGGER.warning("Suppressing " + exception.toString());
     }
+
     return null;
   }
 

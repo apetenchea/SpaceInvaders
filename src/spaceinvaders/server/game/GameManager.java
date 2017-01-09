@@ -59,7 +59,6 @@ public class GameManager implements Observer {
           @Override
           public Void call() {
             processPlayer(joiningPlayer);
-            LOGGER.info("Closing player");
             try {
               joiningPlayer.close();
             } catch (ClosingSocketException exception) {
@@ -89,6 +88,7 @@ public class GameManager implements Observer {
 
   private void processPlayer(Player joiningPlayer) {
     LOGGER.info("Processing: " + joiningPlayer.hashCode());
+
     String data = null;
     try {
       joiningPlayer.push(new SetPlayerIdCommand(joiningPlayer.hashCode()).toJson());
@@ -99,47 +99,50 @@ public class GameManager implements Observer {
       }
       return;
     }
+    // Get player name and team size.
     CommandDirector director = new CommandDirector(new ServerCommandBuilder());
     director.makeCommand(data);
     Command command = director.getCommand();
     command.setExecutor(joiningPlayer);
     command.execute();
+
     int teamSize = joiningPlayer.getTeamSize();
     if (teamSize < 0 || teamSize > MAX_TEAM_SIZE) {
       return;
     } 
     BlockingQueue<Player> queue = gameQueues.get(teamSize);
-    if (queue != null) {
-      Future<Void> game = null;
-      synchronized (this) {
-        try {
-          queue.put(joiningPlayer);
-        } catch (InterruptedException exception) {
-          LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
-          return;
-        }
-        if (queue.size() == joiningPlayer.getTeamSize()) {
-          List<Player> players = new ArrayList<>();
-          queue.drainTo(players);
-          game = createGame(players);
-        }
+    if (queue == null) {
+      return;
+    }
+    Future<Void> game = null;
+    synchronized (this) {
+      try {
+        queue.put(joiningPlayer);
+      } catch (InterruptedException exception) {
+        LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+        return;
       }
-      if (game != null) {
-        try {
-          game.get();
-        } catch (ExecutionException exception) {
-          Exception cause = new Exception(exception.getCause());
-          LOGGER.log(Level.SEVERE,cause.getMessage(),cause);
-        } catch (InterruptedException exception) {
-          LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
-        }
+      if (queue.size() == joiningPlayer.getTeamSize()) {
+        List<Player> players = new ArrayList<>();
+        queue.drainTo(players);
+        game = createGame(players);
       }
+    }
+    if (game == null) {
+      return;
+    }
+    try {
+      game.get();
+    } catch (ExecutionException exception) {
+      Exception cause = new Exception(exception.getCause());
+      LOGGER.log(Level.SEVERE,cause.getMessage(),cause);
+    } catch (InterruptedException exception) {
+      LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
     }
   }
 
   private Future<Void> createGame(List<Player> players) {
-    //TODO send world
     LOGGER.info("Game on");
-    return null;
+    return cachedThreadPool.submit(new Game(cachedThreadPool,players));
   }
 }

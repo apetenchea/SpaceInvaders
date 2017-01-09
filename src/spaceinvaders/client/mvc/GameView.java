@@ -3,15 +3,13 @@ package spaceinvaders.client.mvc;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyListener;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import spaceinvaders.client.ClientConfig;
 import spaceinvaders.client.gui.GameGraphics;
 import spaceinvaders.client.gui.Menu;
-import spaceinvaders.game.GameWorld;
 import spaceinvaders.utility.Couple;
+import spaceinvaders.game.Entity;
 
 /**
  * User interface for the game.
@@ -22,7 +20,6 @@ import spaceinvaders.utility.Couple;
 public class GameView implements View {
   private GameGraphics game;
   private Menu menu;
-  private Lock updateLock;
   private JFrame currentFrame;
 
   /**
@@ -31,7 +28,6 @@ public class GameView implements View {
   public GameView() {
     menu = new Menu();
     game = new GameGraphics();
-    updateLock = new ReentrantLock();
   }
 
   @Override
@@ -62,15 +58,18 @@ public class GameView implements View {
         JOptionPane.ERROR_MESSAGE);
   }
   
-  @Override
-  public void setPlayers(List<Couple<Integer,String>> players) {
-    // TODO.
+  public void addEntity(String type, Entity body) {
+    game.addEntity(type,body);
   }
 
+  @Override
+  public void setPlayerNames(List<Couple<Integer,String>> players) {
+    game.setPlayerNames(players);
+  }
 
   @Override
-  public void initGameWorld(GameWorld world) {
-    // TODO.
+  public void flush() {
+    game.flush();
   }
 
   @Override
@@ -91,12 +90,5 @@ public class GameView implements View {
   public void shutdown() {
     menu.destroy();
     game.destroy();
-  }
-
-  @Override
-  public void update(String data) {
-    updateLock.lock();
-    //TODO update
-    updateLock.unlock();
   }
 }
