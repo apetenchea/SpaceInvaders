@@ -528,7 +528,7 @@ public class Game implements Callable<Void> {
         }
       }
       for (Entity player : players) {
-        if (checkCollision(entity,size,player,config.getPlayerSize())) {
+        if (checkCollision(entity,size,player,config.getPlayerSize()) && entity.getY() < player.getY() + 60) {
           entitiesLock.readLock().unlock();
           entitiesLock.writeLock().lock();
           players.remove(player);

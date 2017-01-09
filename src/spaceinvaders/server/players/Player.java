@@ -106,7 +106,7 @@ public class Player extends Observable implements Callable<Void> {
             }
             break;
           }
-          LOGGER.info("Got " + data);
+          //LOGGER.info("Got " + data);
           try {
             incomingQueue.put(data);
           } catch (InterruptedException exception) {
