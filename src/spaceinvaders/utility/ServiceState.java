@@ -5,14 +5,22 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Used to get and set the on/off state of multithreaded services.
+ * State variable used to get and set the on/off state of multithreaded services.
  */
 public class ServiceState {
   private AtomicBoolean state;
   private ReadWriteLock stateLock;
 
   /**
-   * Construct a ServiceState having the provided state.
+   * Construct a state variable initially set to false.
+   */
+  public ServiceState() {
+    state = new AtomicBoolean();
+    stateLock = new ReentrantReadWriteLock();
+  }
+
+  /**
+   * Construct a state variable having the provided initial state.
    */
   public ServiceState(boolean initialState) {
     state = new AtomicBoolean(initialState);
@@ -20,16 +28,7 @@ public class ServiceState {
   }
 
   /**
-   * Set the state of the service.
-   */
-  public void set(boolean flag) {
-    stateLock.writeLock().lock();
-    state.set(flag);
-    stateLock.writeLock().unlock();
-  }
-
-  /**
-   * Get the state of the service.
+   * Get the value of the state variable.
    */
   public boolean get() {
     boolean result;
@@ -38,4 +37,14 @@ public class ServiceState {
     stateLock.readLock().unlock();
     return result;
   }
+
+  /**
+   * Set value of the state variable.
+   */
+  public void set(boolean flag) {
+    stateLock.writeLock().lock();
+    state.set(flag);
+    stateLock.writeLock().unlock();
+  }
+
 }

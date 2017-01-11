@@ -5,8 +5,7 @@ package spaceinvaders.exceptions;
  */
 @SuppressWarnings("serial")
 public class IllegalPortNumberException extends IllegalArgumentException {
-  private static final String MESSAGE =
-    "The port number must be a number between 0 and 65535 inclusive!";
+  private static final String MESSAGE = "Port number is invalid!";
 
   public IllegalPortNumberException() {
     super(MESSAGE);
