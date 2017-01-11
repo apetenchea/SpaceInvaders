@@ -3,16 +3,13 @@ package spaceinvaders.server.network;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Observable;
-import java.util.concurrent.TransferQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TransferQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import spaceinvaders.exceptions.TransferQueueException;
-import spaceinvaders.exceptions.ClosingSocketException;
 import spaceinvaders.exceptions.IllegalPortNumberException;
-import spaceinvaders.exceptions.ServerSocketConnectionException;
 import spaceinvaders.exceptions.SocketOpeningException;
+import spaceinvaders.exceptions.TransferQueueException;
 import spaceinvaders.utility.ServiceState;
 
 /**
@@ -81,7 +78,15 @@ class TcpHandler implements Callable<Void> {
     return null;
   }
 
+  /**
+   * Close the server socket.
+   *
+   * <p>The handler will no longer accept incoming TCP connections.
+   */
   public void close() {
+    if (state != null) {
+      state.set(false);
+    }
     if (serverSocket != null && !serverSocket.isClosed()) {
       try {
         serverSocket.close();
