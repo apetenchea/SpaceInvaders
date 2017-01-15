@@ -1,18 +1,21 @@
 package spaceinvaders.server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import static java.util.logging.Level.SEVERE;
+
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import spaceinvaders.exceptions.InterruptedServiceException;
 import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.server.game.GameManager;
 import spaceinvaders.server.network.ConnectionManager;
 import spaceinvaders.server.players.PlayerManager;
+import spaceinvaders.utility.Service;
+import spaceinvaders.utility.ServiceState;
 
 /**
  * Server-side of the game.
@@ -21,90 +24,75 @@ import spaceinvaders.server.players.PlayerManager;
  * A client sends data and the server may send back a response, in case of a genuine request.
  * The game cannot be played without a running server.
  */
-public class Server implements Callable<Void> {
+public class Server implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
-  private static final String QUIT_COMMAND = "quit";
 
-  private ConnectionManager connectionManager;
+  private final ConnectionManager connectionManager;
   private PlayerManager playerManager;
   private GameManager gameManager;
-
   private ExecutorService connectionManagerExecutor;
   private ExecutorService playerManagerExecutor;
-  private ExecutorService inputReaderExecutor;
+  private ServiceState state = new ServiceState();
 
   /**
-   * Construct a server that will listen on the specified port.
+   * Construct a server that will listen on port <code>port</code>.
+   * 
+   * @throws SocketOpeningException - if a socket cannot be opened on the specified port.
+   * @throws SecurityException - if a security manager does not allow an operation.
+   * @throws IllegalPortNumberException - if the specified port number is invalid.
    */
-  public Server(int port) {
-    try {
-      connectionManager = new ConnectionManager(port);
-    } catch (SocketOpeningException exception) {
-      LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
-      shutdown();
-    }
-    gameManager = new GameManager();
-    playerManager = new PlayerManager(connectionManager.getConnectionQueue(),
-        connectionManager.getPacketQueue());
-    playerManager.addObserver(gameManager);
-
+  public Server(int port) throws SocketOpeningException {
+    connectionManager = new ConnectionManager(port);
     connectionManagerExecutor = Executors.newSingleThreadExecutor();
-    playerManagerExecutor = Executors.newSingleThreadExecutor();
-    inputReaderExecutor = Executors.newSingleThreadExecutor();
+    state.set(true);
   }
 
+  /**
+   * Start the server.
+   *
+   * @throws ExecutionException - if an exception occurs during execution.
+   * @throws InterruptedServiceException - if the service is interrupted prior to shutdown.
+   * @throws RejectedExecutionException - if the task cannot be executed.
+   */
   @Override
-  public Void call() {
+  public Void call() throws ExecutionException, InterruptedServiceException {
+    LOGGER.info("Server is starting.");
+
     Future<Void> connectionManagerFuture = connectionManagerExecutor.submit(connectionManager);
-    Future<Void> playerManagerFuture = playerManagerExecutor.submit(playerManager);
-    inputReaderExecutor.submit(new Callable<Void>() {
-      @Override
-      public Void call() {
-        BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
-        String input = null;
-        while (true) {
-          try {
-            input = inputReader.readLine();
-          } catch (IOException exception) {
-            LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
-            break;
-          }
-          if (input.equals(QUIT_COMMAND)) {
-            break;
-          }
+    final long checkingRateMilliseconds = 1000;
+    while (state.get()) {
+      try {
+        if (connectionManagerFuture.isDone()) {
+          state.set(false);
+          connectionManagerFuture.get();
         }
-        shutdown();
-        return null;
+        Thread.sleep(checkingRateMilliseconds);
+      } catch (CancellationException | InterruptedException exception) {
+        if (state.get()) {
+          state.set(false);
+          throw new InterruptedServiceException(exception);
+        }
       }
-    });
-
-    LOGGER.info("Enter quit to exit.");
-    try {
-      connectionManagerFuture.get();
-      playerManagerFuture.get();
-    } catch (InterruptedException exception) {
-      LOGGER.log(Level.SEVERE,exception.toString(),exception);
-    } catch (Exception exception) {
-      LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
-    } finally {
-      shutdown();
-      connectionManagerExecutor.shutdownNow();
-      playerManagerExecutor.shutdownNow();
-      inputReaderExecutor.shutdownNow();
     }
-
     return null;
   }
 
-  private void shutdown() {
-    if (connectionManager != null) {
-      connectionManager.shutdown();
-    }
-    if (playerManager != null) {
-      playerManager.shutdown();
-    }
-    if (gameManager != null) {
-      gameManager.shutdown();
-    }
+  /**
+   * Stop service execution.
+   *
+   * @throws SecurityException - from {@link ExecutorService#shutdown()}.
+   * @throws RuntimePermission - from {@link ExecutorService#shutdown()}.
+   */
+  @Override
+  public void shutdown() {
+    LOGGER.info("Server is shutting down.");
+
+    state.set(false);
+    connectionManager.shutdown();
+    connectionManagerExecutor.shutdown();
+  }
+
+  public boolean isRunning() {
+    return state.get();
   }
 }

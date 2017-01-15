@@ -3,11 +3,11 @@ package spaceinvaders.exceptions;
 import java.io.IOException;
 
 /**
- * Thrown to indicate that the server's socket could not be opened.
+ * Thrown to indicate that a socket could not be opened.
  */
 @SuppressWarnings("serial")
 public class SocketOpeningException extends IOException {
-  private static final String MESSAGE = "An error occurred while opening a socket!";
+  private static final String MESSAGE = "Socket could not be opened!";
 
   public SocketOpeningException() {
     super(MESSAGE);

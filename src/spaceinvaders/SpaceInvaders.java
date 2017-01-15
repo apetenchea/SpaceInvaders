@@ -1,9 +1,20 @@
 package spaceinvaders;
 
+import static java.util.logging.Level.SEVERE;
+
+import java.util.Enumeration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.logging.Handler;
+import java.util.logging.LogManager;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import spaceinvaders.client.Client;
+import spaceinvaders.utility.ServiceController;
+import spaceinvaders.server.controller.StandardController;
 import spaceinvaders.server.Server;
+import spaceinvaders.utility.Service;
 
 /**
  * The entry point of the application, instantiating either a {@link spaceinvaders.client.Client}
@@ -16,12 +27,48 @@ public class SpaceInvaders {
     if (args.length < 1) {
       LOGGER.info("Usage: " + args[0] + " help|client|server [options]");
     }
-    if (args[0].equals("help")) {
-      LOGGER.info("Help");
-    } else if (args[0].equals("client")) {
-      (new Client()).call();
-    } else if (args[0].equals("server")) {
-      (new Server(5412)).call();
+    switch (args[0]) {
+      case "help":
+        LOGGER.info("help");
+        break;
+        /*
+      case "client":
+        try {
+          service = new Client();
+        } catch (Exception exception) {
+          LOGGER.log(SEVERE,exception.toString(),exception);
+        }
+        break;
+        */
+      case "server":
+        try {
+          Server server = new Server(5412);
+          ServiceController controller = new StandardController(server);
+          ExecutorService controllerExecutor = Executors.newSingleThreadExecutor();
+          Future<Void> controllerFuture = controllerExecutor.submit(controller);
+          setGlobalLoggingLevel(Level.FINE);
+          server.call();
+          controllerFuture.get();
+          controllerExecutor.shutdown();
+        } catch (Exception exception) {
+          LOGGER.log(SEVERE,exception.toString(),exception);
+        }
+        break;
+      default:
+        LOGGER.info("Unkown argument: " + args[0]);
+        break;
+    }
+  }
+
+  private static void setGlobalLoggingLevel(Level level) {
+    LogManager manager = LogManager.getLogManager();
+    Enumeration<String> loggers = manager.getLoggerNames(); 
+    while (loggers.hasMoreElements()) {
+      Logger logger = manager.getLogger(loggers.nextElement());
+      logger.setLevel(level);
+      for (Handler handler : logger.getHandlers()) {
+        handler.setLevel(level);
+      }
     }
   }
 }

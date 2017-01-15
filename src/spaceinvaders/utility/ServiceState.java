@@ -4,9 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-/**
- * State variable used to get and set the on/off state of multithreaded services.
- */
+/** State variable used to get and set the on/off state of a service. */
 public class ServiceState {
   private AtomicBoolean state;
   private ReadWriteLock stateLock;

@@ -1,0 +1,17 @@
+package spaceinvaders.exceptions;
+
+public enum AssertionsEnum {
+  BOUNDED_TRANSFER_QUEUE("Transfer queue is bounded!"),
+  NULL_ARGUMENT("Argument is null!");
+
+  private final String message;
+
+  private AssertionsEnum(String message) {
+    this.message = message;
+  }
+
+  @Override
+  public String toString() {
+    return message;
+  }
+}
