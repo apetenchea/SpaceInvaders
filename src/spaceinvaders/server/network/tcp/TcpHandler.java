@@ -59,7 +59,6 @@ public class TcpHandler implements Service<Void> {
   public Void call() {
     while (state.get()) {
       Socket clientSocket = null;
-      LOGGER.fine("Starting tcp.");
       try {
         clientSocket = serverSocket.accept();
       } catch (Exception exception) {

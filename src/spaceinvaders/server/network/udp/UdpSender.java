@@ -1,12 +1,9 @@
 package spaceinvaders.server.network.udp;
 
 import static java.util.logging.Level.SEVERE;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TransferQueue;
 import java.util.logging.Logger;
 import spaceinvaders.exceptions.SocketOpeningException;
@@ -40,38 +37,20 @@ class UdpSender implements Service<Void> {
   /** Start taking packets out of the queue and send them. */
   @Override
   public Void call() {
-    List<DatagramPacket> buffer = new ArrayList<>();
-    final int pollTimeoutMilliseconds = 50;
     while (state.get()) {
-      DatagramPacket firstPacket = null;
+      DatagramPacket packet = null;
       try {
-        firstPacket = outgoingPacketQueue.poll(pollTimeoutMilliseconds,MILLISECONDS);
-      } catch (InterruptedException interruptedException) {
-        if (state.get()) {
-          state.set(false);
-          LOGGER.log(SEVERE,interruptedException.toString(),interruptedException);
+        packet = outgoingPacketQueue.take();
+        if (packet == null) {
+          continue;
         }
-      }
-      if (firstPacket == null) {
-        continue;
-      }
-      buffer.add(firstPacket);
-      try {
-        outgoingPacketQueue.drainTo(buffer);
-      } catch (NullPointerException | IllegalArgumentException exception) {
-        throw new AssertionError(exception.getMessage(),exception);
-      }
-      try {
-        for (DatagramPacket packet : buffer) {
-          serverSocket.send(packet);
-        }
+        serverSocket.send(packet);
       } catch (Exception exception) {
         // Do not stop the server.
         if (state.get()) {
           LOGGER.log(SEVERE,exception.toString(),exception);
         }
       }
-      buffer.clear();
     }
     return null;
   }

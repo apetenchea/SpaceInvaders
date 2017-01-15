@@ -14,7 +14,6 @@ import spaceinvaders.client.Client;
 import spaceinvaders.utility.ServiceController;
 import spaceinvaders.server.controller.StandardController;
 import spaceinvaders.server.Server;
-import spaceinvaders.utility.Service;
 
 /**
  * The entry point of the application, instantiating either a {@link spaceinvaders.client.Client}
@@ -49,7 +48,7 @@ public class SpaceInvaders {
           setGlobalLoggingLevel(Level.FINE);
           server.call();
           controllerFuture.get();
-          controllerExecutor.shutdown();
+          controllerExecutor.shutdownNow();
         } catch (Exception exception) {
           LOGGER.log(SEVERE,exception.toString(),exception);
         }

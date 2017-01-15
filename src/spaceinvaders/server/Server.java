@@ -2,7 +2,6 @@ package spaceinvaders.server;
 
 import static java.util.logging.Level.SEVERE;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -89,7 +88,7 @@ public class Server implements Service<Void> {
 
     state.set(false);
     connectionManager.shutdown();
-    connectionManagerExecutor.shutdown();
+    connectionManagerExecutor.shutdownNow();
   }
 
   public boolean isRunning() {

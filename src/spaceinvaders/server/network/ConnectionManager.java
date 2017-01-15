@@ -7,8 +7,6 @@ import static spaceinvaders.exceptions.AssertionsEnum.NULL_ARGUMENT;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.Socket;
-import java.net.SocketAddress;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -138,9 +136,9 @@ public class ConnectionManager extends Observable implements Service<Void> {
     wrapper.shutdown();
     dispatcher.shutdown();
     tcpExecutor.shutdownNow();
-    udpExecutor.shutdown();
-    wrapperExecutor.shutdown();
-    dispatcherExecutor.shutdown();
+    udpExecutor.shutdownNow();
+    wrapperExecutor.shutdownNow();
+    dispatcherExecutor.shutdownNow();
   }
 
   private boolean checkServerAvailability() {
@@ -192,9 +190,6 @@ public class ConnectionManager extends Observable implements Service<Void> {
           } catch (NullPointerException nullPtrException) {
             throw new AssertionError(NULL_ARGUMENT.toString(),nullPtrException);
           }
-          if (connection == null) {
-            continue;
-          }
 
           LOGGER.info("New connection " + connection.hashCode() + " from : "
               + clientSocket.getRemoteSocketAddress());
@@ -225,7 +220,6 @@ public class ConnectionManager extends Observable implements Service<Void> {
    *  Matches an incoming UDP packet to a {@link Connection}.
    */
   private class PacketDispatcher implements Service<Void> {
-    private static final int POLL_TIMEOUT_MILLISECONDS = 50;
     private final ServiceState state = new ServiceState();
 
     /**
@@ -239,9 +233,10 @@ public class ConnectionManager extends Observable implements Service<Void> {
       while (state.get()) {
         DatagramPacket packet = null;
         try {
-          packet = incomingPacketQueue.poll(POLL_TIMEOUT_MILLISECONDS,MILLISECONDS);
+          packet = incomingPacketQueue.take();
         } catch (InterruptedException interruptedException) {
           if (state.get()) {
+            state.set(false);
             throw new InterruptedServiceException(interruptedException);
           }
         }
