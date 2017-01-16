@@ -25,7 +25,7 @@ public class Client implements Callable<Void> {
    */
   public Client() {
     config = ClientConfig.getInstance();
-    model = new GameModel(config);
+    model = new GameModel();
     controller = new GameController(model);
     userView = new GameView();
     controller.registerView(userView);

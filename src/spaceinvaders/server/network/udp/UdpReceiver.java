@@ -46,7 +46,7 @@ class UdpReceiver implements Service<Void> {
       try {
         serverSocket.receive(packet);
         if (!incomingPacketQueue.offer(packet)) {
-          throw new AssertionError(BOUNDED_TRANSFER_QUEUE);
+          throw new AssertionError(BOUNDED_TRANSFER_QUEUE.toString());
         }
       } catch (Exception exception) {
         // Do not stop the server.

@@ -96,7 +96,7 @@ public class GameManager implements Observer {
     }
     // Get player name and team size.
     CommandDirector director = new CommandDirector(new ServerCommandBuilder());
-    director.makeCommand(data);
+    //director.makeCommand(data);
     Command command = director.getCommand();
     command.setExecutor(joiningPlayer);
     command.execute();

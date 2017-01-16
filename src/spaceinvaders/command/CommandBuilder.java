@@ -1,26 +1,24 @@
 package spaceinvaders.command;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.Gson;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.google.gson.JsonSyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
-
+import java.util.Map;
 import spaceinvaders.command.Command;
+import spaceinvaders.exceptions.CommandNotFoundException;
 
-/**
- * Used for building commands.
- */
+/** Builds commands. */
 public abstract class CommandBuilder {
-  private static final Logger LOGGER = Logger.getLogger(CommandBuilder.class.getName());
-
+  private final Gson gson = new Gson();
+  private final JsonParser parser = new JsonParser();
   private Map<String,Command> commandMap;
   private Command command;
 
-  public CommandBuilder(Command... commands) {
+  /** Create a builder capable of building the specified commands. */
+  public CommandBuilder(Command ... commands) {
     commandMap = new HashMap<>();
     for (Command command : commands) {
       commandMap.put(command.getName(),command);
@@ -29,19 +27,23 @@ public abstract class CommandBuilder {
   }
 
   /**
-   * Build a command out of a JSON.
+   * Build a command out of JSON.
+   *
+   * @throws JsonSyntaxException - if the specified JSON is not valid.
+   * @throws CommandNotFoundException - if the command could not be recognized.
+   * @throws NullPointerException - if the specified JSON is <code>null</code>.
    */
-  public void buildCommand(String json) {
-    try {
-      JsonParser parser = new JsonParser();
-      JsonObject jsonObj = parser.parse(json).getAsJsonObject();
-      String key = jsonObj.get("name").getAsString();
-      Command value = commandMap.get(key);
-      Gson gson = new Gson();
-      command = gson.fromJson(json,value.getClass());
-    } catch (Exception exception) {
-      LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+  public void buildCommand(String json) throws JsonSyntaxException, CommandNotFoundException {
+    if (json == null) {
+      throw new NullPointerException();
     }
+    JsonObject jsonObj = parser.parse(json).getAsJsonObject();
+    String key = jsonObj.get("name").getAsString();
+    Command value = commandMap.get(key);
+    if (value == null) {
+      throw new CommandNotFoundException();
+    }
+    command = gson.fromJson(json,value.getClass());
   }
 
   /**

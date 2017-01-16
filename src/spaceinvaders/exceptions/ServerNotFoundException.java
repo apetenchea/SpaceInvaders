@@ -1,5 +1,7 @@
 package spaceinvaders.exceptions;
 
+import java.net.UnknownHostException;
+
 /**
  * Thrown when the server is not rechable.
  */

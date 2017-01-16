@@ -4,6 +4,7 @@ import static java.awt.event.KeyEvent.VK_ESCAPE;
 import static java.awt.event.KeyEvent.VK_LEFT;
 import static java.awt.event.KeyEvent.VK_RIGHT;
 import static java.awt.event.KeyEvent.VK_SPACE;
+import static java.util.logging.Level.SEVERE;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,7 +20,6 @@ import java.util.logging.Logger;
 import spaceinvaders.client.ClientConfig;
 import spaceinvaders.command.Command;
 import spaceinvaders.command.CommandDirector;
-import spaceinvaders.command.client.builder.ClientCommandBuilder;
 import spaceinvaders.command.server.ConfigurePlayerCommand;
 import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.InvalidServerAddressException;
@@ -40,15 +40,12 @@ public class GameController implements Controller {
   private static final Logger LOGGER = Logger.getLogger(GameController.class.getName());
 
   private Model model;
-  private List<View> views;
+  private final List<View> views = new ArrayList<>();
 
-  /**
-   * Construct a controller and couple it with a model.
-   */
+  /** Construct a controller and couple it with a model. */
   public GameController(Model model) {
     model.addController(this);
     this.model = model;
-    views = new ArrayList<>();
   }
 
   @Override
@@ -76,6 +73,7 @@ public class GameController implements Controller {
 
   @Override
   public synchronized void update(Observable obs, Object arg) {
+    /*
     if (arg instanceof String) {
       CommandDirector director = new CommandDirector(new ClientCommandBuilder());
       director.makeCommand((String) arg);
@@ -88,6 +86,10 @@ public class GameController implements Controller {
       for (View view : views) {
         view.showMenu();
       }
+    }
+    */
+    if (arg == null) {
+      model.exitGame();
     }
   }
 
@@ -153,17 +155,21 @@ public class GameController implements Controller {
       assert views.size() > 0;
       LOGGER.info("Play");
 
-      ClientConfig config;
-      config = views.get(0).getConfig();
+      ClientConfig config = ClientConfig.getInstance();;
       try {
         config.verify();
       } catch (InvalidServerAddressException | IllegalPortNumberException
           | InvalidUserNameException exception) {
         displayErrorOnViews(exception);
-        LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+        LOGGER.log(SEVERE,exception.toString(),exception);
         return;
       }
-      model.initNewGame();
+      try {
+        model.call();
+      } catch (Exception exception) {
+        LOGGER.log(SEVERE,exception.toString(),exception);
+        model.exitGame();
+      }
     }
   }
 }

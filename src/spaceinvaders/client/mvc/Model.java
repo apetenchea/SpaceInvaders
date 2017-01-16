@@ -1,41 +1,24 @@
 package spaceinvaders.client.mvc;
 
 import spaceinvaders.command.Command;
+import spaceinvaders.utility.Service;
 
 /**
- * Application data.
+ * Application logic.
  *
  * @see spaceinvaders.client.mvc.Controller
  * @see spaceinvaders.client.mvc.View
  */
-public interface Model {
-  /**
-   * Add a controller which is going to interact with this model.
-   */
+public interface Model extends Service<Void> {
+  /** Couple a controller */
   public void addController(Controller controller);
 
-  /**
-   * Do a specified command.
-   */
+  /** Do a command. */
   public void doCommand(Command command);
 
-  /**
-   * Prepare the model for a new game.
-   */
-  public void initNewGame();
+  /** Start playing the game. */
+  public void playGame();
 
-  /**
-   * Start sending UDP packets to the server.
-   */
-  public void startSendingPackets();
-
-  /**
-   * Exit the game.
-   */
+  /** Exit the game.*/
   public void exitGame();
-
-  /**
-   * Stop all threads started.
-   */
-  public void shutdown();
 }

@@ -26,7 +26,7 @@ public class SetPlayerIdCommand extends Command {
   public void execute() {
     ClientConfig config = ClientConfig.getInstance();
     config.setId(id);
-    executor.getModel().startSendingPackets();
+    //executor.getModel().startSendingPackets();
     executor.getModel().doCommand(
         new ConfigurePlayerCommand(config.getUserName(),config.getTeamSize()));
     for (View view : executor.getViews()) {

@@ -69,7 +69,7 @@ public class TcpHandler implements Service<Void> {
       }
       if (clientSocket != null) {
         if (!socketTransferQueue.offer(clientSocket)) {
-          throw new AssertionError(BOUNDED_TRANSFER_QUEUE);
+          throw new AssertionError(BOUNDED_TRANSFER_QUEUE.toString());
         }
       }
     }

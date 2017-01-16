@@ -73,7 +73,7 @@ public class ConnectionManager extends Observable implements Service<Void> {
   /**
    * Start network I/O.
    *
-   * @throws ExecutionException - if an exception occures during execution.
+   * @throws ExecutionException - if an exception occurs during execution.
    * @throws InterruptedServiceException - if the service is interrupted prior to shutdown.
    * @throws RejectedExecutionException - if the task cannot be executed.
    */
@@ -91,7 +91,6 @@ public class ConnectionManager extends Observable implements Service<Void> {
     } catch (NullPointerException nullPtrException) {
       throw new AssertionError(NULL_ARGUMENT.toString(),nullPtrException);
     }
-    LOGGER.fine("Starting connection manager.");
     final long checkingRateMilliseconds = 1000;
     while (state.get()) {
       try {
@@ -141,6 +140,11 @@ public class ConnectionManager extends Observable implements Service<Void> {
     dispatcherExecutor.shutdownNow();
   }
 
+  /**
+   * Clear expired connections and check if the server can accept any more.
+   *
+   * @return true if the server can accept one more connection, false otherwise.
+   */
   private boolean checkServerAvailability() {
     currentConnectionsLock.writeLock().lock();
     Iterator<Connection> it = currentConnections.iterator();

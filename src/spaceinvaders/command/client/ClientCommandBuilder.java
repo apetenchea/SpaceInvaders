@@ -1,13 +1,6 @@
-package spaceinvaders.command.client.builder;
+package spaceinvaders.command.client;
 
 import spaceinvaders.command.CommandBuilder;
-import spaceinvaders.command.client.AddEntityCommand;
-import spaceinvaders.command.client.SetPlayerIdCommand;
-import spaceinvaders.command.client.SetPlayerNamesCommand;
-import spaceinvaders.command.client.FlushScreenCommand;
-import spaceinvaders.command.client.MoveEntityCommand;
-import spaceinvaders.command.client.GameOverCommand;
-import spaceinvaders.command.client.DestroyEntityCommand;
 
 /**
  * Builds commands for the client.

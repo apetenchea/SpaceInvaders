@@ -1,235 +1,159 @@
 package spaceinvaders.client.network;
 
-import java.io.BufferedReader;
+import static java.util.logging.Level.SEVERE;
+import static spaceinvaders.exceptions.AssertionsEnum.NULL_ARGUMENT;
+import static spaceinvaders.exceptions.AssertionsEnum.UNBOUND_SOCKET;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.Socket;
 import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.concurrent.BlockingQueue;
+import java.net.DatagramSocket;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TransferQueue;
+import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import spaceinvaders.client.ClientConfig;
-import spaceinvaders.exceptions.ClosingSocketException;
 import spaceinvaders.exceptions.InterruptedServiceException;
-import spaceinvaders.exceptions.ServerNotFoundException;
-import spaceinvaders.exceptions.SocketCreationException;
-import spaceinvaders.exceptions.SocketInputStreamException;
+import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.SocketOpeningException;
-import spaceinvaders.exceptions.SocketOutputStreamException;
+import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
+import spaceinvaders.command.Command;
+import spaceinvaders.command.Sender;
 
-/**
- * Network connection used to communicate with the game server.
- *
- * @see spaceinvaders.server.Server
- */
-public class NetworkConnection implements Callable<Void> {
+/** Network connection with the server. */
+public class NetworkConnection implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(NetworkConnection.class.getName());
-  private static final int PING_TIME_INTERVAL_MILLISECONDS = 1000; 
 
-  private ClientConfig config;
-  private ServiceState state;
-  private Socket tcpSocket;
-  private DatagramSocket udpSocket;
-
-  private BufferedReader reader;
-  private PrintWriter printer;
-  private BlockingQueue<String> readingQueue;
-  private BlockingQueue<String> printingQueue;
-  private Future<Void> readingExecutorFuture;
-  private Future<Void> printingExecutorFuture;
-  private Future<Void> pingExecutorFuture;
-
-  private ExecutorService readingExecutor;
-  private ExecutorService printingExecutor;
-  private ExecutorService pingExecutor;
+  private final ClientConfig config = ClientConfig.getInstance();
+  private final TransferQueue<String> incomingQueue;
+  private final Socket tcpSocket;
+  private final DatagramSocket incomingUdpSocket;
+  private final DatagramSocket outgoingUdpSocket;
+  private final Sender udpSender;
+  private final Sender tcpSender;
+  private final Service<Void> tcpReceiver;
+  private final Service<Void> udpReceiver;
+  private final ExecutorService tcpReceiverExecutor;
+  private final ExecutorService udpReceiverExecutor;
+  private final ServiceState state = new ServiceState();
 
   /**
-   * Construct a network connection that will use the provided configuration.
+   * Configure a new network connection.
+   *
+   * @param incomingQueue - used for transfering incoming data.
+   *
+   * @throws SocketOpeningException - if a socket could not be opened.
+   * @throws IllegalPortNumberException - if the port parameter is not a valid port value.
+   * @throws NullPointerException - if the argument is <code>null</code>.
+   * @throws SecurityException - if a security manager doesn't allow an operation.
    */
-  public NetworkConnection(ClientConfig config, BlockingQueue<String> readingQueue,
-      BlockingQueue<String> printingQueue) {
-    this.config = config;
-    this.readingQueue = readingQueue;
-    this.printingQueue = printingQueue;
-    state = new ServiceState(false);
-
-    readingExecutor = Executors.newSingleThreadExecutor();
-    printingExecutor = Executors.newSingleThreadExecutor();
-    pingExecutor = Executors.newSingleThreadExecutor();
-  }
-
-  @Override
-  public Void call() throws Exception {
+  public NetworkConnection(TransferQueue<String> incomingQueue) throws SocketOpeningException {
+    if (incomingQueue == null) {
+      throw new NullPointerException();
+    }
+    this.incomingQueue = incomingQueue;
     try {
       tcpSocket = new Socket(config.getServerAddr(),config.getServerPort());
-    } catch (UnknownHostException exception) {
-      throw new ServerNotFoundException(exception);     
-    } catch (IOException exception) {
-      throw new SocketCreationException(exception);
+    } catch (IOException ioException) {
+      throw new SocketOpeningException(ioException);
+    } catch (IllegalArgumentException illegalArgException) {
+      throw new IllegalPortNumberException(illegalArgException);
+    }
+    SocketAddress bindAddr = tcpSocket.getLocalSocketAddress();
+    if (bindAddr == null) {
+      throw new AssertionError(UNBOUND_SOCKET.toString());
     }
     try {
-      reader = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
-    } catch (IOException exception) {
-      throw new SocketInputStreamException(exception);
+      outgoingUdpSocket = new DatagramSocket(bindAddr);
+      incomingUdpSocket = new DatagramSocket();
+    } catch (SocketException socketException) {
+      throw new SocketOpeningException(socketException);
     }
     try {
-      printer = new PrintWriter(tcpSocket.getOutputStream(),true);
+      tcpSender = new TcpSender(tcpSocket);
+      tcpReceiver = new TcpReceiver(tcpSocket,incomingQueue);
+      udpSender = new UdpSender(outgoingUdpSocket);
+      udpReceiver = new UdpReceiver(incomingUdpSocket,incomingQueue);
     } catch (IOException exception) {
-      throw new SocketOutputStreamException(exception);
+      throw new SocketOpeningException(exception);
     }
+    udpSender.setNextChain(tcpSender);
+    tcpReceiverExecutor = Executors.newSingleThreadExecutor();
+    udpReceiverExecutor = Executors.newSingleThreadExecutor();
     state.set(true);
+  }
 
-    readingExecutorFuture = readingExecutor.submit(new Callable<Void>() {
-      @Override
-      public Void call() throws SocketInputStreamException, InterruptedServiceException {
-        while (state.get()) {
-          String data = null;
-          try {
-            data = reader.readLine();
-          } catch (IOException exception) {
-            if (state.get()) {
-              throw new SocketInputStreamException(exception);
-            }
-            break;
-          }
-          if (data == null) {
-            // EOF.
-            state.set(false);
-            break;
-          }
-          try {
-            readingQueue.put(data);
-          } catch (InterruptedException exception) {
-            if (state.get()) {
-              throw new InterruptedServiceException(exception);
-            }
-            break;
-          }
-        }
-        return null;
-      }
-    }); 
-
-    printingExecutorFuture = printingExecutor.submit(new Callable<Void>() {
-      @Override
-      public Void call() {
-        while (state.get()) {
-          String data = null;
-          try {
-            data = printingQueue.take();
-          } catch (InterruptedException exception) {
-            if (state.get()) {
-              LOGGER.log(Level.SEVERE,exception.toString(),exception);
-            }
-            break;
-          }
-          printer.println(data);
-        }
-        return null;
-      }
-    });
-
+  /**
+   * Start network I/O.
+   *
+   * @throws ExecutionException - if an exception occurs during execution.
+   * @throws InterruptedServiceException - if the service is interrupted prior to shutdown.
+   * @throws RejectedExecutionException - if the task cannot be executed.
+   */
+  @Override
+  public Void call() throws ExecutionException, InterruptedServiceException {
+    List<Future<?>> future = new ArrayList<>();
     try {
-      readingExecutorFuture.get();
-      printingExecutorFuture.cancel(true);
-    } catch (ExecutionException exception) {
-      throw new Exception(exception.getCause());
-    } catch (InterruptedException exception) {
-      if (state.get()) {
-        throw new InterruptedServiceException(exception);
-      }
-    } catch (CancellationException exception) {
-      LOGGER.warning("Suppressing " + exception.toString());
+      future.add(tcpReceiverExecutor.submit(tcpReceiver));
+      future.add(udpReceiverExecutor.submit(udpReceiver));
+    } catch (NullPointerException nullPtrException) {
+      throw new AssertionError(NULL_ARGUMENT.toString(),nullPtrException);
     }
-
+    final long checkingRateMilliseconds = 1000;
+    while (state.get()) {
+      try {
+        for (Future<?> it : future) {
+          if (it.isDone()) {
+            state.set(false);
+            it.get();
+          }
+        }
+        Thread.sleep(checkingRateMilliseconds);
+      } catch (CancellationException | InterruptedException exception) {
+        if (state.get()) {
+          state.set(false);
+          throw new InterruptedServiceException(exception);
+        }
+      }
+    }
     return null;
   }
 
-  public void startUdp() throws SocketOpeningException, ServerNotFoundException {
-    try {
-      udpSocket = new DatagramSocket();
-    } catch (SocketException exception) {
-      throw new SocketOpeningException(exception);
-    }
-    InetAddress ipAddress = null;
-    try {
-      ipAddress = InetAddress.getByName(config.getServerAddr());
-    } catch (UnknownHostException exception) {
-      throw new ServerNotFoundException(exception);
-    }
-    byte[] data = Integer.valueOf(config.getId()).toString().getBytes();
-
-    DatagramPacket packet = new DatagramPacket(data,data.length,ipAddress,config.getServerPort());
-    pingExecutorFuture = pingExecutor.submit(new Callable<Void>() {
-      @Override
-      public Void call() {
-        while (state.get()) {
-          try {
-            udpSocket.send(packet);
-          } catch (IOException exception) {
-            if (state.get()) {
-              LOGGER.log(Level.SEVERE,exception.toString(),exception);
-            }
-          }
-          try {
-            Thread.sleep(PING_TIME_INTERVAL_MILLISECONDS);
-          } catch (InterruptedException exception) {
-            if (state.get()) {
-              LOGGER.log(Level.SEVERE,exception.toString(),exception);
-            }
-          }
-        }
-        return null;       
-      }
-    });
-  }
-
   /**
-   * Close connection.
-   */
-  public void close() throws ClosingSocketException {
-    state.set(false);
-    if (readingExecutorFuture != null) {
-      readingExecutorFuture.cancel(true);
-    }
-    if (printingExecutorFuture != null) {
-      printingExecutorFuture.cancel(true);
-    }
-    if (pingExecutorFuture != null) {
-      pingExecutorFuture.cancel(true);
-    }
-    if (udpSocket != null && !udpSocket.isClosed()) {
-      udpSocket.close();
-    }
-    if (tcpSocket != null && !tcpSocket.isClosed()) {
-      try {
-        tcpSocket.close();
-      } catch (IOException exception) {
-        throw new ClosingSocketException(exception);
-      }
-    }
-  }
-
-  /**
-   * Shutdown service.
+   * Stop service execution.
    *
-   * <p>Stops workers.
+   * @throws SecurityException - from {@link ExecutorService#shutdown()}.
+   * @throws RuntimePermission - from {@link ExecutorService#shutdown()}.
    */
+  @Override
   public void shutdown() {
-    readingExecutor.shutdownNow();
-    printingExecutor.shutdownNow();
-    pingExecutor.shutdownNow();
+    state.set(false);
+    try {
+      tcpSocket.close();
+    } catch (IOException ioException) {
+      LOGGER.log(SEVERE,ioException.toString(),ioException);
+    }
+    incomingUdpSocket.close();
+    outgoingUdpSocket.close();
+    tcpReceiver.shutdown();
+    udpReceiver.shutdown();
+    tcpReceiverExecutor.shutdownNow();
+    udpReceiverExecutor.shutdownNow();
+  }
+
+  /**
+   * Send a command to the server.
+   */
+  public void send(Command command) {
+    udpSender.send(command);
   }
 }

@@ -30,15 +30,10 @@ public class SpaceInvaders {
       case "help":
         LOGGER.info("help");
         break;
-        /*
       case "client":
-        try {
-          service = new Client();
-        } catch (Exception exception) {
-          LOGGER.log(SEVERE,exception.toString(),exception);
-        }
+        Client client = new Client();
+        client.call();
         break;
-        */
       case "server":
         try {
           Server server = new Server(5412);
