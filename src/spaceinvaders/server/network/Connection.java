@@ -168,10 +168,9 @@ public class Connection implements Service<Void> {
     public UdpSender(Sender nextChain) {
       this.nextChain = nextChain;
     }
+
     /**
-     * Send the command or pass it.
-     *
-     * @throws NullPointerException - if the command is <code>null</code>.
+     * @throws NullPointerException - if {@code command} is {@code null}.
      */
     @Override
     public void send(Command command) {
@@ -197,11 +196,8 @@ public class Connection implements Service<Void> {
     }
 
     /**
-     * Set the next chain.
-     *
-     * @throws NullPointerException - if the next chain is <code>null</code>.
-     */
-    @Override
+     * @throws NullPointerException - if {@code nextChain} is {@code null}.
+     */    @Override
     public void setNextChain(Sender nextChain) {
       if (nextChain == null) {
         throw new NullPointerException();
@@ -221,9 +217,7 @@ public class Connection implements Service<Void> {
     }
 
     /**
-     * Send the command or pass it.
-     *
-     * @throws NullPointerException - if the command is <code>null</code>.
+     * @throws NullPointerException - if {@code command} is {@code null}.
      */
     @Override
     public void send(Command command) {
@@ -241,9 +235,7 @@ public class Connection implements Service<Void> {
     }
 
     /**
-     * Set the next chain.
-     *
-     * @throws NullPointerException - if the next chain is <code>null</code>.
+     * @throws NullPointerException - if {@code nextChain} is {@code null}.
      */
     @Override
     public void setNextChain(Sender nextChain) {

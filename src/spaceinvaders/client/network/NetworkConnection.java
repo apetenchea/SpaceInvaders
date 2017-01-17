@@ -21,13 +21,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 import spaceinvaders.client.ClientConfig;
+import spaceinvaders.command.Command;
 import spaceinvaders.exceptions.InterruptedServiceException;
 import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
-import spaceinvaders.command.Command;
-import spaceinvaders.command.Sender;
+import spaceinvaders.utility.Sender;
 
 /** Network connection with the server. */
 public class NetworkConnection implements Service<Void> {
@@ -37,8 +37,7 @@ public class NetworkConnection implements Service<Void> {
   private final Socket tcpSocket;
   private final DatagramSocket incomingUdpSocket;
   private final DatagramSocket outgoingUdpSocket;
-  private final Sender udpSender;
-  private final Sender tcpSender;
+  private final Sender sender;
   private final Service<Void> tcpReceiver;
   private final Service<Void> udpReceiver;
   private final ExecutorService tcpReceiverExecutor;
@@ -80,6 +79,8 @@ public class NetworkConnection implements Service<Void> {
     } catch (SocketException socketException) {
       throw new SocketOpeningException(socketException);
     }
+    Sender tcpSender = null;
+    Sender udpSender = null;
     try {
       tcpSender = new TcpSender(tcpSocket);
       tcpReceiver = new TcpReceiver(tcpSocket,incomingQueue);
@@ -89,6 +90,7 @@ public class NetworkConnection implements Service<Void> {
       throw new SocketOpeningException(exception);
     }
     udpSender.setNextChain(tcpSender);
+    sender = udpSender;
     tcpReceiverExecutor = Executors.newSingleThreadExecutor();
     udpReceiverExecutor = Executors.newSingleThreadExecutor();
     state.set(true);
@@ -154,8 +156,10 @@ public class NetworkConnection implements Service<Void> {
 
   /**
    * Send a command to the server.
+   *
+   * @throws NullPointerException - if {@code command} is {@code null}.
    */
   public void send(Command command) {
-    udpSender.send(command);
+    sender.send(command);
   }
 }
