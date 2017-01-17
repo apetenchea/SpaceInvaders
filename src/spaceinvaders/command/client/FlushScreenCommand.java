@@ -1,17 +1,17 @@
 package spaceinvaders.command.client;
 
+import static spaceinvaders.command.ProtocolEnum.UDP;
+
 import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 
-/**
- * Flush all readed data on the screen.
- */
+/** Flush the screen. */
 public class FlushScreenCommand extends Command {
   private transient Controller executor;
 
   public FlushScreenCommand() {
-    super(FlushScreenCommand.class.getName());
+    super(FlushScreenCommand.class.getName(),UDP);
   }
 
   @Override
@@ -25,7 +25,8 @@ public class FlushScreenCommand extends Command {
   public void setExecutor(Object executor) {
     if (executor instanceof Controller) {
       this.executor = (Controller) executor;
+    } else {
+      throw new AssertionError();
     }
   }
-
 }

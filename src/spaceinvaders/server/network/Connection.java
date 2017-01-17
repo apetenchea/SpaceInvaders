@@ -20,11 +20,11 @@ import java.util.concurrent.TransferQueue;
 import java.util.logging.Logger;
 import spaceinvaders.command.Command;
 import spaceinvaders.command.CommandDirector;
-import spaceinvaders.command.Sender;
 import spaceinvaders.command.client.ClientCommandBuilder;
 import spaceinvaders.exceptions.CommandNotFoundException;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
+import spaceinvaders.utility.Sender;
 
 /** Network connection with a client. */
 public class Connection implements Service<Void> {

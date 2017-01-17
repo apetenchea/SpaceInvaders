@@ -1,5 +1,6 @@
 package spaceinvaders.server.player;
 
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -83,5 +84,9 @@ public class Player {
 
   public void setTeamSize(int teamSize) {
     this.teamSize = teamSize;
+  }
+
+  public void setUdpDestination(SocketAddress addr) {
+    connection.setUdpDestination(addr);
   }
 }

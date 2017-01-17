@@ -1,5 +1,7 @@
 package spaceinvaders.command.client;
 
+import static spaceinvaders.command.ProtocolEnum.TCP;
+
 import spaceinvaders.client.ClientConfig;
 import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.Model;
@@ -14,7 +16,7 @@ public class SetPlayerIdCommand extends Command {
   public Integer id;
 
   public SetPlayerIdCommand() {
-    super(SetPlayerIdCommand.class.getName(),ProtocolEnum.TCP);
+    super(SetPlayerIdCommand.class.getName(),TCP);
   }
 
   public SetPlayerIdCommand(int id) {
@@ -38,6 +40,8 @@ public class SetPlayerIdCommand extends Command {
   public void setExecutor(Object executor) {
     if (executor instanceof Controller) {
       this.executor = (Controller) executor;
+    } else {
+      throw new AssertionError();
     }
   }
 }

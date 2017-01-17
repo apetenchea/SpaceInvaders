@@ -1,4 +1,4 @@
-package spaceinvaders.command;
+package spaceinvaders.utility;
 
 import spaceinvaders.command.Command;
 

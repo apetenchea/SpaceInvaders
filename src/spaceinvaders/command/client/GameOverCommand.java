@@ -1,24 +1,22 @@
 package spaceinvaders.command.client;
 
-import java.util.List;
+import static spaceinvaders.command.ProtocolEnum.UDP;
+
 import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
-import spaceinvaders.utility.Couple;
 
-/**
- * The game is over.
- */
+/** The player dies. */
 public class GameOverCommand extends Command {
   private transient Controller executor;
 
   public GameOverCommand() {
-    super(GameOverCommand.class.getName());
+    super(GameOverCommand.class.getName(),UDP);
   }
 
   @Override
   public void execute() {
-    executor.getModel().exitGame();
+    //executor.getModel().exitGame();
   }
 
   @Override

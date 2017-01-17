@@ -12,8 +12,8 @@ import spaceinvaders.exceptions.CommandNotFoundException;
 
 /** Builds commands. */
 public abstract class CommandBuilder {
-  private final Gson gson = new Gson();
-  private final JsonParser parser = new JsonParser();
+  private static final Gson GSON = new Gson();
+  private static final JsonParser PARSER = new JsonParser();
   private Map<String,Command> commandMap;
   private Command command;
 
@@ -37,18 +37,16 @@ public abstract class CommandBuilder {
     if (json == null) {
       throw new NullPointerException();
     }
-    JsonObject jsonObj = parser.parse(json).getAsJsonObject();
+    JsonObject jsonObj = PARSER.parse(json).getAsJsonObject();
     String key = jsonObj.get("name").getAsString();
     Command value = commandMap.get(key);
     if (value == null) {
       throw new CommandNotFoundException();
     }
-    command = gson.fromJson(json,value.getClass());
+    command = GSON.fromJson(json,value.getClass());
   }
 
-  /**
-   * Get the built command.
-   */
+  /** Get the last command built. */
   public Command getCommand() {
     return command;
   }

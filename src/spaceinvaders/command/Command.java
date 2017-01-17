@@ -9,11 +9,6 @@ public abstract class Command {
   private final transient ProtocolEnum protocol;
   private final String name;
 
-  public Command(String name) {
-    this.name = name;
-    this.protocol = ProtocolEnum.TCP;
-  }
-
   public Command(String name, ProtocolEnum protocol) {
     this.name = name;
     this.protocol = protocol;

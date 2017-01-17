@@ -1,17 +1,17 @@
 package spaceinvaders.command.server;
 
+import static spaceinvaders.command.ProtocolEnum.UDP;
+
 import spaceinvaders.command.Command;
 import spaceinvaders.server.game.Game;
 
-/**
- * Move a player to the right.
- */
+/** Move a player to the right. */
 public class MovePlayerRightCommand extends Command {
   private transient Game executor;
   private Integer id;
 
   public MovePlayerRightCommand() {
-    super(MovePlayerRightCommand.class.getName());
+    super(MovePlayerRightCommand.class.getName(),UDP);
   }
 
   public MovePlayerRightCommand(int id) {
