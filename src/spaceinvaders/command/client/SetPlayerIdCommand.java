@@ -15,7 +15,7 @@ public class SetPlayerIdCommand extends Command {
   private transient Controller executor;
   public Integer id;
 
-  public SetPlayerIdCommand() {
+  SetPlayerIdCommand() {
     super(SetPlayerIdCommand.class.getName(),TCP);
   }
 

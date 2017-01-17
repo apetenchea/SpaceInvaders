@@ -1,143 +1,112 @@
 package spaceinvaders.server.game;
 
-import java.util.Collections;
-import java.util.Map;
+import static java.util.logging.Level.SEVERE;
+
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Level;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
-import spaceinvaders.command.server.builder.ServerCommandBuilder;
-import spaceinvaders.command.Command;
-import spaceinvaders.command.CommandDirector;
-import spaceinvaders.command.client.SetPlayerIdCommand;
-import spaceinvaders.exceptions.ClosingSocketException;
 import spaceinvaders.exceptions.InterruptedServiceException;
-import spaceinvaders.exceptions.PlayerTimeoutException;
 import spaceinvaders.server.player.Player;
+import spaceinvaders.utility.Service;
+import spaceinvaders.utility.ServiceState;
 
-/**
- * Manages game instances.
- */
-public class GameManager implements Observer {
+/** Manages games. */
+public class GameManager implements Observer, Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(GameManager.class.getName());
   private static final int MAX_TEAM_SIZE = 3;
 
-  private Map<Integer,BlockingQueue<Player>> gameQueues;
+  private final List<List<Player>> teams = new ArrayList<>(MAX_TEAM_SIZE);
+  private final List<Future<?>> future = new LinkedList<>();
+  private final ReentrantLock futureListLock = new ReentrantLock();
+  private final ServiceState state = new ServiceState();
+  private final ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 
-  private ExecutorService cachedThreadPool;
-  
-  /**
-   * Construct a game manager with empty queues.
-   */
   public GameManager() {
-    gameQueues = new ConcurrentHashMap<Integer,BlockingQueue<Player>>();
-    for (int teamSize = 1; teamSize < MAX_TEAM_SIZE; ++teamSize) {
-      gameQueues.put(teamSize,new LinkedBlockingQueue<Player>());
+    for (int index = 0; index < MAX_TEAM_SIZE; ++index) {
+      teams.add(new ArrayList<Player>(index));
     }
-    gameQueues = Collections.unmodifiableMap(gameQueues);
-    cachedThreadPool = Executors.newCachedThreadPool();
+    state.set(true);
   }
 
   @Override
   public void update(Observable observable, Object obj) {
     if (obj instanceof Player) {
       Player player = (Player) obj;
-      if (player.getState()) {
-        // Player joins.
-        Player joiningPlayer = (Player) obj;
-        cachedThreadPool.submit(new Callable<Void>() {
-          @Override
-          public Void call() {
-            processPlayer(joiningPlayer);
-            return null;
-          }
-        });
-      } else {
-        // Player exits.
-        BlockingQueue<Player> queue = gameQueues.get(player.getTeamSize());
-        if (queue != null) {
-          queue.remove(player);
-        }
+      int teamSize = player.getTeamSize();
+      if (teamSize < 1 || teamSize > MAX_TEAM_SIZE) {
+        player.close();
+        return;
       }
+      List<Player> team = teams.get(teamSize - 1);
+      team.add(player);
+      if (team.size() == teamSize) {
+        teams.set(teamSize - 1,new ArrayList<Player>(teamSize));
+        futureListLock.lock();
+        try {
+          future.add(cachedThreadPool.submit(new Game(team,cachedThreadPool)));
+        } catch (Exception exception) {
+          // Do not crash.
+          LOGGER.log(SEVERE,exception.toString(),exception);
+          for (Player it : team) {
+            it.close();
+          }
+        }
+        futureListLock.unlock();
+      }
+    } else {
+      throw new AssertionError();
     }
   }
 
   /**
-   * Shutdown service.
+   * Look after running games.
    *
-   * <p>All other threads started by this service are stopped.
+   * @throws InterruptedServiceException - if the service is interrupted prior to shutdown.
    */
-  public void shutdown() {
-    cachedThreadPool.shutdownNow();
-  }
-
-  private void processPlayer(Player joiningPlayer) {
-    LOGGER.info("Processing: " + joiningPlayer.hashCode());
-
-    String data = null;
-    try {
-      joiningPlayer.push(new SetPlayerIdCommand(joiningPlayer.hashCode()).toJson());
-      data = joiningPlayer.pull();
-    } catch (InterruptedServiceException | PlayerTimeoutException exception) {
-      if (joiningPlayer.getState()) {
-        LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+  @Override
+  public Void call() throws InterruptedServiceException {
+    final long checkingRateMilliseconds = 1000;
+    Iterator<Future<?>> it;
+    while (state.get()) {
+      futureListLock.lock();
+      it = future.iterator();
+      while (it.hasNext()) {
+        Future<?> current = it.next();
+        if (current.isDone()) {
+          try {
+            current.get();
+          } catch (Exception exception) {
+            // Do not crash.
+            LOGGER.log(SEVERE,exception.toString(),exception);
+          }
+          it.remove();
+        }
+        futureListLock.unlock();
       }
-      return;
-    }
-    // Get player name and team size.
-    CommandDirector director = new CommandDirector(new ServerCommandBuilder());
-    //director.makeCommand(data);
-    Command command = director.getCommand();
-    command.setExecutor(joiningPlayer);
-    command.execute();
-
-    int teamSize = joiningPlayer.getTeamSize();
-    if (teamSize < 0 || teamSize > MAX_TEAM_SIZE) {
-      return;
-    } 
-    BlockingQueue<Player> queue = gameQueues.get(teamSize);
-    if (queue == null) {
-      return;
-    }
-    Future<Void> game = null;
-    synchronized (this) {
       try {
-        queue.put(joiningPlayer);
+        Thread.sleep(checkingRateMilliseconds);
       } catch (InterruptedException exception) {
-        LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
-        return;
-      }
-      if (queue.size() == joiningPlayer.getTeamSize()) {
-        List<Player> players = new ArrayList<>();
-        queue.drainTo(players);
-        game = createGame(players);
+        if (state.get()) {
+          state.set(false);
+          throw new InterruptedServiceException(exception);
+        }
       }
     }
-    if (game == null) {
-      return;
-    }
-    try {
-      game.get();
-    } catch (ExecutionException exception) {
-      Exception cause = new Exception(exception.getCause());
-      LOGGER.log(Level.SEVERE,cause.getMessage(),cause);
-    } catch (InterruptedException exception) {
-      LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
-    }
+    return null;
   }
 
-  private Future<Void> createGame(List<Player> players) {
-    LOGGER.info("Game on");
-    return cachedThreadPool.submit(new Game(cachedThreadPool,players));
+  @Override
+  public void shutdown() {
+    state.set(false);
+    cachedThreadPool.shutdownNow();
   }
 }

@@ -197,7 +197,8 @@ public class Connection implements Service<Void> {
 
     /**
      * @throws NullPointerException - if {@code nextChain} is {@code null}.
-     */    @Override
+     */
+    @Override
     public void setNextChain(Sender nextChain) {
       if (nextChain == null) {
         throw new NullPointerException();
@@ -245,5 +246,4 @@ public class Connection implements Service<Void> {
       this.nextChain = nextChain;
     }
   }
-
 }

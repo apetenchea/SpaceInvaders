@@ -21,7 +21,7 @@ public class PlayerShootCommand extends Command {
 
   @Override
   public void execute() {
-    executor.playerShoots(id);
+    //executor.playerShoots(id);
   }
 
   @Override

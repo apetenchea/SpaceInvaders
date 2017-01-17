@@ -6,25 +6,29 @@ import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 
-/** The player dies. */
-public class GameOverCommand extends Command {
+/** Start the game. */
+public class StartGameCommand extends Command {
   private transient Controller executor;
 
-  public GameOverCommand() {
-    super(GameOverCommand.class.getName(),TCP);
+  public StartGameCommand() {
+    super(StartGameCommand.class.getName(),TCP);
   }
 
   @Override
   public void execute() {
-    //executor.getModel().exitGame();
+    /*
+    for (View view : executor.getViews()) {
+      view.flush();
+    }
+    */
   }
 
   @Override
   public void setExecutor(Object executor) {
     if (executor instanceof Controller) {
       this.executor = (Controller) executor;
+    } else {
+      throw new AssertionError();
     }
   }
-
 }
-

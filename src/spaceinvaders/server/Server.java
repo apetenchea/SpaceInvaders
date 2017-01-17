@@ -12,7 +12,7 @@ import spaceinvaders.exceptions.InterruptedServiceException;
 import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.server.game.GameManager;
 import spaceinvaders.server.network.ConnectionManager;
-import spaceinvaders.server.players.PlayerManager;
+import spaceinvaders.server.player.PlayerManager;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
@@ -27,10 +27,9 @@ public class Server implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
 
   private final ConnectionManager connectionManager;
-  private PlayerManager playerManager;
+  private final PlayerManager playerManager = new PlayerManager();
   private GameManager gameManager;
   private ExecutorService connectionManagerExecutor;
-  private ExecutorService playerManagerExecutor;
   private ServiceState state = new ServiceState();
 
   /**
@@ -43,6 +42,7 @@ public class Server implements Service<Void> {
   public Server(int port) throws SocketOpeningException {
     connectionManager = new ConnectionManager(port);
     connectionManagerExecutor = Executors.newSingleThreadExecutor();
+    connectionManager.addObserver(playerManager);
     state.set(true);
   }
 

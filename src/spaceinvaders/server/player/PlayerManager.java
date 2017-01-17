@@ -69,7 +69,7 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
         continue;
       }
       Player player = new Player(connection);
-      player.push(new SetPlayerIdCommand());
+      player.push(new SetPlayerIdCommand(player.getId()));
       try {
         Thread.sleep(responseTimeoutMilliseconds);
       } catch (InterruptedException interruptedException) {
