@@ -23,7 +23,7 @@ public class Player {
   private static final Logger LOGGER = Logger.getLogger(Player.class.getName());
 
   private final Connection connection;
-  private final ExecutorService connectionExecutor = Executors.newSingleThreadExecutor();
+  private final ExecutorService connectionExecutor;
   private final Future<Void> connectionFuture;
   private String name;
   private Integer teamSize;
@@ -33,10 +33,14 @@ public class Player {
    *
    * @throws RejectedExecutionException - if a task required by <code>connection</code> cannot
    *     be scheduled for execution.
-   * @throws NullPointerException - if <code>connection</code> is <code>null</code>.
+   * @throws NullPointerException - if any of the arguments is <code>null</code>.
    */
-  public Player(Connection connection) {
+  public Player(Connection connection, ExecutorService connectionExecutor) {
+    if (connection == null || connectionExecutor == null) {
+      throw new NullPointerException();
+    }
     this.connection = connection;
+    this.connectionExecutor = connectionExecutor;
     connectionFuture = connectionExecutor.submit(connection);
   }
 
@@ -63,7 +67,9 @@ public class Player {
 
   /** Close connection. */
   public void close() {
+    LOGGER.info("Closing connection on player: " + getId());
     connection.shutdown();
+    connectionFuture.cancel(true);
   }
 
   public int getId() {

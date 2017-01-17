@@ -2,6 +2,8 @@ package spaceinvaders.server;
 
 import static java.util.logging.Level.SEVERE;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -30,6 +32,7 @@ public class Server implements Service<Void> {
   private final PlayerManager playerManager = new PlayerManager();
   private GameManager gameManager;
   private ExecutorService connectionManagerExecutor;
+  private ExecutorService playerManagerExecutor;
   private ServiceState state = new ServiceState();
 
   /**
@@ -42,6 +45,7 @@ public class Server implements Service<Void> {
   public Server(int port) throws SocketOpeningException {
     connectionManager = new ConnectionManager(port);
     connectionManagerExecutor = Executors.newSingleThreadExecutor();
+    playerManagerExecutor = Executors.newSingleThreadExecutor();
     connectionManager.addObserver(playerManager);
     state.set(true);
   }
@@ -57,13 +61,17 @@ public class Server implements Service<Void> {
   public Void call() throws ExecutionException, InterruptedServiceException {
     LOGGER.info("Server is starting.");
 
-    Future<Void> connectionManagerFuture = connectionManagerExecutor.submit(connectionManager);
+    List<Future<?>> future = new ArrayList<>();
+    future.add(connectionManagerExecutor.submit(connectionManager));
+    future.add(playerManagerExecutor.submit(playerManager));
     final long checkingRateMilliseconds = 1000;
     while (state.get()) {
       try {
-        if (connectionManagerFuture.isDone()) {
-          state.set(false);
-          connectionManagerFuture.get();
+        for (Future<?> it : future) {
+          if (it.isDone()) {
+            state.set(false);
+            it.get();
+          }
         }
         Thread.sleep(checkingRateMilliseconds);
       } catch (CancellationException | InterruptedException exception) {
@@ -88,7 +96,9 @@ public class Server implements Service<Void> {
 
     state.set(false);
     connectionManager.shutdown();
+    playerManager.shutdown();
     connectionManagerExecutor.shutdownNow();
+    playerManagerExecutor.shutdownNow();
   }
 
   public boolean isRunning() {

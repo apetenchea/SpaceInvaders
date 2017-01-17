@@ -32,6 +32,7 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
 
   private final TransferQueue<Connection> connectionQueue = new LinkedTransferQueue<>();
   private final ServiceState state = new ServiceState();
+  private final ExecutorService threadPool = Executors.newCachedThreadPool();
 
   public PlayerManager() {
     state.set(true);
@@ -68,7 +69,7 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
       if (connection == null) {
         continue;
       }
-      Player player = new Player(connection);
+      Player player = new Player(connection,threadPool);
       player.push(new SetPlayerIdCommand(player.getId()));
       try {
         Thread.sleep(responseTimeoutMilliseconds);
@@ -94,5 +95,6 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
   @Override
   public void shutdown() {
     state.set(false);
+    threadPool.shutdownNow();
   }
 }
