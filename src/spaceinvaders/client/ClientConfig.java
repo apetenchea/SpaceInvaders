@@ -1,13 +1,12 @@
 package spaceinvaders.client;
 
+import java.net.SocketAddress;
 import java.util.regex.Pattern;
 import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.InvalidServerAddressException;
 import spaceinvaders.exceptions.InvalidUserNameException;
 
-/**
- * Client's configuration.
- */
+/** Used to maintain the configuration of the client. */
 public class ClientConfig {
   private static ClientConfig singleton;
 
@@ -16,6 +15,7 @@ public class ClientConfig {
   private String serverAddr;
   private Integer serverPort;
   private String userName;
+  private SocketAddress udpIncomingAddr;
 
   /**
    * Get a ClientConfig instance.
@@ -100,11 +100,19 @@ public class ClientConfig {
   }
 
   public void setServerAddr(String serverAddr) {
-    this.serverAddr = serverAddr ;
+    this.serverAddr = serverAddr;
   }
 
   public int getServerPort() {
     return serverPort;
+  }
+
+  public SocketAddress getUdpIncomingAddr() {
+    return udpIncomingAddr;
+  }
+
+  public void setUdpIncomingAddr(SocketAddress udpIncomingAddr) {
+    this.udpIncomingAddr = udpIncomingAddr;
   }
 
   public void setServerPort(int serverPort) {

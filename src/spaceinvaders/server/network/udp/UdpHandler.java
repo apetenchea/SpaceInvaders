@@ -5,12 +5,15 @@ import static spaceinvaders.exceptions.AssertionsEnum.NULL_ARGUMENT;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TransferQueue;
+
 import spaceinvaders.exceptions.InterruptedServiceException;
 import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.utility.Service;
@@ -69,24 +72,21 @@ public class UdpHandler implements Service<Void> {
    */
   @Override
   public Void call() throws ExecutionException, InterruptedServiceException {
-    Future<Void> receiverFuture = null;
-    Future<Void> senderFuture = null;
+    List<Future<?>> future = new ArrayList<>();
     try {
-      receiverFuture = receiverExecutor.submit(receiver);
-      senderFuture = senderExecutor.submit(sender);
+      future.add(receiverExecutor.submit(receiver));
+      future.add(senderExecutor.submit(sender));
     } catch (NullPointerException nullPtrException) {
       throw new AssertionError(NULL_ARGUMENT);
     }
     final long checkingRateMilliseconds = 1000;
     while (state.get()) {
       try {
-        if (receiverFuture.isDone()) {
-          state.set(false);
-          receiverFuture.get();
-        }
-        if (senderFuture.isDone()) {
-          state.set(false);
-          senderFuture.get();
+        for (Future<?> it : future) {
+          if (it.isDone()) {
+            state.set(false);
+            it.get();
+          }
         }
         Thread.sleep(checkingRateMilliseconds);
       } catch (CancellationException | InterruptedException exception) {

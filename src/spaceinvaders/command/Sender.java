@@ -13,5 +13,5 @@ public interface Sender {
   public void send(Command command);
 
   /** If this sender cannot handle the protocol, pass it to <code>next</code>. */
-  public void setNextChain(Sender next);
+  public void setNextChain(Sender nextChain);
 }

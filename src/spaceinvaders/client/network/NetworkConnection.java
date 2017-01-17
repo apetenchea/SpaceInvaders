@@ -33,7 +33,6 @@ import spaceinvaders.command.Sender;
 public class NetworkConnection implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(NetworkConnection.class.getName());
 
-  private final ClientConfig config = ClientConfig.getInstance();
   private final TransferQueue<String> incomingQueue;
   private final Socket tcpSocket;
   private final DatagramSocket incomingUdpSocket;
@@ -57,6 +56,7 @@ public class NetworkConnection implements Service<Void> {
    * @throws SecurityException - if a security manager doesn't allow an operation.
    */
   public NetworkConnection(TransferQueue<String> incomingQueue) throws SocketOpeningException {
+    ClientConfig config = ClientConfig.getInstance();
     if (incomingQueue == null) {
       throw new NullPointerException();
     }
@@ -68,10 +68,12 @@ public class NetworkConnection implements Service<Void> {
     } catch (IllegalArgumentException illegalArgException) {
       throw new IllegalPortNumberException(illegalArgException);
     }
+    // Bind outgoing UDP socket to the same local address as the TCP socket.
     SocketAddress bindAddr = tcpSocket.getLocalSocketAddress();
     if (bindAddr == null) {
       throw new AssertionError(UNBOUND_SOCKET.toString());
     }
+    config.setUdpIncomingAddr(bindAddr);
     try {
       outgoingUdpSocket = new DatagramSocket(bindAddr);
       incomingUdpSocket = new DatagramSocket();

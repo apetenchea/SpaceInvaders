@@ -7,6 +7,7 @@ import static spaceinvaders.exceptions.AssertionsEnum.NULL_ARGUMENT;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -79,36 +80,23 @@ public class ConnectionManager extends Observable implements Service<Void> {
    */
   @Override
   public Void call() throws ExecutionException, InterruptedServiceException {
-    Future<Void> tcpFuture = null;
-    Future<Void> udpFuture = null;
-    Future<Void> wrapperFuture = null;
-    Future<Void> dispatcherFuture = null;
+    List<Future<?>> future = new ArrayList<>();
     try {
-      tcpFuture = tcpExecutor.submit(tcpHandler);
-      udpFuture = udpExecutor.submit(udpHandler);
-      wrapperFuture = wrapperExecutor.submit(wrapper);
-      dispatcherFuture = dispatcherExecutor.submit(dispatcher);
+      future.add(tcpExecutor.submit(tcpHandler));
+      future.add(udpExecutor.submit(udpHandler));
+      future.add(wrapperExecutor.submit(wrapper));
+      future.add(dispatcherExecutor.submit(dispatcher));
     } catch (NullPointerException nullPtrException) {
       throw new AssertionError(NULL_ARGUMENT.toString(),nullPtrException);
     }
     final long checkingRateMilliseconds = 1000;
     while (state.get()) {
       try {
-        if (tcpFuture.isDone()) {
-          state.set(false);
-          tcpFuture.get();
-        }
-        if (udpFuture.isDone()) {
-          state.set(false);
-          udpFuture.get();
-        }
-        if (wrapperFuture.isDone()) {
-          state.set(false);
-          wrapperFuture.get();
-        }
-        if (dispatcherFuture.isDone()) {
-          state.set(false);
-          dispatcherFuture.get();
+        for (Future<?> it : future) {
+          if (it.isDone()) {
+            state.set(false);
+            it.get();
+          }
         }
         Thread.sleep(checkingRateMilliseconds);
       } catch (CancellationException | InterruptedException exception) {
@@ -161,6 +149,9 @@ public class ConnectionManager extends Observable implements Service<Void> {
 
   /**
    * Used for wrapping a {@link Socket} into a {@link Connection}.
+   *
+   * <p>The {@link spaceinvaders.server.network.Connection} is forwarded to
+   * {@link spaceinvaders.server.player.PlayerManager}.
    */
   private class SocketWrapper implements Service<Void> {
     private static final int POLL_TIMEOUT_MILLISECONDS = 1000;
@@ -191,6 +182,10 @@ public class ConnectionManager extends Observable implements Service<Void> {
           Connection connection = null;
           try {
             connection = new Connection(clientSocket,outgoingPacketQueue);
+          } catch (IOException ioException) {
+            LOGGER.log(SEVERE,ioException.toString(),ioException);
+            connection.shutdown();
+            continue;
           } catch (NullPointerException nullPtrException) {
             throw new AssertionError(NULL_ARGUMENT.toString(),nullPtrException);
           }

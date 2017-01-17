@@ -23,7 +23,7 @@ import spaceinvaders.command.client.SetPlayerIdCommand;
 import spaceinvaders.exceptions.ClosingSocketException;
 import spaceinvaders.exceptions.InterruptedServiceException;
 import spaceinvaders.exceptions.PlayerTimeoutException;
-import spaceinvaders.server.players.Player;
+import spaceinvaders.server.player.Player;
 
 /**
  * Manages game instances.

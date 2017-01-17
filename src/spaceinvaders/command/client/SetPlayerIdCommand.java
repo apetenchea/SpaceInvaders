@@ -5,18 +5,18 @@ import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.Model;
 import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
+import spaceinvaders.command.ProtocolEnum;
 import spaceinvaders.command.server.ConfigurePlayerCommand;
 
-/**
- * Set the ID of the player.
- */
+/** Set the ID of the player. */
 public class SetPlayerIdCommand extends Command {
   private transient Controller executor;
   public Integer id;
 
   public SetPlayerIdCommand() {
-    super(SetPlayerIdCommand.class.getName());
+    super(SetPlayerIdCommand.class.getName(),ProtocolEnum.TCP);
   }
+
   public SetPlayerIdCommand(int id) {
     this();
     this.id = id;
@@ -26,9 +26,9 @@ public class SetPlayerIdCommand extends Command {
   public void execute() {
     ClientConfig config = ClientConfig.getInstance();
     config.setId(id);
-    //executor.getModel().startSendingPackets();
-    executor.getModel().doCommand(
-        new ConfigurePlayerCommand(config.getUserName(),config.getTeamSize()));
+    Model model = executor.getModel();
+    model.doCommand(new ConfigurePlayerCommand(config.getUserName(),config.getTeamSize(),
+          config.getUdpIncomingAddr()));
     for (View view : executor.getViews()) {
       view.showGame();
     }
@@ -40,5 +40,4 @@ public class SetPlayerIdCommand extends Command {
       this.executor = (Controller) executor;
     }
   }
-
 }
