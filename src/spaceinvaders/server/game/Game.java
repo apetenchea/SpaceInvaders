@@ -5,6 +5,8 @@ import static spaceinvaders.command.ProtocolEnum.UDP;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -32,6 +34,7 @@ public class Game implements Service<Void> {
   private final GameConfig config = GameConfig.getInstance();
   private final List<Player> team;
   private final List<Entity> world;
+  private final NavigableMap<EntityEnum,Entity> entityMap = new TreeMap<>();
   private final AutoSwitch invadersMovement = new AutoSwitch(config.invader().getSpeed()); 
   private final AutoSwitch bulletsMovement = new AutoSwitch(config.bullet().getSpeed()); 
   private final List<Service<?>> services = new ArrayList<>();
@@ -48,7 +51,9 @@ public class Game implements Service<Void> {
    * @param team - players joining this game.
    * @param threadPool - pool used to create new threads.
    *
-   * @throws NullPointerException - if any of the arguments is {@code null}.
+   * @throws ClassCastException - from {@link TreeMap#put()}.
+   * @throws NullPointerException - if any of the arguments is {@code null}
+   *     or from {@link TreeMap#put()}.
    */
   public Game(List<Player> team, ExecutorService threadPool) {
     if (team == null || threadPool == null) {
@@ -57,6 +62,9 @@ public class Game implements Service<Void> {
     this.team = team;
     this.threadPool = threadPool;
     world = config.builder.buildWorld(team.size());
+    for (Entity it : world) {
+      entityMap.put(it.getType(),entity);
+    }
     state.set(true);
   }
 
@@ -85,6 +93,7 @@ public class Game implements Service<Void> {
         }
         processInput();
         update();
+        send();
         flushCommands();
         Thread.sleep(SLEEP_BETWEEN_FRAMES_MS);
       } catch (CancellationException | InterruptedException exception) {
@@ -126,11 +135,20 @@ public class Game implements Service<Void> {
   }
 
   private void processInput() {
-
+    for (Player player : team) {
+      List<Command> commands = player.pull();
+      for (Command it : commands) {
+        command.setExecutor(this);
+        command.execute();
+      }
+    }
   }
 
   private void update() {
+    if (invadersMovement.isOn()) {
 
+      invadersMovement.toggle();
+    }
   }
 
   /** Flush buffered commands for all players. */

@@ -2,46 +2,33 @@ package spaceinvaders.game;
 
 import spaceinvaders.utility.Couple;
 
-/**
- * Everything that exists in the game world.
- */
+/** Everything that exists in the game world. */
 public class Entity {
-  private Integer id;
+  private EntityEnum type;
+  private Integer id = hashCode();
   private Couple<Integer,Integer> pos;
 
   public Entity(Entity entity) {
+    type = entity.type;
     id = entity.id;
     pos = entity.pos;
   }
 
-  public Entity(Couple <Integer,Integer> pos) {
-    id = hashCode();
-    this.pos = pos;
-  }
-
-  public Entity(int id, Couple<Integer,Integer> pos) {
+  public Entity(EntityEnum type, int id, Couple <Integer,Integer> pos) {
+    this.type = type;
     this.id = id;
     this.pos = pos;
-  }
-
-  public void move(int newX, int newY) {
-    pos.setFirst(newX);
-    pos.setSecond(newY);
   }
 
   public int getId() {
     return id;
   }
 
-  public Couple<Integer,Integer> getPos() {
-    return pos;
-  }
-  
-  public int getX() {
-    return pos.getFirst();
+  public EntityEnum getType() {
+    return type;
   }
 
-  public int getY() {
-    return pos.getSecond();
+  public Couple<Integer,Integer> getPos() {
+    return pos;
   }
 }
