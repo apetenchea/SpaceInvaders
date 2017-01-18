@@ -15,38 +15,24 @@ import spaceinvaders.game.Entity;
  */
 public interface View {
   /**
+   * Add a listener for starting a new game.
+   */
+  public void addStartGameListener(ActionListener listener);
+
+  /**
    * Add a listener for closing the application.
    */
   public void addQuitAppListener(ActionListener listener);
 
   /**
-   * Add a listener for quitting the game.
+   * Add a listener for key bindings.
    */
-  public void addQuitGameListener(KeyListener listener);
+  public void addKeyListener(KeyListener listener);
   
-  /**
-   * Add a listener for starting a new game.
-   */
-  public void addStartGameListener(ActionListener listener);
-
-  public void addMoveLeftListener(KeyListener listener);
-  public void addMoveRightListener(KeyListener listener);
-  public void addShootListener(KeyListener listener);
-
-  /**
-   * Get player's configuration.
-   */
-  public ClientConfig getConfig();
-
   /**
    * Display an error message and stop the game.
    */
   public void displayError(Exception exception);
-
-  /**
-   * Add a visual entity in the game.
-   */
-  public void addEntity(String type, Entity body);
 
   /**
    * Associate the IDs of the participating players with their names.
@@ -54,17 +40,7 @@ public interface View {
   public void setPlayerNames(List<Couple<Integer,String>> players);
 
   /**
-   * Change the position of an entity.
-   */
-  public void moveEntity(int id, int newX, int newY);
-
-  /**
-   * Destroy an entity.
-   */
-  public void destroyEntity(int id);
-
-  /**
-   * Flush all accumulated data that has been given by the model.
+   * Display the current state of the view.
    */
   public void flush();
  

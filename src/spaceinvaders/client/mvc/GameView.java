@@ -18,41 +18,15 @@ import spaceinvaders.game.Entity;
  * @see spaceinvaders.client.mvc.GameModel
  */
 public class GameView implements View {
-  private GameGraphics game;
-  private Menu menu;
+  private final GameGraphics game = new GameGraphics();
+  private final Menu menu = new Menu();
   private JFrame currentFrame;
 
   /**
-   * Constructs a new view that is initially hidden.
+   * Constructs a new starting with the menu.
    */
   public GameView() {
-    menu = new Menu();
-    game = new GameGraphics();
-  }
-
-  @Override
-  public void addQuitAppListener(ActionListener listener) {
-    menu.addQuitListener(listener);
-  }
-
-  @Override
-  public void addQuitGameListener(KeyListener listener) {
-    game.addKeyListener(listener);
-  }
-
-  @Override
-  public void addMoveLeftListener(KeyListener listener) {
-    game.addKeyListener(listener);
-  }
-
-  @Override
-  public void addMoveRightListener(KeyListener listener) {
-    game.addKeyListener(listener);
-  }
-
-  @Override
-  public void addShootListener(KeyListener listener) {
-    game.addKeyListener(listener);
+    menu.show();
   }
 
   @Override
@@ -61,8 +35,13 @@ public class GameView implements View {
   }
 
   @Override
-  public ClientConfig getConfig() {
-    return menu.getConfig();
+  public void addQuitAppListener(ActionListener listener) {
+    menu.addQuitListener(listener);
+  }
+
+  @Override
+  public void addKeyListener(KeyListener listener) {
+    game.addKeyListener(listener);
   }
 
   @Override
@@ -74,23 +53,8 @@ public class GameView implements View {
   }
   
   @Override
-  public void addEntity(String type, Entity body) {
-    game.addEntity(type,body);
-  }
-
-  @Override
-  public void destroyEntity(int id) {
-    game.destroyEntity(id);
-  }
-
-  @Override
   public void setPlayerNames(List<Couple<Integer,String>> players) {
     game.setPlayerNames(players);
-  }
-
-  @Override
-  public void moveEntity(int id, int newX, int newY) {
-    game.moveEntity(id,newX,newY);
   }
 
   @Override

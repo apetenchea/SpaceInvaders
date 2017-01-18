@@ -53,10 +53,11 @@ public class GameController implements Controller {
     if (!views.contains(view)) {
       view.addStartGameListener(new StartGameListener());
       view.addQuitAppListener(new QuitAppListener());
-      view.addQuitGameListener(new QuitGameListener());
-      view.addMoveLeftListener(new MoveLeftListener());
-      view.addMoveRightListener(new MoveRightListener());
-      view.addShootListener(new ShootListener());
+      view.addKeyListener(
+          new MoveLeftListener(
+            new MoveRightListener(
+              new ShootListener(
+                new QuitGameListener(null)))));
       views.add(view);
     }
   }
@@ -72,24 +73,17 @@ public class GameController implements Controller {
   }
 
   @Override
-  public synchronized void update(Observable obs, Object arg) {
-    /*
-    if (arg instanceof String) {
-      CommandDirector director = new CommandDirector(new ClientCommandBuilder());
-      director.makeCommand((String) arg);
-      Command command = director.getCommand();
+  public void update(Observable obs, Object arg) {
+    if (arg instanceof Command) {
+      Command command = (Command) arg;
       command.setExecutor(this);
       command.execute();
-    } else if (arg instanceof Exception) {
-      displayErrorOnViews((Exception) arg);
+    }
+    if (arg == null) {
       model.exitGame();
       for (View view : views) {
         view.showMenu();
       }
-    }
-    */
-    if (arg == null) {
-      model.exitGame();
     }
   }
 
@@ -97,56 +91,6 @@ public class GameController implements Controller {
     for (View view : views) {
       view.showMenu();
       view.displayError(exception);
-    }
-  }
-
-  private class QuitAppListener implements ActionListener {
-    public void actionPerformed(ActionEvent event) {
-      System.err.println("Quit");
-      model.exitGame();
-      model.shutdown();
-      for (View view : views) {
-        view.shutdown();
-      }
-    }
-  }
-
-  private class QuitGameListener extends KeyAdapter {
-    @Override
-    public void keyPressed(KeyEvent event) {
-      if (event.getKeyCode() == VK_ESCAPE) {
-        model.exitGame();
-        for (View view : views) {
-          view.showMenu();
-        }
-      }
-    }
-  }
-
-  private class MoveLeftListener extends KeyAdapter {
-    @Override
-    public void keyPressed(KeyEvent event) {
-      if (event.getKeyCode() == VK_LEFT) {
-        model.doCommand(new MovePlayerLeftCommand(ClientConfig.getInstance().getId()));
-      }
-    }
-  }
-
-  private class MoveRightListener extends KeyAdapter {
-    @Override
-    public void keyPressed(KeyEvent event) {
-      if (event.getKeyCode() == VK_RIGHT) {
-        model.doCommand(new MovePlayerRightCommand(ClientConfig.getInstance().getId()));
-      }
-    }
-  }
-
-  private class ShootListener extends KeyAdapter {
-    @Override
-    public void keyPressed(KeyEvent event) {
-      if (event.getKeyCode() == VK_SPACE) {
-        model.doCommand(new PlayerShootCommand(ClientConfig.getInstance().getId()));
-      }
     }
   }
 
@@ -169,6 +113,95 @@ public class GameController implements Controller {
       } catch (Exception exception) {
         LOGGER.log(SEVERE,exception.toString(),exception);
         model.exitGame();
+      }
+    }
+  }
+
+  private class QuitAppListener implements ActionListener {
+    public void actionPerformed(ActionEvent event) {
+      System.err.println("Quit");
+      model.exitGame();
+      model.shutdown();
+      for (View view : views) {
+        view.shutdown();
+      }
+    }
+  }
+
+  private abstract class ChainListener extends KeyAdapter {
+    private ChainListener nextChain;
+
+    public ChainListener(ChainListener nextChain) {
+      this.nextChain = nextChain;
+    }
+
+    public void pass(KeyEvent event) {
+      if (nextChain == null) {
+        throw new AssertionError();
+      }
+      nextChain.keyPressed(event);
+    }
+  }
+
+  private class MoveLeftListener extends ChainListener {
+    public MoveLeftListener(ChainListener nextChain) {
+      super(nextChain);
+    }
+
+    @Override
+    public void keyPressed(KeyEvent event) {
+      if (event.getKeyCode() == VK_LEFT) {
+        model.doCommand(new MovePlayerLeftCommand(ClientConfig.getInstance().getId()));
+      } else {
+        pass(event);
+      }
+    }
+  }
+
+  private class MoveRightListener extends ChainListener {
+    public MoveRightListener(ChainListener nextChain) {
+      super(nextChain);
+    }
+
+    @Override
+    public void keyPressed(KeyEvent event) {
+      if (event.getKeyCode() == VK_RIGHT) {
+        model.doCommand(new MovePlayerRightCommand(ClientConfig.getInstance().getId()));
+      } else {
+        pass(event);
+      }
+    }
+  }
+
+  private class ShootListener extends ChainListener {
+    public ShootListener(ChainListener nextChain) {
+      super(nextChain);
+    }
+
+    @Override
+    public void keyPressed(KeyEvent event) {
+      if (event.getKeyCode() == VK_SPACE) {
+        model.doCommand(new PlayerShootCommand(ClientConfig.getInstance().getId()));
+      } else {
+        pass(event);
+      }
+    }
+  }
+
+  private class QuitGameListener extends ChainListener {
+    public QuitGameListener(ChainListener nextChain) {
+      super(nextChain);
+    }
+
+    @Override
+    public void keyPressed(KeyEvent event) {
+      if (event.getKeyCode() == VK_ESCAPE) {
+        model.exitGame();
+        for (View view : views) {
+          view.showMenu();
+        }
+      } else {
+        pass(event);
       }
     }
   }

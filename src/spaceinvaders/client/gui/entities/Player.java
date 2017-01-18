@@ -1,13 +1,11 @@
 package spaceinvaders.client.gui.entities;
 
+import java.io.IOException;
 import spaceinvaders.game.GameConfig;
-import spaceinvaders.exceptions.ResourceNotFoundException;
 
-/**
- * The player character.
- */
+/** The player character. */
 public class Player extends GraphicalEntity {
-  public Player() throws ResourceNotFoundException {
+  public Player() throws IOException {
     super(GameConfig.getInstance().getPlayerImage());
   }
 }

@@ -27,7 +27,10 @@ public class PackCommand extends Command {
 
   @Override
   public void execute() {
-    //executor.getModel().exitGame();
+    for (Command command : pack) {
+      command.setExecutor(executor);
+      command.execute();
+    }
   }
 
   @Override

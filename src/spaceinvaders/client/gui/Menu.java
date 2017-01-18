@@ -15,7 +15,7 @@ import spaceinvaders.client.ClientConfig;
  *
  * <p>This is the first UI element encountered by the user. It can be used to CONFIGure the game.
  */
-public class Menu implements GraphicalObject {
+public class Menu implements UiObject {
   public static final ClientConfig CONFIG = ClientConfig.getInstance();
 
   private JFrame menuFrame;

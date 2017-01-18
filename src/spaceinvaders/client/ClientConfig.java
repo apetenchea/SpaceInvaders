@@ -11,10 +11,10 @@ public class ClientConfig {
   private static ClientConfig singleton;
 
   private Integer id;
-  private Integer teamSize;
-  private String serverAddr;
-  private Integer serverPort;
-  private String userName;
+  private Integer teamSize = 1;
+  private String serverAddr = "localhost";
+  private Integer serverPort = 5412;
+  private String userName = "default";
   private SocketAddress udpIncomingAddr;
 
   /**
@@ -25,13 +25,6 @@ public class ClientConfig {
       singleton = new ClientConfig();
     }
     return singleton;
-  }
-
-  private ClientConfig() {
-    serverAddr = "localhost";
-    serverPort = 5412;
-    userName = "default";
-    teamSize = 1;
   }
 
   /**

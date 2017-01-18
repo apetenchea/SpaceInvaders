@@ -1,13 +1,11 @@
 package spaceinvaders.client.gui.entities;
 
+import java.io.IOException;
 import spaceinvaders.game.GameConfig;
-import spaceinvaders.exceptions.ResourceNotFoundException;
 
-/**
- * Shield block.
- */
+/** Shield block. */
 public class Shield extends GraphicalEntity {
-  public Shield() throws ResourceNotFoundException {
+  public Shield() throws IOException {
     super(GameConfig.getInstance().getShieldImage());
   }
 }

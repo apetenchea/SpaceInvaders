@@ -2,14 +2,12 @@ package spaceinvaders.client.gui;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-
+import java.util.logging.Logger;
 import javax.swing.JPanel;
-
 import spaceinvaders.client.gui.entities.GraphicalEntity;
 import spaceinvaders.client.gui.entities.GraphicsFactory;
 import spaceinvaders.game.Entity;
@@ -24,28 +22,24 @@ import spaceinvaders.game.GameConfig;
 class GamePanel extends JPanel {
   private static final Logger LOGGER = Logger.getLogger(GamePanel.class.getName());
 
-  private GameConfig config;
-  private GraphicsFactory factory;
-  private Map<Integer,GraphicalEntity> entitiesMap;
-  private Map<Integer,String> playerNamesMap;
+  private final GameConfig config = GameConfig.getInstance();
+  private final GraphicsFactory factory = GraphicsFactory.getInstance();
+  private final Map<Integer,String> playerNamesMap = new HashMap<>();
+  private final List<GraphicalEntity> entities = new ArrayList<>();
   
   public GamePanel() {
-    config = GameConfig.getInstance();
-    setBackground(Color.BLACK);
-    factory = GraphicsFactory.getInstance();
-    entitiesMap = new LinkedHashMap<>();
-    playerNamesMap = new HashMap<>();
+    setBackground(config.getGameBackgroundColor());
+    setForeground(config.getGameForegroundColor());
   }
 
   @Override
   protected void paintComponent(Graphics graphics) {
     super.paintComponent(graphics);
 
-    //graphics.drawImage(backgroundImage,0,0,null);
-    for (Map.Entry<Integer,GraphicalEntity> entry : entitiesMap.entrySet()) {
-      GraphicalEntity entity = entry.getValue();
+    for (GraphicalEntity entity : entities) {
       graphics.drawImage(entity.getImage(),entity.getX(),entity.getY(),this);
     }
+    /*
     graphics.setColor(config.getGamePanelTextColor());
 		graphics.setFont(config.getGamePanelTextFont());
     for (Map.Entry<Integer,String> entry : playerNamesMap.entrySet()) {
@@ -55,36 +49,19 @@ class GamePanel extends JPanel {
             + config.getPlayerNameOffset());
       }
     }
+    */
   }
 
   public void init() {
-    entitiesMap.clear();
     playerNamesMap.clear();
   }
 
-  public void addEntity(String type, Entity body) {
-    GraphicalEntity entity = factory.create(type,body); 
-    if (entity != null) {
-      entitiesMap.put(entity.getId(),entity);
+  public void refreshEntities(List<Entity> updates) {
+    entities.clear();
+    for (Entity update : updates) {
+      GraphicalEntity entity = factory.create(update); 
+      entities.add(entity);
     }
-  }
-
-  public void moveEntity(int id, int newX, int newY) {
-    GraphicalEntity entity = entitiesMap.get(id);
-    if (entity == null) {
-      LOGGER.warning("Trying to move inexistent entity " + id);
-      return;
-    }
-    entity.move(newX,newY);
-  }
-
-  public void destroyEntity(int id) {
-    GraphicalEntity entity = entitiesMap.get(id);
-    if (entity == null) {
-      LOGGER.warning("Trying to remove an inexistent entity " + id);
-      return;
-    }
-    entitiesMap.remove(id);
   }
 
   public void addPlayer(Integer id, String name) {

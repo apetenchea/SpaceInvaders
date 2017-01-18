@@ -1,31 +1,22 @@
 package spaceinvaders.client.gui.entities;
 
 import java.awt.image.BufferedImage;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import spaceinvaders.game.Entity;
-
 import java.io.File;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
-
+import spaceinvaders.game.Entity;
 import spaceinvaders.exceptions.ResourceNotFoundException;
 
-/**
- * Game entities that appear on the screen.
- */
+/** Game entity that is drawable on the screen. */
 public abstract class GraphicalEntity implements Cloneable {
   private static final Logger LOGGER = Logger.getLogger(GraphicalEntity.class.getName());
-  private BufferedImage avatar; 
+
+  private final BufferedImage avatar; 
   private Entity entity;
 
-  protected GraphicalEntity(String imagePath) throws ResourceNotFoundException {
-    try {
-      avatar = ImageIO.read(new File(imagePath));
-    } catch (IOException exception) {
-      throw new ResourceNotFoundException(exception);
-    }
+  protected GraphicalEntity(String imagePath) throws IOException {
+    avatar = ImageIO.read(new File(imagePath));
   }
 
   @Override
@@ -33,24 +24,19 @@ public abstract class GraphicalEntity implements Cloneable {
     try {
       return super.clone();
     } catch (CloneNotSupportedException exception) {
-      LOGGER.log(Level.SEVERE,exception.toString(),exception);
+      throw new AssertionError();
     }
-    return null;
   }
 
   public void setEntity(Entity entity) {
     this.entity = entity;
   }
 
-  public void move(int xCoord, int yCoord) {
-    entity.move(xCoord,yCoord);
-  }
-
   public BufferedImage getImage() {
     return avatar;
   }
 
-   public int getId() {
+  public int getId() {
     return entity.getId();
   }
 

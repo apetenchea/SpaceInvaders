@@ -1,5 +1,6 @@
 package spaceinvaders.client.gui.entities;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Map;
@@ -24,8 +25,8 @@ public class GraphicsFactory {
       entitiesMap.put(InvaderBullet.class.getName(),new InvaderBullet());
       entitiesMap.put(PlayerBullet.class.getName(),new PlayerBullet());
       entitiesMap.put(Shield.class.getName(),new Shield());
-    } catch (ResourceNotFoundException exception) {
-      LOGGER.log(Level.SEVERE,exception.getMessage(),exception);
+    } catch (IOException ioException) {
+      throw new AssertionError();
     }
   }
 

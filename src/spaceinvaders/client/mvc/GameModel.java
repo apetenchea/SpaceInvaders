@@ -196,7 +196,6 @@ public class GameModel implements Model {
           notifyObservers();
           break;
         }
-        /*
         try {
           director.makeCommand(data);
           setChanged();
@@ -206,7 +205,6 @@ public class GameModel implements Model {
         } catch (CommandNotFoundException commandException) {
           LOGGER.log(SEVERE,commandException.toString(),commandException);
         }
-        */
       }
       return null;
     }

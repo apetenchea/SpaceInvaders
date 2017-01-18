@@ -1,13 +1,11 @@
 package spaceinvaders.client.gui.entities;
 
-import spaceinvaders.exceptions.ResourceNotFoundException;
+import java.io.IOException;
 import spaceinvaders.game.GameConfig;
 
-/**
- * Bullet fired by the invaders.
- */
+/** Bullet fired by the invaders. */
 public class InvaderBullet extends GraphicalEntity {
-  public InvaderBullet() throws ResourceNotFoundException {
+  public InvaderBullet() throws IOException {
     super(GameConfig.getInstance().getInvaderBulletImage());
   }
 }
