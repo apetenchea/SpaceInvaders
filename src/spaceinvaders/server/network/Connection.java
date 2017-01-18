@@ -19,6 +19,7 @@ import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TransferQueue;
 import java.util.logging.Logger;
 import spaceinvaders.command.Command;
+import spaceinvaders.command.client.PackCommand;
 import spaceinvaders.command.CommandDirector;
 import spaceinvaders.command.client.ClientCommandBuilder;
 import spaceinvaders.exceptions.CommandNotFoundException;
@@ -34,7 +35,8 @@ public class Connection implements Service<Void> {
   private final Socket socket;
   private final BufferedReader reader;
   private final PrintWriter writer;
-  private final Sender sender = new UdpSender(new TcpSender());
+  private final UdpSender udpSender = new UdpSender(new TcpSender());
+  private final Sender sender = udpSender;
   private final TransferQueue<Command> incomingQueue = new LinkedTransferQueue<>();
   private final TransferQueue<DatagramPacket> outgoingQueue;
   private final CommandDirector director = new CommandDirector(new ClientCommandBuilder());
@@ -132,8 +134,8 @@ public class Connection implements Service<Void> {
     sender.send(command);
   }
 
-  /** Get all commands from the input queue. */
-  public List<Command> getCommands() {
+  /** Read all commands from the input queue. */
+  public List<Command> readCommands() {
     List<Command> commands = new ArrayList<>();
     try {
       incomingQueue.drainTo(commands);
@@ -145,6 +147,10 @@ public class Connection implements Service<Void> {
       return null;
     }
     return commands;
+  }
+
+  public void flushUdp() {
+    udpSender.flush();
   }
 
   public boolean isClosed() {
@@ -159,8 +165,13 @@ public class Connection implements Service<Void> {
     this.udpDestination = udpDestination;
   }
 
-  /** Pack and send UDP data. */
+  /**
+   * Pack and send UDP data.
+   *
+   * <p>Commands are buffered. Use flush() to send them over the internet.
+   */
   private class UdpSender implements Sender {
+    private final List<Command> buffer = new ArrayList<>();
     private Sender nextChain;
 
     public UdpSender() {}
@@ -178,15 +189,7 @@ public class Connection implements Service<Void> {
         throw new NullPointerException();
       }
       if (command.getProtocol().equals(UDP)) {
-        String data = command.toJson();
-        try {
-          DatagramPacket packet = new DatagramPacket(data.getBytes(),data.length(),udpDestination);
-          if (!outgoingQueue.offer(packet)) {
-            throw new AssertionError();
-          }
-        } catch (Exception exception) {
-          LOGGER.log(SEVERE,exception.toString(),exception);
-        }
+        buffer.add(command);
       } else {
         if (nextChain == null) {
           throw new AssertionError();
@@ -204,6 +207,21 @@ public class Connection implements Service<Void> {
         throw new NullPointerException();
       }
       this.nextChain = nextChain;
+    }
+
+    /** Flush commands. */
+    public void flush() {
+      Command command = new PackCommand(new ArrayList<Command>(buffer));
+      buffer.clear();
+      String data = command.toJson();
+      try {
+        DatagramPacket packet = new DatagramPacket(data.getBytes(),data.length(),udpDestination);
+        if (!outgoingQueue.offer(packet)) {
+          throw new AssertionError();
+        }
+      } catch (Exception exception) {
+        LOGGER.log(SEVERE,exception.toString(),exception);
+      }
     }
   }
 

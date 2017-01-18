@@ -80,10 +80,10 @@ public class GameManager implements Observer, Service<Void> {
       futureListLock.lock();
       it = future.iterator();
       while (it.hasNext()) {
-        Future<?> current = it.next();
-        if (current.isDone()) {
+        Future<?> game = it.next();
+        if (game.isDone()) {
           try {
-            current.get();
+            game.get();
           } catch (Exception exception) {
             // Do not crash.
             LOGGER.log(SEVERE,exception.toString(),exception);

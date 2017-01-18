@@ -5,6 +5,7 @@ import static spaceinvaders.command.ProtocolEnum.UDP;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -13,18 +14,28 @@ import java.util.logging.Logger;
 import spaceinvaders.command.Command;
 import spaceinvaders.command.client.SetPlayerNamesCommand;
 import spaceinvaders.command.client.StartGameCommand;
+import spaceinvaders.game.GameConfig;
 import spaceinvaders.command.client.QuitGameCommand;
 import spaceinvaders.command.client.PackCommand;
 import spaceinvaders.server.player.Player;
+import spaceinvaders.game.Entity;
 import spaceinvaders.utility.Couple;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
+import spaceinvaders.utility.AutoSwitch;
 
 /** Game logic and physics happen here. */
 public class Game implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(Game.class.getName());
+  private static final int SLEEP_BETWEEN_FRAMES_MS = 100;
 
+  private final GameConfig config = GameConfig.getInstance();
   private final List<Player> team;
+  private final List<Entity> world;
+  private final AutoSwitch invadersMovement = new AutoSwitch(config.invader().getSpeed()); 
+  private final AutoSwitch bulletsMovement = new AutoSwitch(config.bullet().getSpeed()); 
+  private final List<Service<?>> services = new ArrayList<>();
+  private final List<Future<?>> future = new ArrayList<>();
   private final ReadWriteLock teamListLock = new ReentrantReadWriteLock();
   private final List<Command> udpBuffer = new ArrayList<>();
   private final List<Command> tcpBuffer = new ArrayList<>();
@@ -45,23 +56,65 @@ public class Game implements Service<Void> {
     }
     this.team = team;
     this.threadPool = threadPool;
+    world = config.builder.buildWorld(team.size());
     state.set(true);
   }
 
+  /**
+   * Game loop.
+   *
+   * @throws ExecutionException - if an exception occurs during execution.
+   * @throws InterruptedException - if the service is interrupted prior to shutdown.
+   * @throws RejectedExecutionException - if the task cannot be executed.
+   */
   @Override
-  public Void call() {
-    LOGGER.info("Game started");
+  public Void call() throws InterruptedException {
+    LOGGER.info("Game started.");
+    initClients();
+    future.add(threadPool.submit(invadersMovement));
+    future.add(threadPool.submit(bulletsMovement));
+    services.add(invadersMovement);
+    services.add(bulletsMovement);
+    while (state.get()) {
+      try {
+        for (Future<?> it : future) {
+          if (it.isDone()) {
+            state.set(false);
+            it.get();
+          }
+        }
+        processInput();
+        update();
+        flushCommands();
+        Thread.sleep(SLEEP_BETWEEN_FRAMES_MS);
+      } catch (CancellationException | InterruptedException exception) {
+        if (state.get()) {
+          state.set(false);
+          throw new InterruptedException();
+        }
+      }
+    }
     sendCommand(new QuitGameCommand());
-    flushCommands();
+    shutdown();
     return null; 
   }
 
   @Override
   public void shutdown() {
     state.set(false);
+    for (Player it : team) {
+      it.close();
+    }
+    for (Service<?> it : services) {
+      it.shutdown();
+    }
+    for (Future<?> it : future) {
+      it.cancel(true);
+    }
   }
 
-  private void initPlayers() {
+  /** Initialize clients. */
+  private void initClients() {
     teamListLock.readLock().lock();
     List<Couple<Integer,String>> idToName = new ArrayList<>(team.size());
     for (Player player : team) {
@@ -70,6 +123,23 @@ public class Game implements Service<Void> {
     teamListLock.readLock().unlock();
     sendCommand(new SetPlayerNamesCommand(idToName));
     sendCommand(new StartGameCommand());
+  }
+
+  private void processInput() {
+
+  }
+
+  private void update() {
+
+  }
+
+  /** Flush buffered commands for all players. */
+  private void flushCommands() {
+    teamListLock.readLock().lock();
+    for (Player player : team) {
+      player.flush();
+    }
+    teamListLock.readLock().unlock();
   }
 
   /**
@@ -83,26 +153,8 @@ public class Game implements Service<Void> {
     if (command == null) {
       throw new NullPointerException();
     }
-    if (command.getProtocol() == UDP) {
-      udpBuffer.add(command);
-    } else {
-      tcpBuffer.add(command);
+    for (Player it : team) {
+      it.push(command);
     }
-  }
-
-  /** Flush buffered commands to all players. */
-  private void flushCommands() {
-    Command command = new PackCommand(new ArrayList<Command>(udpBuffer));
-    udpBuffer.clear();
-    teamListLock.readLock().lock();
-    for (Player player : team) {
-      player.push(command);
-    }
-    for (Command it : tcpBuffer) {
-      for (Player player : team) {
-        player.push(it);
-      }
-    } 
-    teamListLock.readLock().unlock();
   }
 }

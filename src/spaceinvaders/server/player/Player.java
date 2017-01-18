@@ -62,7 +62,12 @@ public class Player {
    * @return a list containing all commands received or <code>null</code> there are none.
    */
   public List<Command> pull() {
-    return connection.getCommands();
+    return connection.readCommands();
+  }
+
+  /** Flush buffered commands. */
+  public void flush() {
+    connection.flushUdp();
   }
 
   /** Close connection. */
