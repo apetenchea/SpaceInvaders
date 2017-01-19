@@ -19,8 +19,12 @@ import spaceinvaders.command.client.StartGameCommand;
 import spaceinvaders.game.GameConfig;
 import spaceinvaders.command.client.QuitGameCommand;
 import spaceinvaders.command.client.PackCommand;
+import spaceinvaders.server.game.world.WorldDirector;
+import spaceinvaders.server.game.world.ClassicWorldBuilder;
+import spaceinvaders.server.game.world.World;
 import spaceinvaders.server.player.Player;
 import spaceinvaders.game.Entity;
+import spaceinvaders.game.EntityEnum;
 import spaceinvaders.utility.Couple;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
@@ -33,10 +37,9 @@ public class Game implements Service<Void> {
 
   private final GameConfig config = GameConfig.getInstance();
   private final List<Player> team;
-  private final List<Entity> world;
-  private final NavigableMap<EntityEnum,Entity> entityMap = new TreeMap<>();
-  private final AutoSwitch invadersMovement = new AutoSwitch(config.invader().getSpeed()); 
-  private final AutoSwitch bulletsMovement = new AutoSwitch(config.bullet().getSpeed()); 
+  private final World world;
+  private final AutoSwitch invadersMovement = new AutoSwitch(config.speed().invader().getRate()); 
+  private final AutoSwitch bulletsMovement = new AutoSwitch(config.speed().bullet().getRate()); 
   private final List<Service<?>> services = new ArrayList<>();
   private final List<Future<?>> future = new ArrayList<>();
   private final ReadWriteLock teamListLock = new ReentrantReadWriteLock();
@@ -61,10 +64,9 @@ public class Game implements Service<Void> {
     }
     this.team = team;
     this.threadPool = threadPool;
-    world = config.builder.buildWorld(team.size());
-    for (Entity it : world) {
-      entityMap.put(it.getType(),entity);
-    }
+    WorldDirector director = new WorldDirector(new ClassicWorldBuilder());
+    director.makeWorld(team.size());
+    world = director.getWorld();
     state.set(true);
   }
 

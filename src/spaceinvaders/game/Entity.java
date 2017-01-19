@@ -20,8 +20,18 @@ public class Entity {
     this.pos = pos;
   }
 
+  public Entity(EntityEnum type, int xPos, int yPos) {
+    this.type = type;
+    id = hashCode();
+    this.pos = new Couple<Integer,Integer>(xPos,yPos);
+  }
+
   public int getId() {
     return id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
   }
 
   public EntityEnum getType() {

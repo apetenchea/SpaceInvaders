@@ -4,13 +4,15 @@ import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;
 import spaceinvaders.utility.Couple;
 
-class LogicEntity {
+public class LogicEntity {
   private final Entity body;
-  private final Couple<Integer,Integer> size;
+  private final Integer width;
+  private final Integer height;
 
-  public LogicEntity(Entity body, Couple<Integer,Integer> size) {
-    this.body = body; 
-    this.size = size;
+  public LogicEntity(EntityEnum type, int posX, int posY, int width, int height) {
+    this.body = new Entity(type,posX,posY); 
+    this.width = width;
+    this.height = height;
   }
 
   /** Move the entity to a new position. */
@@ -24,10 +26,10 @@ class LogicEntity {
    * @return true if entities collide, false otherwise.
    */
   public boolean collides(LogicEntity entity) {
-    return getX() <= entity.getX() + entity.size.getFirst()
-      && entity.getX() <= getX() + size.getFirst()
-      && getY() <= entity.getY() + entity.size.getSecond()
-      && entity.getY() <= getY() + size.getSecond();
+    return getX() <= entity.getX() + entity.width
+      && entity.getX() <= getX() + width
+      && getY() <= entity.getY() + entity.height
+      && entity.getY() <= getY() + width;
   }
 
   public Entity getEntity() {
@@ -44,5 +46,9 @@ class LogicEntity {
 
   public int getY() {
     return body.getPos().getSecond();
+  }
+
+  public void setId(int id) {
+    body.setId(id);
   }
 }
