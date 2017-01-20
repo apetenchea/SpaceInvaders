@@ -6,12 +6,18 @@ import spaceinvaders.game.GameConfig;
 import spaceinvaders.utility.Couple;
 
 /** Bullet shot by a player. */
-class PlayerBullet extends LogicEntity {
+public class PlayerBullet extends LogicEntity {
   private final GameConfig config = GameConfig.getInstance();
+  private final Integer shooterId;
 
-  public PlayerBullet(int posX, int posY) {
+  public PlayerBullet(int shooterId, int posX, int posY) {
     super(EntityEnum.PLAYER_BULLET,posX,posY,
           GameConfig.getInstance().playerBullet().getWidth(),
           GameConfig.getInstance().playerBullet().getHeight());
+    this.shooterId = shooterId;
+  }
+
+  public int getShooterId() {
+    return shooterId;
   }
 }

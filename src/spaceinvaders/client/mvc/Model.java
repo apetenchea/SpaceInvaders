@@ -19,6 +19,9 @@ public interface Model extends Service<Void> {
   /** Start playing the game. */
   public void playGame();
 
+  /** Get state of the game. */
+  public boolean getGameState();
+
   /** Exit the game.*/
   public void exitGame();
 }

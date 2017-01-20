@@ -1,13 +1,15 @@
 package spaceinvaders.server.game;
 
 import static java.util.logging.Level.SEVERE;
-import static spaceinvaders.command.ProtocolEnum.UDP;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.ArrayList;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -16,14 +18,18 @@ import java.util.logging.Logger;
 import spaceinvaders.command.Command;
 import spaceinvaders.command.client.SetPlayerNamesCommand;
 import spaceinvaders.command.client.StartGameCommand;
+import spaceinvaders.command.client.GameOverCommand;
 import spaceinvaders.game.GameConfig;
 import spaceinvaders.command.client.QuitGameCommand;
+import spaceinvaders.command.client.IncrementScoreCommand;
 import spaceinvaders.command.client.PackCommand;
 import spaceinvaders.server.game.world.WorldDirector;
 import spaceinvaders.server.game.world.ClassicWorldBuilder;
 import spaceinvaders.server.game.world.World;
 import spaceinvaders.server.player.Player;
 import spaceinvaders.game.Entity;
+import spaceinvaders.server.game.world.LogicEntity;
+import spaceinvaders.server.game.world.PlayerBullet;
 import spaceinvaders.game.EntityEnum;
 import spaceinvaders.utility.Couple;
 import spaceinvaders.utility.Service;
@@ -34,12 +40,16 @@ import spaceinvaders.utility.AutoSwitch;
 public class Game implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(Game.class.getName());
   private static final int SLEEP_BETWEEN_FRAMES_MS = 100;
+  private static final int GUARD_PIXELS = 10;
+  private static final boolean PREDICTABLE = false;
 
   private final GameConfig config = GameConfig.getInstance();
   private final List<Player> team;
   private final World world;
   private final AutoSwitch invadersMovement = new AutoSwitch(config.speed().invader().getRate()); 
   private final AutoSwitch bulletsMovement = new AutoSwitch(config.speed().bullet().getRate()); 
+  private final AutoSwitch invadersShooting = new AutoSwitch(config.getInvadersShootingRate()); 
+  private final Random rng;
   private final List<Service<?>> services = new ArrayList<>();
   private final List<Future<?>> future = new ArrayList<>();
   private final ReadWriteLock teamListLock = new ReentrantReadWriteLock();
@@ -47,6 +57,8 @@ public class Game implements Service<Void> {
   private final List<Command> tcpBuffer = new ArrayList<>();
   private final ServiceState state = new ServiceState();
   private final ExecutorService threadPool;
+  private Integer invadersMoveX = config.speed().invader().getDistance();
+  private Integer invadersMoveY = config.speed().invader().getDistance();
 
   /**
    * Create a new game.
@@ -67,6 +79,21 @@ public class Game implements Service<Void> {
     WorldDirector director = new WorldDirector(new ClassicWorldBuilder());
     director.makeWorld(team.size());
     world = director.getWorld();
+    // TODO random exceptions
+    if (PREDICTABLE) {
+      rng = new Random(1103515245);
+    } else {
+      rng = new Random();
+    }
+
+    // Match real players with an entities.
+    Iterator<LogicEntity> entityIt = world.getIterator(EntityEnum.PLAYER);
+    Iterator<LogicEntity> playerIt = world.getIterator(EntityEnum.PLAYER);
+    while (entityIt.hasNext() && playerIt.hasNext()) {
+      LogicEntity entity = entityIt.next();
+      LogicEntity player = playerIt.next();
+      entity.getEntity().setId(player.getEntity().getId());
+    }
     state.set(true);
   }
 
@@ -78,11 +105,12 @@ public class Game implements Service<Void> {
    * @throws RejectedExecutionException - if the task cannot be executed.
    */
   @Override
-  public Void call() throws InterruptedException {
+  public Void call() throws ExecutionException, InterruptedException {
     LOGGER.info("Game started.");
     initClients();
     future.add(threadPool.submit(invadersMovement));
     future.add(threadPool.submit(bulletsMovement));
+    future.add(threadPool.submit(invadersShooting));
     services.add(invadersMovement);
     services.add(bulletsMovement);
     while (state.get()) {
@@ -95,7 +123,6 @@ public class Game implements Service<Void> {
         }
         processInput();
         update();
-        send();
         flushCommands();
         Thread.sleep(SLEEP_BETWEEN_FRAMES_MS);
       } catch (CancellationException | InterruptedException exception) {
@@ -124,32 +151,212 @@ public class Game implements Service<Void> {
     }
   }
 
+  /**
+   * @return - the player having the specified {@code id} or {@code null} if no such player
+   *     was found.
+   */
+  private Player getPlayer(int id) {
+    for (Player player : team) {
+      if (player.getId() == id) {
+        return player;
+      }
+    }
+    return null;
+  }
+
   /** Initialize clients. */
   private void initClients() {
-    teamListLock.readLock().lock();
     List<Couple<Integer,String>> idToName = new ArrayList<>(team.size());
     for (Player player : team) {
       idToName.add(new Couple<Integer,String>(player.getId(),player.getName()));
     }
-    teamListLock.readLock().unlock();
     sendCommand(new SetPlayerNamesCommand(idToName));
     sendCommand(new StartGameCommand());
   }
 
   private void processInput() {
-    for (Player player : team) {
-      List<Command> commands = player.pull();
-      for (Command it : commands) {
-        command.setExecutor(this);
-        command.execute();
+    Iterator<Player> it = team.iterator();
+    while (it.hasNext()) {
+      Player player = it.next();
+      if (player.isOnline()) {
+        List<Command> commands = player.pull();
+        for (Command command : commands) {
+          command.setExecutor(this);
+          command.execute();
+        }
+      } else {
+        player.close();
+        it.remove();
       }
     }
   }
 
   private void update() {
-    if (invadersMovement.isOn()) {
+    moveEntities();
+    invadersShoot();
+    collisionDetection();
+    if (world.count(EntityEnum.PLAYER) == 0 || world.count(EntityEnum.INVADER) == 0) {
+      state.set(false);
+    }
+  }
 
+  private void moveEntities() {
+    Iterator<LogicEntity> it;
+    if (invadersMovement.isOn()) {
+      it = world.getIterator(EntityEnum.INVADER);
+      boolean moveDown = false;
+      if (invadersMoveX > 0) {
+        int maxW = Integer.MIN_VALUE;
+        it = world.getIterator(EntityEnum.INVADER);
+        while (it.hasNext()) {
+          LogicEntity invader = it.next();
+          maxW = Math.max(invader.getX(),maxW);
+        }
+        if (maxW + config.invader().getWidth() >= config.frame().getWidth() - GUARD_PIXELS) {
+          moveDown = true;
+        }
+      } else {
+        int minW = Integer.MAX_VALUE;
+        it = world.getIterator(EntityEnum.INVADER);
+        while (it.hasNext()) {
+          LogicEntity invader = it.next();
+          minW = Math.min(invader.getX(),minW);
+        }
+        if (minW <= GUARD_PIXELS) {
+          moveDown = true;
+        }
+      }
+      if (moveDown) {
+        int maxH = Integer.MIN_VALUE;
+        it = world.getIterator(EntityEnum.INVADER);
+        while (it.hasNext()) {
+          LogicEntity invader = it.next();
+          invader.move(invader.getX(),invader.getY() + invadersMoveY);
+          maxH = Math.max(invader.getY(),maxH);
+        }
+        if (maxH >= config.player().getHeight()) {
+          sendCommand(new GameOverCommand());
+          return;
+        }
+        invadersMoveX = -invadersMoveX;
+      } else {
+        it = world.getIterator(EntityEnum.INVADER);
+        while (it.hasNext()) {
+          LogicEntity invader = it.next();
+          invader.move(invader.getX() + invadersMoveX,invader.getY());
+        }
+      }
       invadersMovement.toggle();
+    }
+    if (bulletsMovement.isOn()) {
+      it = world.getIterator(EntityEnum.INVADER_BULLET);
+      while (it.hasNext()) {
+        LogicEntity bullet = it.next();
+        bullet.move(bullet.getX(),bullet.getY() + config.speed().bullet().getDistance());
+        if (bullet.getY() >= GUARD_PIXELS) {
+          it.remove();
+        }
+      }
+      it = world.getIterator(EntityEnum.PLAYER_BULLET);
+      while (it.hasNext()) {
+        LogicEntity bullet = it.next();
+        bullet.move(bullet.getX(),bullet.getY() - config.speed().bullet().getDistance());
+        if (bullet.getY() <= GUARD_PIXELS) {
+          it.remove();
+        }
+      }
+      bulletsMovement.toggle();
+    }
+  }
+
+  private void invadersShoot() {
+    if (invadersShooting.isOn()) {
+      Iterator<LogicEntity> it = world.getIterator(EntityEnum.INVADER);
+      List<LogicEntity> shooters = new ArrayList<LogicEntity>(world.count(EntityEnum.INVADER));
+      int maxH = Integer.MIN_VALUE;
+      while (it.hasNext()) {
+        LogicEntity invader = it.next();
+        if (invader.getY() >= maxH) {
+          shooters.clear();
+          maxH = invader.getY();
+          shooters.add(invader);
+        }
+      }
+      int shooter = rng.nextInt(shooters.size());
+      LogicEntity invader = shooters.get(shooter);
+      int bulletX = invader.getX() + config.invader().getWidth() / 2
+        - config.invaderBullet().getWidth() / 2;
+      int bulletY = invader.getY() + config.invader().getHeight() + 5;
+      world.spawnInvaderBullet(bulletX,bulletY);
+      invadersShooting.toggle();
+    }
+  }
+
+  private void collisionDetection() {
+    Iterator<LogicEntity> it = world.getIterator(EntityEnum.INVADER);
+    while (it.hasNext()) {
+      LogicEntity invader = it.next();
+      Iterator<LogicEntity> shieldIt = world.getIterator(EntityEnum.SHIELD);
+      LogicEntity shield;
+      while (shieldIt.hasNext()) {
+        shield = it.next();
+        if (shield.collides(invader)) {
+          it.remove();
+        }
+      }
+    }
+    it = world.getIterator(EntityEnum.PLAYER_BULLET);
+    while (it.hasNext()) {
+      LogicEntity playerBullet = it.next();
+      boolean playerBulletGone = false;
+      Iterator<LogicEntity> invaderIt = world.getIterator(EntityEnum.INVADER);
+      LogicEntity invader;
+      while (invaderIt.hasNext()) {
+        invader = invaderIt.next();
+        if (playerBullet.collides(invader)) {
+          invaderIt.remove();
+          it.remove();
+          int shooterId = ((PlayerBullet) playerBullet).getShooterId();
+          Player shooter = getPlayer(shooterId);
+          if (shooter != null) {
+            shooter.push(new IncrementScoreCommand());
+          }
+          playerBulletGone = true;
+          break;
+        }
+      }
+      if (playerBulletGone) {
+        continue;
+      }
+      Iterator<LogicEntity> invaderBulletIt = world.getIterator(EntityEnum.INVADER_BULLET);
+      LogicEntity invaderBullet;
+      while (invaderBulletIt.hasNext()) {
+        invaderBullet = invaderBulletIt.next();
+        if (playerBullet.collides(invaderBullet)) {
+          invaderBulletIt.remove();
+          it.remove();
+          playerBulletGone = true;
+          break;
+        }
+      }
+    }
+    it = world.getIterator(EntityEnum.PLAYER);
+    while (it.hasNext()) {
+      LogicEntity player = it.next();
+      Iterator<LogicEntity> invaderBulletIt = world.getIterator(EntityEnum.INVADER_BULLET);
+      LogicEntity invaderBullet;
+      while (invaderBulletIt.hasNext()) {
+        invaderBullet = invaderBulletIt.next();
+        if (player.collides(invaderBullet)) {
+          invaderBulletIt.remove();
+          it.remove();
+          Player realPlayer = getPlayer(player.getEntity().getId());
+          if (realPlayer != null) {
+            realPlayer.push(new GameOverCommand());
+          }
+          break;
+        }
+      }
     }
   }
 

@@ -146,6 +146,11 @@ public class GameModel implements Model {
     connection = null;
   }
 
+  @Override
+  public boolean getGameState() {
+    return gameState.get();
+  }
+
   /**
    * Stop service execution.
    *
@@ -190,12 +195,6 @@ public class GameModel implements Model {
           }
         }
         LOGGER.info(data);
-        if (data.length() == 0) {
-          // Got an error or EOF from the server.
-          setChanged();
-          notifyObservers();
-          break;
-        }
         try {
           director.makeCommand(data);
           setChanged();

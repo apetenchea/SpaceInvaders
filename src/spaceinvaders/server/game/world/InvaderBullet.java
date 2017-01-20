@@ -6,7 +6,7 @@ import spaceinvaders.game.GameConfig;
 import spaceinvaders.utility.Couple;
 
 /** Bullet shot by an invader. */
-class InvaderBullet extends LogicEntity {
+public class InvaderBullet extends LogicEntity {
   private final GameConfig config = GameConfig.getInstance();
 
   public InvaderBullet(int posX, int posY) {

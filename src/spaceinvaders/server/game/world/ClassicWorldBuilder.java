@@ -65,7 +65,7 @@ public class ClassicWorldBuilder implements WorldBuilder {
     int offsetX = witdthOffset;
     List<LogicEntity> players = new ArrayList<>(teamSize);
     for (int player = 0; player < teamSize; ++player) {
-      players.add(new Player(offsetX,heightOffset));
+      players.add(new HumanPlayer(offsetX,heightOffset));
       offsetX += witdthOffset;
     }
     world.setEntities(EntityEnum.PLAYER,players);

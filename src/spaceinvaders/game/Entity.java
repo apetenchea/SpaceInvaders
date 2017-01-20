@@ -38,6 +38,14 @@ public class Entity {
     return type;
   }
 
+  public int getX() {
+    return pos.getFirst();
+  }
+
+  public int getY() {
+    return pos.getSecond();
+  }
+
   public Couple<Integer,Integer> getPos() {
     return pos;
   }

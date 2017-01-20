@@ -38,7 +38,7 @@ class TcpReceiver implements Service<Void> {
   }
 
   @Override
-  public Void call() {
+  public Void call() throws IOException {
     while (state.get()) {
       String data = null;
       try {
@@ -49,8 +49,7 @@ class TcpReceiver implements Service<Void> {
         }
       }
       if (data == null) {
-        // An empty string is put into the queue in case of and exception or EOF.
-        data = "";
+        throw new IOException();
       }
       if (!incomingQueue.offer(data)) {
         throw new AssertionError(BOUNDED_TRANSFER_QUEUE.toString());

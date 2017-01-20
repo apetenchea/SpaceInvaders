@@ -19,6 +19,7 @@ public class GameConfig {
   private transient Map<EntityEnum,EntityConfig> entityMap = new HashMap<>();
   private Integer invaderRows = 3;
   private Integer invaderCols = 7;
+  private Integer invadersShootingRate = 1950;
   private Integer shieldsPerPlayer = 3;
   private FrameConfig frame;
   private Speed speed;
@@ -74,6 +75,10 @@ public class GameConfig {
 
   public int getInvaderCols() {
     return invaderCols;
+  }
+
+  public int getInvadersShootingRate() {
+    return invadersShootingRate;
   }
 
   public int getShieldsPerPlayer() {

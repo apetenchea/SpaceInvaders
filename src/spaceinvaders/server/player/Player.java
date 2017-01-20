@@ -77,6 +77,10 @@ public class Player {
     connectionFuture.cancel(true);
   }
 
+  public boolean isOnline() {
+    return !connectionFuture.isDone();
+  }
+
   public int getId() {
     return connection.hashCode();
   }

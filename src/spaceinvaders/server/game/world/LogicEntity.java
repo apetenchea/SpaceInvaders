@@ -41,11 +41,11 @@ public class LogicEntity {
   }
 
   public int getX() {
-    return body.getPos().getFirst();
+    return body.getX();
   }
 
   public int getY() {
-    return body.getPos().getSecond();
+    return body.getY();
   }
 
   public void setId(int id) {

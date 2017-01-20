@@ -6,7 +6,7 @@ import spaceinvaders.game.EntityEnum;
 import spaceinvaders.utility.Couple;
 
 /** Invader character. */
-class Invader extends LogicEntity {
+public class Invader extends LogicEntity {
   private final GameConfig config = GameConfig.getInstance();
 
   public Invader(int posX, int posY) {

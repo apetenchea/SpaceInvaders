@@ -5,7 +5,8 @@ import spaceinvaders.game.EntityEnum;
 import spaceinvaders.game.GameConfig;
 import spaceinvaders.utility.Couple;
 
-class Shield extends LogicEntity {
+/** A shield protecting the player. */
+public class Shield extends LogicEntity {
   private final GameConfig config = GameConfig.getInstance();
 
   public Shield(int posX, int posY) {
