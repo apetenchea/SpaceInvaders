@@ -128,13 +128,6 @@ public class GameModel implements Model {
   }
 
   @Override
-  public void playGame() {
-    LOGGER.info("Game is starting.");
-
-    gameState.set(true);
-  }
-
-  @Override
   public void exitGame() {
     LOGGER.info("Game is over.");
 
@@ -149,6 +142,11 @@ public class GameModel implements Model {
   @Override
   public boolean getGameState() {
     return gameState.get();
+  }
+
+  @Override
+  public void setGameState(boolean state) {
+    gameState.set(state);
   }
 
   /**

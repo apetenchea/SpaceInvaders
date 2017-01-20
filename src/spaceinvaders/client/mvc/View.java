@@ -43,6 +43,12 @@ public interface View {
    * Display the current state of the view.
    */
   public void flush();
+
+  public void quitGame();
+
+  public void startGame();
+
+  public void gameOver();
  
   /**
    * Play game.

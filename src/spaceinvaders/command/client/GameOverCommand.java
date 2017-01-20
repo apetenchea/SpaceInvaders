@@ -16,7 +16,10 @@ public class GameOverCommand extends Command {
 
   @Override
   public void execute() {
-    //executor.getModel().exitGame();
+    for (View view : executor.getViews()) {
+      view.gameOver();
+    }
+    executor.getModel().setGameState(false);
   }
 
   @Override

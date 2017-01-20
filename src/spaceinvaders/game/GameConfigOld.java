@@ -9,10 +9,10 @@ import spaceinvaders.utility.Couple;
  *
  * <p>Specifies sizes of objects and resources.
  */
-public class GameConfig {
+public class GameConfigOld {
   private static final String RESOURCES_FOLDER = "../resources/";
 
-  private static GameConfig singleton;
+  private static GameConfigOld singleton;
 
   private String title;
 
@@ -38,7 +38,7 @@ public class GameConfig {
 
   private String destroyedEntityImage;
 
-  private GameConfig() {
+  private GameConfigOld() {
     title = "SpaceInvaders";
 
     gameFrameSize = new Couple<>(1280,760);
@@ -62,9 +62,9 @@ public class GameConfig {
     shieldImage = RESOURCES_FOLDER + "brickwall.png";
   }
 
-  static public synchronized GameConfig getInstance() {
+  static public synchronized GameConfigOld getInstance() {
     if (singleton == null) {
-      singleton = new GameConfig();
+      singleton = new GameConfigOld();
     }
     return singleton;
   }

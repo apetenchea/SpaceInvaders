@@ -191,6 +191,49 @@ public class Game implements Service<Void> {
     }
   }
 
+  public void movePlayerLeft(int id) {
+    Iterator<LogicEntity> it = world.getIterator(EntityEnum.PLAYER);
+    while (it.hasNext()) {
+      LogicEntity player = it.next();
+      // TODO separate player from getEntity()
+      if (player.getEntity().getId() == id) {
+        movePlayer(player,player.getX() - config.speed().player().getDistance());
+      }
+    }
+  }
+
+  public void movePlayerRight(int id) {
+    Iterator<LogicEntity> it = world.getIterator(EntityEnum.PLAYER);
+    while (it.hasNext()) {
+      LogicEntity player = it.next();
+      if (player.getEntity().getId() == id) {
+        movePlayer(player,player.getX() + config.speed().player().getDistance());
+      }
+    }
+  }
+
+  public void playerShoot(int id) {
+    Iterator<LogicEntity> it = world.getIterator(EntityEnum.PLAYER);
+    while (it.hasNext()) {
+      LogicEntity player = it.next();
+      if (player.getEntity().getId() == id) {
+        final int playerW = config.player().getWidth();
+        final int bulletW = config.playerBullet().getWidth();
+        final int bulletX = player.getX() + playerW / 2 - bulletW / 2;
+        final int bulletY = player.getY() - GUARD_PIXELS;
+        world.spawnPlayerBullet(player.getEntity().getId(),bulletX,bulletY);
+      }
+    }
+  }
+
+  private void movePlayer(LogicEntity player, int newX) {
+    final int playerW = config.player().getWidth();
+    final int frameW = config.frame().getWidth();
+    if (newX >= GUARD_PIXELS && newX <= frameW - playerW - GUARD_PIXELS) {
+      player.move(newX,player.getX());
+    }
+  }
+
   private void update() {
     moveEntities();
     invadersShoot();

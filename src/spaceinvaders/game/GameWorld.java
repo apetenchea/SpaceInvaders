@@ -15,7 +15,7 @@ public class GameWorld {
 
   static int entityId = 0;
 
-  private GameConfig config;
+  private GameConfigOld config;
 
   private Integer invadersRows;
   private Integer invadersColumns;
@@ -34,7 +34,7 @@ public class GameWorld {
   private List<Entity> invaders;
   private List<Entity> players;
   private List<Entity> shields;
-  private Map<EnumEntity,List<Entity>> world;
+  private Map<EntityEnum,List<Entity>> world;
 
   public static synchronized GameWorld getInstance() {
     if (singleton == null) {
@@ -44,7 +44,7 @@ public class GameWorld {
   }
 
   private GameWorld() {
-    config = GameConfig.getInstance();
+    config = GameConfigOld.getInstance();
 
     invadersRows = 3;
     invadersColumns = 5;

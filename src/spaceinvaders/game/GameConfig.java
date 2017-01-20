@@ -179,7 +179,7 @@ public class GameConfig {
       return invader;
     }
 
-    private SpeedConfig player() {
+    public SpeedConfig player() {
       return player;
     }
 

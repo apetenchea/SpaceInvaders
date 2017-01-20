@@ -16,11 +16,10 @@ public class QuitGameCommand extends Command {
 
   @Override
   public void execute() {
-    /*
     for (View view : executor.getViews()) {
-      view.flush();
+      view.quitGame();
     }
-    */
+    executor.getModel().exitGame();
   }
 
   @Override

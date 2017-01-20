@@ -16,11 +16,10 @@ public class StartGameCommand extends Command {
 
   @Override
   public void execute() {
-    /*
     for (View view : executor.getViews()) {
-      view.flush();
+      view.startGame();
     }
-    */
+    executor.getModel().setGameState(true);
   }
 
   @Override

@@ -21,7 +21,7 @@ public class MovePlayerLeftCommand extends Command {
 
   @Override
   public void execute() {
-    //executor.movePlayerLeft(id);
+    executor.movePlayerLeft(id);
   }
 
   @Override

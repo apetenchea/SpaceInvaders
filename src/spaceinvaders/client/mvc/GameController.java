@@ -151,7 +151,9 @@ public class GameController implements Controller {
     @Override
     public void keyPressed(KeyEvent event) {
       if (event.getKeyCode() == VK_LEFT) {
-        model.doCommand(new MovePlayerLeftCommand(ClientConfig.getInstance().getId()));
+        if (model.getGameState()) {
+          model.doCommand(new MovePlayerLeftCommand(ClientConfig.getInstance().getId()));
+        }
       } else {
         pass(event);
       }
@@ -166,7 +168,9 @@ public class GameController implements Controller {
     @Override
     public void keyPressed(KeyEvent event) {
       if (event.getKeyCode() == VK_RIGHT) {
-        model.doCommand(new MovePlayerRightCommand(ClientConfig.getInstance().getId()));
+        if (model.getGameState()) {
+          model.doCommand(new MovePlayerRightCommand(ClientConfig.getInstance().getId()));
+        }
       } else {
         pass(event);
       }
@@ -181,7 +185,9 @@ public class GameController implements Controller {
     @Override
     public void keyPressed(KeyEvent event) {
       if (event.getKeyCode() == VK_SPACE) {
-        model.doCommand(new PlayerShootCommand(ClientConfig.getInstance().getId()));
+        if (model.getGameState()) {
+          model.doCommand(new PlayerShootCommand(ClientConfig.getInstance().getId()));
+        }
       } else {
         pass(event);
       }
