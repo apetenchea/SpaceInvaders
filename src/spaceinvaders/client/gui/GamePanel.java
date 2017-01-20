@@ -11,7 +11,7 @@ import javax.swing.JPanel;
 import spaceinvaders.client.gui.entities.GraphicalEntity;
 import spaceinvaders.client.gui.entities.GraphicsFactory;
 import spaceinvaders.game.Entity;
-import spaceinvaders.game.GameConfig;
+import spaceinvaders.game.GameConfigOld;
 
 /**
  * Main panel of the game.
@@ -22,14 +22,14 @@ import spaceinvaders.game.GameConfig;
 class GamePanel extends JPanel {
   private static final Logger LOGGER = Logger.getLogger(GamePanel.class.getName());
 
-  private final GameConfig config = GameConfig.getInstance();
+  private final GameConfigOld config = GameConfigOld.getInstance();
   private final GraphicsFactory factory = GraphicsFactory.getInstance();
   private final Map<Integer,String> playerNamesMap = new HashMap<>();
   private final List<GraphicalEntity> entities = new ArrayList<>();
   
   public GamePanel() {
-    setBackground(config.getGameBackgroundColor());
-    setForeground(config.getGameForegroundColor());
+    setBackground(Color.BLACK);
+    setForeground(config.getGamePanelForegroundColor());
   }
 
   @Override
@@ -39,17 +39,6 @@ class GamePanel extends JPanel {
     for (GraphicalEntity entity : entities) {
       graphics.drawImage(entity.getImage(),entity.getX(),entity.getY(),this);
     }
-    /*
-    graphics.setColor(config.getGamePanelTextColor());
-		graphics.setFont(config.getGamePanelTextFont());
-    for (Map.Entry<Integer,String> entry : playerNamesMap.entrySet()) {
-      GraphicalEntity player = entitiesMap.get(entry.getKey());
-      if (player != null) {
-        graphics.drawString(entry.getValue(),player.getX(),player.getY() + config.getPlayerHeight()
-            + config.getPlayerNameOffset());
-      }
-    }
-    */
   }
 
   public void init() {

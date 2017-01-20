@@ -63,6 +63,26 @@ public class GameView implements View {
   }
 
   @Override
+  public void quitGame() {
+    game.setMessage("Press ESC to return to menu");
+  }
+
+  @Override
+  public void startGame() {
+    game.setMessage("Game started");
+  }
+
+  @Override
+  public void gameOver() {
+    game.setMessage("Your ship has been destroyed. Press ESC to return to menu.");
+  }
+
+  @Override
+  public void setFrameContent(List<Entity> content) {
+    game.setFrameContent(content);
+  }
+
+  @Override
   public void showGame() {
     menu.hide();
     game.show();

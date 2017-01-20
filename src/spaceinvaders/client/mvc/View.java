@@ -49,6 +49,8 @@ public interface View {
   public void startGame();
 
   public void gameOver();
+
+  public void setFrameContent(List<Entity> content);
  
   /**
    * Play game.

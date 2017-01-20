@@ -9,7 +9,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
-import spaceinvaders.game.GameConfig;
+import spaceinvaders.game.GameConfigOld;
 import spaceinvaders.game.Entity;
 import spaceinvaders.utility.Couple;
 
@@ -18,13 +18,13 @@ public class GameGraphics implements UiObject {
   private static final Logger LOGGER = Logger.getLogger(GameGraphics.class.getName());
 
   private final JFrame frame;
-  private final JPanel gamePanel = new GamePanel();
+  private final GamePanel gamePanel = new GamePanel();
   private JLabel messageLbl = new JLabel();
 
   /** Construct an empty game frame. */
   public GameGraphics() {
-    GameConfig config = GameConfig.getInstance();
-    frame = new JFrame(config.getGameTitle());
+    GameConfigOld config = GameConfigOld.getInstance();
+    frame = new JFrame();
     frame.setResizable(false);
     frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     frame.setSize(config.getGameFrameWidth(),config.getGameFrameHeight());
@@ -55,15 +55,22 @@ public class GameGraphics implements UiObject {
 
   @Override
   public void show() {
-    gamePanel.init();
     messageLbl.setText("Waiting for server...");
     frame.setVisible(true);
   }
 
   public void setPlayerNames(List<Couple<Integer,String>> players) {
     for (Couple<Integer,String> couple : players) {
-      gamePanel.addPlayerName(couple.getFirst(),couple.getSecond());
+      gamePanel.addPlayer(couple.getFirst(),couple.getSecond());
     }
+  }
+
+  public void setMessage(String msg) {
+    messageLbl.setText(msg);
+  }
+
+  public void setFrameContent(List<Entity> content) {
+    gamePanel.refreshEntities(content);
   }
 
   /** Repainting data on the screen. */
