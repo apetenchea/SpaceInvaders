@@ -12,6 +12,7 @@ public class ClientCommandBuilder extends CommandBuilder {
         new SetPlayerIdCommand(),
         new StartGameCommand(),
         new QuitGameCommand(),
-        new PackCommand());
+        new PackCommand(),
+        new RefreshEntitiesCommand());
   }
 }

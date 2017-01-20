@@ -21,6 +21,7 @@ import spaceinvaders.command.client.StartGameCommand;
 import spaceinvaders.command.client.GameOverCommand;
 import spaceinvaders.game.GameConfig;
 import spaceinvaders.command.client.QuitGameCommand;
+import spaceinvaders.command.client.RefreshEntitiesCommand;
 import spaceinvaders.command.client.IncrementScoreCommand;
 import spaceinvaders.command.client.PackCommand;
 import spaceinvaders.server.game.world.WorldDirector;
@@ -123,7 +124,18 @@ public class Game implements Service<Void> {
         }
         processInput();
         update();
-        flushCommands();
+        List<Entity> entityList = new ArrayList<>();
+        for (EntityEnum type : EntityEnum.values()) {
+          Iterator<LogicEntity> it = world.getIterator(type);
+          while (it.hasNext()) {
+            LogicEntity entity = it.next();
+            entityList.add(entity.getEntity());
+          }
+        }
+        sendCommand(new RefreshEntitiesCommand(entityList));
+        for (Player player : team) {
+          player.flush();
+        }
         Thread.sleep(SLEEP_BETWEEN_FRAMES_MS);
       } catch (CancellationException | InterruptedException exception) {
         if (state.get()) {
@@ -401,15 +413,6 @@ public class Game implements Service<Void> {
         }
       }
     }
-  }
-
-  /** Flush buffered commands for all players. */
-  private void flushCommands() {
-    teamListLock.readLock().lock();
-    for (Player player : team) {
-      player.flush();
-    }
-    teamListLock.readLock().unlock();
   }
 
   /**

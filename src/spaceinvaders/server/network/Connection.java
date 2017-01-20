@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 import spaceinvaders.command.Command;
 import spaceinvaders.command.client.PackCommand;
 import spaceinvaders.command.CommandDirector;
-import spaceinvaders.command.client.ClientCommandBuilder;
+import spaceinvaders.command.server.ServerCommandBuilder;
 import spaceinvaders.exceptions.CommandNotFoundException;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
@@ -39,7 +39,7 @@ public class Connection implements Service<Void> {
   private final Sender sender = udpSender;
   private final TransferQueue<Command> incomingQueue = new LinkedTransferQueue<>();
   private final TransferQueue<DatagramPacket> outgoingQueue;
-  private final CommandDirector director = new CommandDirector(new ClientCommandBuilder());
+  private final CommandDirector director = new CommandDirector(new ServerCommandBuilder());
   private final ServiceState state = new ServiceState();
   private SocketAddress udpDestination;
 
