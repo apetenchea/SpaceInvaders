@@ -84,13 +84,14 @@ public class ClassicWorldBuilder implements WorldBuilder {
       throw new NullPointerException();
     }
 
+    final int frameH = config.frame().getHeight();
     final int shieldW = config.shield().getWidth();
     final int shieldH = config.shield().getHeight();
     final int playerW = config.player().getWidth();
     final int playerH = config.player().getHeight();
     final int shieldsPerPlayer = config.getShieldsPerPlayer();
-    final int widthOffset = playerW / 2 - shieldW / 2 - shieldW * shieldsPerPlayer / 2;
-    final int heightOffset = playerH - shieldH * 2;
+    final int widthOffset = playerW / 2 - shieldW / 2 - shieldW * (shieldsPerPlayer / 2);
+    final int heightOffset = frameH - playerH - shieldH * 3;
 
     List<LogicEntity> shields = new ArrayList<>();
     while (it.hasNext()) {

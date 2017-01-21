@@ -30,9 +30,10 @@ public class Server implements Service<Void> {
 
   private final ConnectionManager connectionManager;
   private final PlayerManager playerManager = new PlayerManager();
-  private GameManager gameManager;
+  private GameManager gameManager = new GameManager();
   private ExecutorService connectionManagerExecutor;
   private ExecutorService playerManagerExecutor;
+  private ExecutorService gameManagerExecutor;
   private ServiceState state = new ServiceState();
 
   /**
@@ -46,7 +47,9 @@ public class Server implements Service<Void> {
     connectionManager = new ConnectionManager(port);
     connectionManagerExecutor = Executors.newSingleThreadExecutor();
     playerManagerExecutor = Executors.newSingleThreadExecutor();
+    gameManagerExecutor = Executors.newSingleThreadExecutor();
     connectionManager.addObserver(playerManager);
+    playerManager.addObserver(gameManager);
     state.set(true);
   }
 
@@ -64,6 +67,7 @@ public class Server implements Service<Void> {
     List<Future<?>> future = new ArrayList<>();
     future.add(connectionManagerExecutor.submit(connectionManager));
     future.add(playerManagerExecutor.submit(playerManager));
+    future.add(gameManagerExecutor.submit(gameManager));
     final long checkingRateMilliseconds = 1000;
     while (state.get()) {
       try {
@@ -97,8 +101,10 @@ public class Server implements Service<Void> {
     state.set(false);
     connectionManager.shutdown();
     playerManager.shutdown();
+    gameManager.shutdown();
     connectionManagerExecutor.shutdownNow();
     playerManagerExecutor.shutdownNow();
+    gameManagerExecutor.shutdownNow();
   }
 
   public boolean isRunning() {

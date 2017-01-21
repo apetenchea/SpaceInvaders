@@ -37,13 +37,14 @@ class TcpSender implements Sender {
     if (command == null) {
       throw new NullPointerException();
     }
-    if (command.getProtocol() != TCP) {
+    if (command.getProtocol().equals(TCP)) {
+      writer.println(command.toJson()); 
+    } else {
       if (nextChain == null) {
         throw new AssertionError();
       }
       nextChain.send(command);
     }
-    writer.println(command.toJson()); 
   }
 
   /**

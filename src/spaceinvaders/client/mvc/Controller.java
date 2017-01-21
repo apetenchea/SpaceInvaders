@@ -2,8 +2,6 @@ package spaceinvaders.client.mvc;
 
 import java.util.List;
 import java.util.Observer;
-import spaceinvaders.game.Entity;
-import spaceinvaders.utility.Couple;
 
 /**
  * Separates application data and user interface.

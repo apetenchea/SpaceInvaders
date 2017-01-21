@@ -94,15 +94,11 @@ public class Menu implements UiObject {
     quitBtn.addActionListener(listener);
   }
 
-  /**
-   * Get the game CONFIGuration from the UI elements.
-   */
-  public ClientConfig getConfig() {
+  public void setConfig() {
     CONFIG.setTeamSize((Integer) teamSizeSpn.getValue());
     CONFIG.setServerAddr(serverAddrTxt.getText());
     CONFIG.setServerPort(Integer.parseInt(serverPortTxt.getText()));
     CONFIG.setUserName(userNameTxt.getText());
-    return CONFIG;
   }
 
   public JFrame getFrame() {

@@ -34,7 +34,13 @@ public class CommandDirector {
     if (json == null) {
       throw new NullPointerException();
     }
-    builder.buildCommand(json);
+    //TODO remove this try catch
+    try {
+      builder.buildCommand(json);
+    } catch (Exception e) {
+      System.err.println("Error on json " + json);
+      throw e;
+    }
   }
 
   /**

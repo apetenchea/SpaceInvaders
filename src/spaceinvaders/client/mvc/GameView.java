@@ -83,6 +83,11 @@ public class GameView implements View {
   }
 
   @Override
+  public void setConfig() {
+    menu.setConfig();
+  }
+
+  @Override
   public void showGame() {
     menu.hide();
     game.show();

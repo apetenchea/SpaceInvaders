@@ -72,13 +72,14 @@ public class NetworkConnection implements Service<Void> {
     if (bindAddr == null) {
       throw new AssertionError(UNBOUND_SOCKET.toString());
     }
-    config.setUdpIncomingAddr(bindAddr);
     try {
       outgoingUdpSocket = new DatagramSocket(bindAddr);
+      outgoingUdpSocket.connect(tcpSocket.getRemoteSocketAddress());
       incomingUdpSocket = new DatagramSocket();
     } catch (SocketException socketException) {
       throw new SocketOpeningException(socketException);
     }
+    config.setUdpIncomingPort(incomingUdpSocket.getLocalPort());
     Sender tcpSender = null;
     Sender udpSender = null;
     try {

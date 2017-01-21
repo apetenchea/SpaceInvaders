@@ -11,24 +11,24 @@ public class ConfigurePlayerCommand extends Command {
   private transient Player executor;
   private String playerName;
   private Integer teamSize;
-  private SocketAddress address;
+  private Integer receivingUdpPort;
 
   public ConfigurePlayerCommand() {
     super(ConfigurePlayerCommand.class.getName(),TCP);
   }
 
-  public ConfigurePlayerCommand(String playerName, int teamSize, SocketAddress address) {
+  public ConfigurePlayerCommand(String playerName, int teamSize, int receivingUdpPort) {
     this();
     this.playerName = playerName;
     this.teamSize = teamSize;
-    this.address = address;
+    this.receivingUdpPort = receivingUdpPort;
   }
 
   @Override
   public void execute() {
     executor.setName(playerName);
     executor.setTeamSize(teamSize);
-    executor.setUdpDestination(address);
+    executor.setUdpDestinationPort(receivingUdpPort);
   }
 
   @Override

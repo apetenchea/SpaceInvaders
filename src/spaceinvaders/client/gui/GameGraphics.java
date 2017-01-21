@@ -7,8 +7,11 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
+import java.awt.Color;
+
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
+
 import spaceinvaders.game.GameConfigOld;
 import spaceinvaders.game.Entity;
 import spaceinvaders.utility.Couple;
@@ -16,6 +19,7 @@ import spaceinvaders.utility.Couple;
 /** Display the game. */
 public class GameGraphics implements UiObject {
   private static final Logger LOGGER = Logger.getLogger(GameGraphics.class.getName());
+  private static final int FRAME_HEIGHT_COMPENSATION = 64;
 
   private final JFrame frame;
   private final GamePanel gamePanel = new GamePanel();
@@ -27,7 +31,7 @@ public class GameGraphics implements UiObject {
     frame = new JFrame();
     frame.setResizable(false);
     frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    frame.setSize(config.getGameFrameWidth(),config.getGameFrameHeight());
+    frame.setSize(config.getGameFrameWidth(),config.getGameFrameHeight() + FRAME_HEIGHT_COMPENSATION);
 
     JPanel contentPane = new JPanel();
     contentPane.setBorder(new EmptyBorder(5,5,5,5));
@@ -40,7 +44,6 @@ public class GameGraphics implements UiObject {
 
 		contentPane.add(messagePanel,BorderLayout.NORTH);
 		contentPane.add(gamePanel,BorderLayout.CENTER);
-		gamePanel.setForeground(config.getGamePanelForegroundColor());
   }
 
   @Override

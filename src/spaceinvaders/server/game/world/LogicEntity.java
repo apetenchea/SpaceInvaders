@@ -26,10 +26,10 @@ public class LogicEntity {
    * @return true if entities collide, false otherwise.
    */
   public boolean collides(LogicEntity entity) {
-    return getX() <= entity.getX() + entity.width
-      && entity.getX() <= getX() + width
-      && getY() <= entity.getY() + entity.height
-      && entity.getY() <= getY() + width;
+    return getX() < entity.getX() + entity.width
+      && entity.getX() < getX() + width
+      && getY() < entity.getY() + entity.height
+      && entity.getY() < getY() + height;
   }
 
   public Entity getEntity() {

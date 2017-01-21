@@ -90,8 +90,8 @@ public class GameManager implements Observer, Service<Void> {
           }
           it.remove();
         }
-        futureListLock.unlock();
       }
+      futureListLock.unlock();
       try {
         Thread.sleep(checkingRateMilliseconds);
       } catch (InterruptedException exception) {

@@ -22,6 +22,7 @@ import spaceinvaders.command.client.GameOverCommand;
 import spaceinvaders.game.GameConfig;
 import spaceinvaders.command.client.QuitGameCommand;
 import spaceinvaders.command.client.RefreshEntitiesCommand;
+import spaceinvaders.command.client.FlushScreenCommand;
 import spaceinvaders.command.client.IncrementScoreCommand;
 import spaceinvaders.command.client.PackCommand;
 import spaceinvaders.server.game.world.WorldDirector;
@@ -40,8 +41,8 @@ import spaceinvaders.utility.AutoSwitch;
 /** Game logic and physics happen here. */
 public class Game implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(Game.class.getName());
-  private static final int SLEEP_BETWEEN_FRAMES_MS = 100;
-  private static final int GUARD_PIXELS = 10;
+  private static final int SLEEP_BETWEEN_FRAMES_MS = 50;
+  private static final int GUARD_PIXELS = 32;
   private static final boolean PREDICTABLE = false;
 
   private final GameConfig config = GameConfig.getInstance();
@@ -72,6 +73,7 @@ public class Game implements Service<Void> {
    *     or from {@link TreeMap#put()}.
    */
   public Game(List<Player> team, ExecutorService threadPool) {
+    LOGGER.info("*** Game init");
     if (team == null || threadPool == null) {
       throw new NullPointerException();
     }
@@ -89,11 +91,11 @@ public class Game implements Service<Void> {
 
     // Match real players with an entities.
     Iterator<LogicEntity> entityIt = world.getIterator(EntityEnum.PLAYER);
-    Iterator<LogicEntity> playerIt = world.getIterator(EntityEnum.PLAYER);
+    Iterator<Player> playerIt = team.iterator();
     while (entityIt.hasNext() && playerIt.hasNext()) {
       LogicEntity entity = entityIt.next();
-      LogicEntity player = playerIt.next();
-      entity.getEntity().setId(player.getEntity().getId());
+      Player player = playerIt.next();
+      entity.getEntity().setId(player.getId());
     }
     state.set(true);
   }
@@ -133,6 +135,7 @@ public class Game implements Service<Void> {
           }
         }
         sendCommand(new RefreshEntitiesCommand(entityList));
+        sendCommand(new FlushScreenCommand());
         for (Player player : team) {
           player.flush();
         }
@@ -192,9 +195,11 @@ public class Game implements Service<Void> {
       Player player = it.next();
       if (player.isOnline()) {
         List<Command> commands = player.pull();
-        for (Command command : commands) {
-          command.setExecutor(this);
-          command.execute();
+        if (commands != null) {
+          for (Command command : commands) {
+            command.setExecutor(this);
+            command.execute();
+          }
         }
       } else {
         player.close();
@@ -215,9 +220,11 @@ public class Game implements Service<Void> {
   }
 
   public void movePlayerRight(int id) {
+    LOGGER.info("Moving id " + id);
     Iterator<LogicEntity> it = world.getIterator(EntityEnum.PLAYER);
     while (it.hasNext()) {
       LogicEntity player = it.next();
+      // TODO same
       if (player.getEntity().getId() == id) {
         movePlayer(player,player.getX() + config.speed().player().getDistance());
       }
@@ -242,7 +249,7 @@ public class Game implements Service<Void> {
     final int playerW = config.player().getWidth();
     final int frameW = config.frame().getWidth();
     if (newX >= GUARD_PIXELS && newX <= frameW - playerW - GUARD_PIXELS) {
-      player.move(newX,player.getX());
+      player.move(newX,player.getY());
     }
   }
 
@@ -289,7 +296,7 @@ public class Game implements Service<Void> {
           invader.move(invader.getX(),invader.getY() + invadersMoveY);
           maxH = Math.max(invader.getY(),maxH);
         }
-        if (maxH >= config.player().getHeight()) {
+        if (maxH >= config.frame().getHeight() - config.player().getHeight()) {
           sendCommand(new GameOverCommand());
           return;
         }
@@ -308,7 +315,7 @@ public class Game implements Service<Void> {
       while (it.hasNext()) {
         LogicEntity bullet = it.next();
         bullet.move(bullet.getX(),bullet.getY() + config.speed().bullet().getDistance());
-        if (bullet.getY() >= GUARD_PIXELS) {
+        if (bullet.getY() >= config.frame().getHeight() - GUARD_PIXELS) {
           it.remove();
         }
       }
@@ -327,16 +334,27 @@ public class Game implements Service<Void> {
   private void invadersShoot() {
     if (invadersShooting.isOn()) {
       Iterator<LogicEntity> it = world.getIterator(EntityEnum.INVADER);
-      List<LogicEntity> shooters = new ArrayList<LogicEntity>(world.count(EntityEnum.INVADER));
+      List<LogicEntity> shooters = new ArrayList<LogicEntity>(config.getInvaderCols());
       int maxH = Integer.MIN_VALUE;
       while (it.hasNext()) {
         LogicEntity invader = it.next();
-        if (invader.getY() >= maxH) {
-          shooters.clear();
-          maxH = invader.getY();
+        LogicEntity shooter;
+        boolean addToEnd = true;
+        for (int index = 0; index < shooters.size(); ++index) {
+          shooter = shooters.get(index);
+          if (shooter.getX() == invader.getX()) {
+            if (invader.getY() > shooter.getY()) {
+              shooters.set(index,invader);
+            }
+            addToEnd = false;
+            break;
+          }
+        }
+        if (addToEnd) {
           shooters.add(invader);
         }
       }
+      LOGGER.info("SHOOTERS: " + shooters.size());
       int shooter = rng.nextInt(shooters.size());
       LogicEntity invader = shooters.get(shooter);
       int bulletX = invader.getX() + config.invader().getWidth() / 2
@@ -348,22 +366,38 @@ public class Game implements Service<Void> {
   }
 
   private void collisionDetection() {
+    // TODO optimize
     Iterator<LogicEntity> it = world.getIterator(EntityEnum.INVADER);
     while (it.hasNext()) {
       LogicEntity invader = it.next();
       Iterator<LogicEntity> shieldIt = world.getIterator(EntityEnum.SHIELD);
       LogicEntity shield;
       while (shieldIt.hasNext()) {
-        shield = it.next();
+        shield = shieldIt.next();
         if (shield.collides(invader)) {
-          it.remove();
+          shieldIt.remove();
         }
       }
     }
+
     it = world.getIterator(EntityEnum.PLAYER_BULLET);
     while (it.hasNext()) {
-      LogicEntity playerBullet = it.next();
       boolean playerBulletGone = false;
+      LogicEntity playerBullet = it.next();
+      Iterator<LogicEntity> invaderBulletIt = world.getIterator(EntityEnum.INVADER_BULLET);
+      LogicEntity invaderBullet;
+      while (invaderBulletIt.hasNext()) {
+        invaderBullet = invaderBulletIt.next();
+        if (playerBullet.collides(invaderBullet)) {
+          invaderBulletIt.remove();
+          it.remove();
+          playerBulletGone = true;
+          break;
+        }
+      }
+      if (playerBulletGone) {
+        continue;
+      }
       Iterator<LogicEntity> invaderIt = world.getIterator(EntityEnum.INVADER);
       LogicEntity invader;
       while (invaderIt.hasNext()) {
@@ -380,21 +414,8 @@ public class Game implements Service<Void> {
           break;
         }
       }
-      if (playerBulletGone) {
-        continue;
-      }
-      Iterator<LogicEntity> invaderBulletIt = world.getIterator(EntityEnum.INVADER_BULLET);
-      LogicEntity invaderBullet;
-      while (invaderBulletIt.hasNext()) {
-        invaderBullet = invaderBulletIt.next();
-        if (playerBullet.collides(invaderBullet)) {
-          invaderBulletIt.remove();
-          it.remove();
-          playerBulletGone = true;
-          break;
-        }
-      }
     }
+
     it = world.getIterator(EntityEnum.PLAYER);
     while (it.hasNext()) {
       LogicEntity player = it.next();
@@ -409,6 +430,21 @@ public class Game implements Service<Void> {
           if (realPlayer != null) {
             realPlayer.push(new GameOverCommand());
           }
+          break;
+        }
+      }
+    }
+
+    it = world.getIterator(EntityEnum.INVADER_BULLET);
+    while (it.hasNext()) {
+      LogicEntity invaderBullet = it.next();
+      Iterator<LogicEntity> shieldIt = world.getIterator(EntityEnum.SHIELD);
+      LogicEntity shield;
+      while (shieldIt.hasNext()) {
+        shield = shieldIt.next();
+        if (invaderBullet.collides(shield)) {
+          it.remove();
+          shieldIt.remove();
           break;
         }
       }

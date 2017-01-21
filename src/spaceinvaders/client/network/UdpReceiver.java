@@ -14,7 +14,7 @@ import spaceinvaders.utility.ServiceState;
 /** Receive data over UDP. */
 class UdpReceiver implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(UdpReceiver.class.getName());
-  private static final int MAX_PACKET_SIZE = 2 * 1024;
+  private static final int MAX_PACKET_SIZE = 16 * 1024;
 
   private final DatagramSocket socket;
   private final TransferQueue<String> incomingQueue;
@@ -41,7 +41,7 @@ class UdpReceiver implements Service<Void> {
       DatagramPacket packet = new DatagramPacket(buffer,buffer.length);
       try {
         socket.receive(packet);
-        if (!incomingQueue.offer(new String(packet.getData()))) {
+        if (!incomingQueue.offer((new String(packet.getData())).trim())) {
           throw new AssertionError(BOUNDED_TRANSFER_QUEUE.toString());
         }
       } catch (Exception exception) {

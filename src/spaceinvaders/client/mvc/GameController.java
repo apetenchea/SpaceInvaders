@@ -13,14 +13,15 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import spaceinvaders.client.ClientConfig;
 import spaceinvaders.command.Command;
 import spaceinvaders.command.CommandDirector;
-import spaceinvaders.command.server.ConfigurePlayerCommand;
 import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.InvalidServerAddressException;
 import spaceinvaders.exceptions.InvalidUserNameException;
@@ -39,8 +40,11 @@ import spaceinvaders.command.server.PlayerShootCommand;
 public class GameController implements Controller {
   private static final Logger LOGGER = Logger.getLogger(GameController.class.getName());
 
-  private Model model;
+  private final Model model;
   private final List<View> views = new ArrayList<>();
+  private final ExecutorService modelExecutor = Executors.newSingleThreadExecutor();
+  private final ExecutorService modelStateChecker = Executors.newSingleThreadExecutor();
+  private Boolean shuttingDown = false;
 
   /** Construct a controller and couple it with a model. */
   public GameController(Model model) {
@@ -99,6 +103,7 @@ public class GameController implements Controller {
       assert views.size() > 0;
       LOGGER.info("Play");
 
+      views.get(0).setConfig();
       ClientConfig config = ClientConfig.getInstance();;
       try {
         config.verify();
@@ -109,10 +114,28 @@ public class GameController implements Controller {
         return;
       }
       try {
-        model.call();
+        Future<?> modelFuture = modelExecutor.submit(model);
+        modelStateChecker.submit(new Callable<Void>() {
+          @Override
+          public Void call() {
+            final int checkingRateMs = 1000;
+            while (!modelFuture.isDone()) {
+              try {
+                Thread.sleep(checkingRateMs);
+                modelFuture.get();
+              } catch (Exception ex) {
+                if (!shuttingDown) {
+                  LOGGER.log(SEVERE,ex.toString(),ex);
+                  model.exitGame();
+                  break;
+                }
+              }
+            }
+            return null;
+          }
+        });
       } catch (Exception exception) {
         LOGGER.log(SEVERE,exception.toString(),exception);
-        model.exitGame();
       }
     }
   }
@@ -120,11 +143,14 @@ public class GameController implements Controller {
   private class QuitAppListener implements ActionListener {
     public void actionPerformed(ActionEvent event) {
       System.err.println("Quit");
+      shuttingDown = true;
       model.exitGame();
       model.shutdown();
       for (View view : views) {
         view.shutdown();
       }
+      modelExecutor.shutdownNow();
+      modelStateChecker.shutdownNow();
     }
   }
 

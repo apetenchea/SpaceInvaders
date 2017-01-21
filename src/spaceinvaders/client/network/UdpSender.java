@@ -36,19 +36,21 @@ class UdpSender implements Sender {
     if (command == null) {
       throw new NullPointerException();
     }
-    if (command.getProtocol() != UDP) {
+    if (command.getProtocol().equals(UDP)) {
+      String data = command.toJson();
+      LOGGER.info("Sending " + data);
+      DatagramPacket packet = new DatagramPacket(data.getBytes(),data.length());
+      try {
+        socket.send(packet);
+      } catch (Exception exception) {
+        // Do not stop the game.
+        LOGGER.log(SEVERE,exception.toString(),exception);
+      }
+    } else {
       if (nextChain == null) {
         throw new AssertionError();
       }
       nextChain.send(command);
-    }
-    String data = command.toJson();
-    DatagramPacket packet = new DatagramPacket(data.getBytes(),data.length());
-    try {
-      socket.send(packet);
-    } catch (Exception exception) {
-      // Do not stop the game.
-      LOGGER.log(SEVERE,exception.toString(),exception);
     }
   }
 

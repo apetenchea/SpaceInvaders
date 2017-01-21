@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.DatagramPacket;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -117,7 +118,7 @@ public class Connection implements Service<Void> {
   public void unwrapPacket(DatagramPacket packet) {
     String data = new String(packet.getData());
     try {
-      director.makeCommand(data);
+      director.makeCommand(data.trim());
       if (!incomingQueue.offer(director.getCommand())) {
         throw new AssertionError();
       }
@@ -161,8 +162,8 @@ public class Connection implements Service<Void> {
     return socket.getRemoteSocketAddress();
   }
 
-  public void setUdpDestination(SocketAddress udpDestination) {
-    this.udpDestination = udpDestination;
+  public void setUdpDestination(int port) {
+    udpDestination = new InetSocketAddress(socket.getInetAddress(),port);
   }
 
   /**
@@ -211,17 +212,18 @@ public class Connection implements Service<Void> {
 
     /** Flush commands. */
     public void flush() {
-      Command command = new PackCommand(new ArrayList<Command>(buffer));
-      buffer.clear();
-      String data = command.toJson();
-      try {
-        DatagramPacket packet = new DatagramPacket(data.getBytes(),data.length(),udpDestination);
-        if (!outgoingQueue.offer(packet)) {
-          throw new AssertionError();
+      for (Command command : buffer) {
+        String data = command.toJson();
+        try {
+          DatagramPacket packet = new DatagramPacket(data.getBytes(),data.length(),udpDestination);
+          if (!outgoingQueue.offer(packet)) {
+            throw new AssertionError();
+          }
+        } catch (Exception exception) {
+          LOGGER.log(SEVERE,exception.toString(),exception);
         }
-      } catch (Exception exception) {
-        LOGGER.log(SEVERE,exception.toString(),exception);
       }
+      buffer.clear();
     }
   }
 

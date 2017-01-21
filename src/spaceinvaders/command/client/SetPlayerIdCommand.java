@@ -15,7 +15,7 @@ public class SetPlayerIdCommand extends Command {
   private transient Controller executor;
   public Integer id;
 
-  SetPlayerIdCommand() {
+  public SetPlayerIdCommand() {
     super(SetPlayerIdCommand.class.getName(),TCP);
   }
 
@@ -30,7 +30,7 @@ public class SetPlayerIdCommand extends Command {
     config.setId(id);
     Model model = executor.getModel();
     model.doCommand(new ConfigurePlayerCommand(config.getUserName(),config.getTeamSize(),
-          config.getUdpIncomingAddr()));
+          config.getUdpIncomingPort()));
     for (View view : executor.getViews()) {
       view.showGame();
     }

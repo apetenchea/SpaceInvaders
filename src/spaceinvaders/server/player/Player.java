@@ -101,7 +101,7 @@ public class Player {
     this.teamSize = teamSize;
   }
 
-  public void setUdpDestination(SocketAddress addr) {
-    connection.setUdpDestination(addr);
+  public void setUdpDestinationPort(int port) {
+    connection.setUdpDestination(port);
   }
 }

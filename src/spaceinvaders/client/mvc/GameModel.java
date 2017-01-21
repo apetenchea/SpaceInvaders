@@ -44,12 +44,14 @@ public class GameModel implements Model {
   private final ExecutorService dispatcherExecutor;
   private final ServiceState connectionState = new ServiceState();
   private final ServiceState gameState = new ServiceState();
+  private final List<Future<?>> future = new ArrayList<>();
   private NetworkConnection connection;
 
   /** Constructs a new game model, initially without any controller. */
   public GameModel() {
     connectionExecutor = Executors.newSingleThreadExecutor();
     dispatcherExecutor = Executors.newSingleThreadExecutor();
+    future.add(dispatcherExecutor.submit(dispatcher));
   }
 
   /**
@@ -70,10 +72,8 @@ public class GameModel implements Model {
     } catch (NullPointerException nullPtrException) {
       throw new AssertionError(NULL_ARGUMENT.toString(),nullPtrException);
     }
-    List<Future<?>> future = new ArrayList<>();
     try {
       future.add(connectionExecutor.submit(connection));
-      future.add(dispatcherExecutor.submit(dispatcher));
     } catch (NullPointerException nullPtrException) {
       throw new AssertionError(NULL_ARGUMENT.toString(),nullPtrException);
     }

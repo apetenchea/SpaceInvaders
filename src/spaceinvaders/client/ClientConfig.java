@@ -1,6 +1,5 @@
 package spaceinvaders.client;
 
-import java.net.SocketAddress;
 import java.util.regex.Pattern;
 import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.InvalidServerAddressException;
@@ -15,7 +14,7 @@ public class ClientConfig {
   private String serverAddr = "localhost";
   private Integer serverPort = 5412;
   private String userName = "default";
-  private SocketAddress udpIncomingAddr;
+  private Integer udpIncomingPort;
 
   /**
    * Get a ClientConfig instance.
@@ -100,12 +99,12 @@ public class ClientConfig {
     return serverPort;
   }
 
-  public SocketAddress getUdpIncomingAddr() {
-    return udpIncomingAddr;
+  public int getUdpIncomingPort() {
+    return udpIncomingPort;
   }
 
-  public void setUdpIncomingAddr(SocketAddress udpIncomingAddr) {
-    this.udpIncomingAddr = udpIncomingAddr;
+  public void setUdpIncomingPort(int udpIncomingPort) {
+    this.udpIncomingPort = udpIncomingPort;
   }
 
   public void setServerPort(int serverPort) {

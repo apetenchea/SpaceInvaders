@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import spaceinvaders.game.Entity;
-import spaceinvaders.exceptions.ResourceNotFoundException;
 
 /** Game entity that is drawable on the screen. */
 public abstract class GraphicalEntity implements Cloneable {

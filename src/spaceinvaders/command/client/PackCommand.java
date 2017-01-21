@@ -16,7 +16,7 @@ public class PackCommand extends Command {
   private transient Controller executor;
   private List<Command> pack;
 
-  PackCommand() {
+  public PackCommand() {
     super(PackCommand.class.getName(),UDP);
   }
 
