@@ -30,9 +30,9 @@ class SocketWrapper extends Observable implements Service<Void> {
   private final ServiceState state = new ServiceState();
 
   /**
-   * @param socketQueue - sockets will be taken from this queue.
+   * @param socketQueue - new sockets will be taken from this queue.
    * @param outgoingPacketQueue - any packet send by a connection will be going through this queue 
-   *     It is needed for contructing a connection.
+   *     It is needed for contructing a {@link Connection).
    * @param addressToConnection - used for mapping socket adresses to connections.
    * @param  checkServerAvailability - checks if the server can accept an incomming connection.
    * 
