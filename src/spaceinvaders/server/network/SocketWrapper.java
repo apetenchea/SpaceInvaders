@@ -18,7 +18,7 @@ import spaceinvaders.utility.ServiceState;
 /**
  * Wraps a {@link Socket} into a {@link Connection}.
  *
- * <p>The resulting connection is passed to observers.
+ * <p>The resulting connection is passed to {@link PlayerManager}.
  */
 class SocketWrapper extends Observable implements Service<Void> {
   private static Logger LOGGER = Logger.getLogger(SocketWrapper.class.getName());
