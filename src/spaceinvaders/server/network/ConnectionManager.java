@@ -16,7 +16,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TransferQueue;
-import java.util.logging.Logger;
 import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.server.network.tcp.TcpHandler;
@@ -34,7 +33,6 @@ import spaceinvaders.utility.ServiceState;
  * <p>An incoming packet goes through a dispatcher, wich forwards it to the right receiver.
  */
 public class ConnectionManager implements Service<Void> {
-  private static final Logger LOGGER = Logger.getLogger(ConnectionManager.class.getName());
   private static final int MAX_CONNECTIONS = 12;
 
   private final ConcurrentMap<SocketAddress,Connection> addressToConnection =
@@ -42,7 +40,7 @@ public class ConnectionManager implements Service<Void> {
   private final TransferQueue<Socket> socketQueue = new LinkedTransferQueue<>();
   private final TransferQueue<DatagramPacket> incomingPacketQueue = new LinkedTransferQueue<>();
   private final TransferQueue<DatagramPacket> outgoingPacketQueue = new LinkedTransferQueue<>();
-  private final SocketWrapper wrapper = new SocketWrapper(socketQueue,outgoingPacketQueue,
+  private final SocketWrapper connectionWrapper = new SocketWrapper(socketQueue,outgoingPacketQueue,
       addressToConnection,new CheckSeverAvailability());
   private final Service<Void> dispatcher =
       new PacketDispatcher(incomingPacketQueue,addressToConnection);
@@ -51,7 +49,7 @@ public class ConnectionManager implements Service<Void> {
   private final Service<Void> udpHandler;
   private final ExecutorService tcpExecutor;
   private final ExecutorService udpExecutor;
-  private final ExecutorService wrapperExecutor;
+  private final ExecutorService connectionWrapperExecutor;
   private final ExecutorService dispatcherExecutor;
 
   /**
@@ -66,7 +64,7 @@ public class ConnectionManager implements Service<Void> {
     udpHandler = new UdpHandler(port,incomingPacketQueue,outgoingPacketQueue);
     tcpExecutor = Executors.newSingleThreadExecutor();
     udpExecutor = Executors.newSingleThreadExecutor();
-    wrapperExecutor = Executors.newSingleThreadExecutor();
+    connectionWrapperExecutor = Executors.newSingleThreadExecutor();
     dispatcherExecutor = Executors.newSingleThreadExecutor();
     state.set(true);
   }
@@ -83,7 +81,7 @@ public class ConnectionManager implements Service<Void> {
     List<Future<?>> future = new ArrayList<>();
     future.add(tcpExecutor.submit(tcpHandler));
     future.add(udpExecutor.submit(udpHandler));
-    future.add(wrapperExecutor.submit(wrapper));
+    future.add(connectionWrapperExecutor.submit(connectionWrapper));
     future.add(dispatcherExecutor.submit(dispatcher));
     final long checkingRateMilliseconds = 1000;
     while (state.get()) {
@@ -110,10 +108,10 @@ public class ConnectionManager implements Service<Void> {
     state.set(false);
     tcpHandler.shutdown();
     udpHandler.shutdown();
-    wrapper.shutdown();
+    connectionWrapper.shutdown();
     dispatcher.shutdown();
     udpExecutor.shutdownNow();
-    wrapperExecutor.shutdownNow();
+    connectionWrapperExecutor.shutdownNow();
     dispatcherExecutor.shutdownNow();
     tcpExecutor.shutdownNow();
   }
@@ -125,7 +123,7 @@ public class ConnectionManager implements Service<Void> {
     if (playerManager == null) {
       throw new NullPointerException();
     }
-    wrapper.addObserver(playerManager);
+    connectionWrapper.addObserver(playerManager);
   }
 
   /** Checks if the server can take in one more connection. */
