@@ -1,13 +1,10 @@
 package spaceinvaders.server.network;
 
 import static java.util.logging.Level.SEVERE;
-import static spaceinvaders.command.ProtocolEnum.TCP;
-import static spaceinvaders.command.ProtocolEnum.UDP;
-import static spaceinvaders.exceptions.AssertionsEnum.BOUNDED_TRANSFER_QUEUE;
 
 import com.google.gson.JsonSyntaxException;
-import java.io.IOException;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.DatagramPacket;
@@ -20,46 +17,49 @@ import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TransferQueue;
 import java.util.logging.Logger;
 import spaceinvaders.command.Command;
-import spaceinvaders.command.client.PackCommand;
 import spaceinvaders.command.CommandDirector;
 import spaceinvaders.command.server.ServerCommandBuilder;
 import spaceinvaders.exceptions.CommandNotFoundException;
+import spaceinvaders.server.network.senderchain.SenderChain;
+import spaceinvaders.server.network.senderchain.TcpChain;
+import spaceinvaders.server.network.senderchain.UdpChain;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
-import spaceinvaders.utility.Sender;
 
-/** Network connection with a client. */
+/** Network connection of a client. */
 public class Connection implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(Connection.class.getName());
 
-  private final Integer id;
   private final Socket socket;
   private final BufferedReader reader;
   private final PrintWriter writer;
-  private final UdpSender udpSender = new UdpSender(new TcpSender());
-  private final Sender sender = udpSender;
-  private final TransferQueue<Command> incomingQueue = new LinkedTransferQueue<>();
-  private final TransferQueue<DatagramPacket> outgoingQueue;
+  private final SenderChain sender;
+  private final TransferQueue<Command> incomingCommandQueue = new LinkedTransferQueue<>();
+  private final TransferQueue<DatagramPacket> outgoingPacketQueue;
   private final CommandDirector director = new CommandDirector(new ServerCommandBuilder());
   private final ServiceState state = new ServiceState();
-  private SocketAddress udpDestination;
 
   /**
-   * Construct a connection that uses the <code>socket</code> for TCP and
-   * <code>outgoingQueue</code> to forward UDP packets.
+   * @param socket - an already opened TCP socket.
+   * @param outgoingPacketQueue - used for sending UDP packets.
    *
-   * @throws IOException - if an exception occurs while creating the I/O streams for the socket.
-   * @throws NullPointerException - if any of the arguments is <code>null</code>.
+   * @throws IOException - if the {@code socket} is not connected or an exception occurs when
+   *     opening the I/O streams.
+   * @throws NullPointerException - if an argument is {@code null}.
    */
-  public Connection(Socket socket, TransferQueue<DatagramPacket> outgoingQueue) throws IOException {
-    if (socket == null || outgoingQueue == null) {
+  public Connection(Socket socket, TransferQueue<DatagramPacket> outgoingPacketQueue)
+      throws IOException {
+    if (socket == null || outgoingPacketQueue == null) {
       throw new NullPointerException();
+    }
+    this.socket = socket;
+    this.outgoingPacketQueue = outgoingPacketQueue;
+    if (!socket.isConnected()) {
+      throw new IOException();
     }
     reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     writer = new PrintWriter(socket.getOutputStream(),true);
-    this.socket = socket;
-    this.outgoingQueue = outgoingQueue;
-    id = hashCode();
+    sender = new DataSender();
     state.set(true);
   }
 
@@ -80,31 +80,23 @@ public class Connection implements Service<Void> {
         }
       }
       if (data == null) {
+        // EOF.
         throw new IOException();
       }
 
-      LOGGER.fine("New tcp to " + hashCode() + ": " + data);
-
       try {
         director.makeCommand(data);
-        if (!incomingQueue.offer(director.getCommand())) {
+        if (!incomingCommandQueue.offer(director.getCommand())) {
+          // This should never happen.
           throw new AssertionError();
         }
-      } catch (JsonSyntaxException jsonException) {
-        LOGGER.log(SEVERE,jsonException.toString(),jsonException);
-      } catch (CommandNotFoundException commandException) {
-        LOGGER.log(SEVERE,commandException.toString(),commandException);
+      } catch (JsonSyntaxException | CommandNotFoundException exception) {
+        LOGGER.log(SEVERE,exception.toString(),exception);
       }
     }
     return null;
   }
 
-  /**
-   * Close the connection.
-   *
-   * @throws SecurityException - from {@link ExecutorService#shutdown()}.
-   * @throws RuntimePermission - from {@link ExecutorService#shutdown()}.
-   */
   @Override
   public void shutdown() {
     state.set(false);
@@ -115,11 +107,19 @@ public class Connection implements Service<Void> {
     }
   }
 
+  /**
+   * Unwrap an UDP packet and put it in the {@code incomingCommandQueue}.
+   * 
+   * @throws NullPointerException - if argument is {@code null}.
+   */
   public void unwrapPacket(DatagramPacket packet) {
+    if (packet == null) {
+      throw new NullPointerException();
+    }
     String data = new String(packet.getData());
     try {
       director.makeCommand(data.trim());
-      if (!incomingQueue.offer(director.getCommand())) {
+      if (!incomingCommandQueue.offer(director.getCommand())) {
         throw new AssertionError();
       }
     } catch (JsonSyntaxException jsonException) {
@@ -127,31 +127,32 @@ public class Connection implements Service<Void> {
     } catch (CommandNotFoundException commandException) {
       LOGGER.log(SEVERE,commandException.toString(),commandException);
     }
-
-    LOGGER.fine("New packet to " + hashCode() + ": " + data);
   }
 
+  /**
+   * Send a command to the client.
+   *
+   * @throws NullPointerException - if argument is {@code null}.
+   */
   public void send(Command command) {
-    sender.send(command);
+    if (command == null) {
+      throw new NullPointerException();
+    }
+    sender.handle(command);
   }
 
-  /** Read all commands from the input queue. */
+  /**
+   * @return a list with the contents of {@code incomingCommandQueue}.
+   */
   public List<Command> readCommands() {
     List<Command> commands = new ArrayList<>();
     try {
-      incomingQueue.drainTo(commands);
+      incomingCommandQueue.drainTo(commands);
     } catch (Exception exception) {
-      // Do not crash.
+      // Do not end the connection.
       LOGGER.log(SEVERE,exception.toString(),exception);
     }
-    if (commands.size() == 0) {
-      return null;
-    }
     return commands;
-  }
-
-  public void flushUdp() {
-    udpSender.flush();
   }
 
   public boolean isClosed() {
@@ -162,108 +163,34 @@ public class Connection implements Service<Void> {
     return socket.getRemoteSocketAddress();
   }
 
+  /** Set the address where UDP packets should be sent. */
   public void setUdpDestination(int port) {
-    udpDestination = new InetSocketAddress(socket.getInetAddress(),port);
+    sender.setNext(
+        new UdpChain(new InetSocketAddress(socket.getInetAddress(),port),outgoingPacketQueue));
   }
 
-  /**
-   * Pack and send UDP data.
-   *
-   * <p>Commands are buffered. Use flush() to send them over the internet.
-   */
-  private class UdpSender implements Sender {
-    private final List<Command> buffer = new ArrayList<>();
-    private Sender nextChain;
-
-    public UdpSender() {}
-
-    public UdpSender(Sender nextChain) {
-      this.nextChain = nextChain;
-    }
+  /** Send data over different protocols. */
+  private class DataSender extends SenderChain {
+    private SenderChain head = new TcpChain(writer);
 
     /**
-     * @throws NullPointerException - if {@code command} is {@code null}.
+     * @throws NullPointerException - if argument is {@code null}.
      */
     @Override
-    public void send(Command command) {
+    public void handle(Command command) {
       if (command == null) {
         throw new NullPointerException();
       }
-      if (command.getProtocol().equals(UDP)) {
-        buffer.add(command);
-      } else {
-        if (nextChain == null) {
-          throw new AssertionError();
-        }
-        nextChain.send(command);
-      }
+      head.handle(command);
     }
 
-    /**
-     * @throws NullPointerException - if {@code nextChain} is {@code null}.
-     */
     @Override
-    public void setNextChain(Sender nextChain) {
-      if (nextChain == null) {
-        throw new NullPointerException();
-      }
-      this.nextChain = nextChain;
-    }
-
-    /** Flush commands. */
     public void flush() {
-      for (Command command : buffer) {
-        String data = command.toJson();
-        try {
-          DatagramPacket packet = new DatagramPacket(data.getBytes(),data.length(),udpDestination);
-          if (!outgoingQueue.offer(packet)) {
-            throw new AssertionError();
-          }
-        } catch (Exception exception) {
-          LOGGER.log(SEVERE,exception.toString(),exception);
-        }
+      SenderChain sender = head;
+      while (sender != null) {
+        sender.flush();
+        sender = sender.getNext();
       }
-      buffer.clear();
-    }
-  }
-
-  /** Send over TCP. */
-  private class TcpSender implements Sender {
-    private Sender nextChain;
-
-    public TcpSender() {}
-
-    public TcpSender(Sender nextChain) {
-      this.nextChain = nextChain;
-    }
-
-    /**
-     * @throws NullPointerException - if {@code command} is {@code null}.
-     */
-    @Override
-    public void send(Command command) {
-      if (command == null) {
-        throw new NullPointerException();
-      }
-      if (command.getProtocol().equals(TCP)) {
-        writer.println(command.toJson());
-      } else {
-        if (nextChain == null) {
-          throw new AssertionError();
-        }
-        nextChain.send(command);
-      }
-    }
-
-    /**
-     * @throws NullPointerException - if {@code nextChain} is {@code null}.
-     */
-    @Override
-    public void setNextChain(Sender nextChain) {
-      if (nextChain == null) {
-        throw new NullPointerException();
-      }
-      this.nextChain = nextChain;
     }
   }
 }
