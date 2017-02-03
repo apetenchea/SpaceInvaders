@@ -78,6 +78,7 @@ class SocketWrapper extends Observable implements Service<Void> {
         availability = checkServerAvailability.call();
       } catch (Exception exception) {
         // This should never happen.
+        LOGGER.log(SEVERE,exception.toString(),exception);
         throw new AssertionError();
       }
       if (availability) {
@@ -86,12 +87,7 @@ class SocketWrapper extends Observable implements Service<Void> {
           connection = new Connection(clientSocket,outgoingPacketQueue);
         } catch (IOException ioException) {
           LOGGER.log(SEVERE,ioException.toString(),ioException);
-          connection.shutdown();
           continue;
-        }
-        if (connection == null) {
-          // This should never happen.
-          throw new AssertionError();
         }
 
         LOGGER.info("New connection: " + connection.hashCode()

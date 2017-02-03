@@ -4,7 +4,6 @@ import java.net.DatagramPacket;
 import java.net.SocketAddress;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TransferQueue;
-import java.util.logging.Logger;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
@@ -12,8 +11,6 @@ import spaceinvaders.utility.ServiceState;
  * Matches an incoming UDP packet to a {@link Connection}.
  */
 class PacketDispatcher implements Service<Void> {
-  private static Logger LOGGER = Logger.getLogger(PacketDispatcher.class.getName());
-
   private final TransferQueue<DatagramPacket> packetQueue;
   private final ConcurrentMap<SocketAddress,Connection> addressToConnection;
   private final ServiceState state = new ServiceState();
