@@ -32,12 +32,11 @@ public class Connection implements Service<Void> {
 
   private final Socket socket;
   private final BufferedReader reader;
-  private final PrintWriter writer;
-  private final SenderChain sender;
   private final TransferQueue<Command> incomingCommandQueue = new LinkedTransferQueue<>();
   private final TransferQueue<DatagramPacket> outgoingPacketQueue;
   private final CommandDirector director = new CommandDirector(new ServerCommandBuilder());
   private final ServiceState state = new ServiceState();
+  private SenderChain sender;
 
   /**
    * @param socket - an already opened TCP socket.
@@ -58,8 +57,7 @@ public class Connection implements Service<Void> {
       throw new IOException();
     }
     reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-    writer = new PrintWriter(socket.getOutputStream(),true);
-    sender = new DataSender();
+    sender = new TcpChain(new PrintWriter(socket.getOutputStream()));
     state.set(true);
   }
 
@@ -122,10 +120,8 @@ public class Connection implements Service<Void> {
       if (!incomingCommandQueue.offer(director.getCommand())) {
         throw new AssertionError();
       }
-    } catch (JsonSyntaxException jsonException) {
-      LOGGER.log(SEVERE,jsonException.toString(),jsonException);
-    } catch (CommandNotFoundException commandException) {
-      LOGGER.log(SEVERE,commandException.toString(),commandException);
+    } catch (JsonSyntaxException | CommandNotFoundException exception) {
+      LOGGER.log(SEVERE,exception.toString(),exception);
     }
   }
 
@@ -149,7 +145,7 @@ public class Connection implements Service<Void> {
     try {
       incomingCommandQueue.drainTo(commands);
     } catch (Exception exception) {
-      // Do not end the connection.
+      // Do not close the connection.
       LOGGER.log(SEVERE,exception.toString(),exception);
     }
     return commands;
@@ -163,34 +159,21 @@ public class Connection implements Service<Void> {
     return socket.getRemoteSocketAddress();
   }
 
-  /** Set the address where UDP packets should be sent. */
-  public void setUdpDestination(int port) {
-    sender.setNext(
-        new UdpChain(new InetSocketAddress(socket.getInetAddress(),port),outgoingPacketQueue));
+  /** Flush all commands. */
+  public void flush() {
+    for (SenderChain it = sender; it != null; it = it.getNext()) {
+      it.flush();
+    }
   }
 
-  /** Send data over different protocols. */
-  private class DataSender extends SenderChain {
-    private SenderChain head = new TcpChain(writer);
-
-    /**
-     * @throws NullPointerException - if argument is {@code null}.
-     */
-    @Override
-    public void handle(Command command) {
-      if (command == null) {
-        throw new NullPointerException();
-      }
-      head.handle(command);
-    }
-
-    @Override
-    public void flush() {
-      SenderChain sender = head;
-      while (sender != null) {
-        sender.flush();
-        sender = sender.getNext();
-      }
-    }
+  /**
+   * Add an UDP sender to the chain.
+   * 
+   * @param port - the port of the remote client, where UDP packets should be sent.
+   */
+  public void setUdpChain(int port) {
+    SenderChain temp = sender;
+    sender = new UdpChain(new InetSocketAddress(socket.getInetAddress(),port),outgoingPacketQueue);
+    sender.setNext(temp);
   }
 }
