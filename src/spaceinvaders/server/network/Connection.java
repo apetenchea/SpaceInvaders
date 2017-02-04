@@ -76,6 +76,7 @@ public class Connection implements Service<Void> {
         if (state.get()) {
           throw ioException;
         }
+        break;
       }
       if (data == null) {
         // EOF.
