@@ -1,7 +1,6 @@
 package spaceinvaders.server.network.tcp;
 
 import static java.util.logging.Level.SEVERE;
-import static spaceinvaders.exceptions.AssertionsEnum.BOUNDED_TRANSFER_QUEUE;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -14,10 +13,10 @@ import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
 /**
- * Accepts TCP connections and forwards them using a transfer queue.
+ * Listens TCP connections.
  *
- * <p>Any client initially establishes a TCP connection. The socket created this way is used only
- * for the initial data exchange and not during the game.
+ * <p>All clients initially establish a TCP connection. TCP is used only for commands for which
+ * the arrival must be guaranteed and their order of arrival matters.
  */
 public class TcpHandler implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(TcpHandler.class.getName());
@@ -27,13 +26,13 @@ public class TcpHandler implements Service<Void> {
   private final ServiceState state = new ServiceState();
 
   /**
-   * Construct a server socket that listens on port <code>port</code> and forwards client sockets
-   * throught the <code>socketTransferQueue</code>
+   * @param port - the port on which incoming connections are expected to arrive.
+   * @param socketTransferQueue - a queue through which the newly open sockets are transferred.
    *
-   * @throws SocketOpeningException - if an error occurs while opening the server socket.
+   * @throws SocketOpeningException - if an error occurs while opening the server's socket.
    * @throws SecurityException - if the security manager does not allow an operation.
-   * @throws IllegalPortNumberException - if the port number is not a valid value.
-   * @throws NullPointerException - if the transfer queue is <code>null</code>.
+   * @throws IllegalPortNumberException - if the port number is not valid.
+   * @throws NullPointerException - if an argument is {@code null}.
    */
   public TcpHandler(int port, TransferQueue<Socket> socketTransferQueue)
       throws SocketOpeningException, IllegalPortNumberException {
@@ -42,6 +41,7 @@ public class TcpHandler implements Service<Void> {
     }
     this.socketTransferQueue = socketTransferQueue;
     if (port == 0) {
+      // Do not let the system pick a random port.
       throw new IllegalPortNumberException();
     }
     try {
@@ -49,35 +49,39 @@ public class TcpHandler implements Service<Void> {
     } catch (IOException ioException) {
       throw new SocketOpeningException(ioException);
     } catch (IllegalArgumentException portException) {
-      throw new IllegalPortNumberException(portException);
+      throw new IllegalPortNumberException();
     }
     state.set(true);
   }
 
   /** Start listening for new connections. */
   @Override
-  public Void call() {
+  public Void call() throws IOException {
     while (state.get()) {
       Socket clientSocket = null;
       try {
         clientSocket = serverSocket.accept();
-      } catch (Exception exception) {
+      } catch (IOException ioException) {
+        if (state.get()) {
+          throw ioException;
+        }
+        break;
+      } catch (RuntimeException rte) {
         // Do not stop the server.
         if (state.get()) {
-          LOGGER.log(SEVERE,exception.toString(),exception);
+          LOGGER.log(SEVERE,rte.toString(),rte);
         }
       }
-      if (clientSocket != null) {
-        if (!socketTransferQueue.offer(clientSocket)) {
-          throw new AssertionError(BOUNDED_TRANSFER_QUEUE.toString());
-        }
+      if (!socketTransferQueue.offer(clientSocket)) {
+        // This should never happen.
+        throw new AssertionError();
       }
     }
     return null;
   }
 
   /**
-   * Close the server socket.
+   * Close the socket used for listening.
    *
    * <p>The handler will no longer accept incoming TCP connections.
    */
