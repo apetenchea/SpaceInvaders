@@ -1,7 +1,5 @@
 package spaceinvaders.server.network.udp;
 
-import static spaceinvaders.exceptions.AssertionsEnum.NULL_ARGUMENT;
-
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -13,8 +11,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TransferQueue;
-
-import spaceinvaders.exceptions.InterruptedServiceException;
 import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
@@ -22,10 +18,10 @@ import spaceinvaders.utility.ServiceState;
 /**
  * Handles I/O using the UDP protocol.
  *
- * <p>UDP is used during the game.
+ * <p>UDP is used for common data during the game.
  */
 public class UdpHandler implements Service<Void> {
-  private static final int MAX_INCOMING_PACKET_SIZE = 1024;
+  private static final int MAX_INCOMING_PACKET_SIZE = 256;
 
   private final Service<Void> receiver;
   private final Service<Void> sender;
@@ -34,14 +30,19 @@ public class UdpHandler implements Service<Void> {
   private final ServiceState state = new ServiceState();
 
   /**
-   * Construct an UDP handler that receives and sends packets throught the local port
-   * <code>port</code>, forwarding incoming packets into  <code>incomingPacketQueue</code> and
-   * sending packets taken from <code>outgoingPacketQueue</code>.
+   * Constuct an UDP handler which will start a sender and a receiver.
+   *
+   * <p>The port for receiving packets must be a valid one. The system automatically finds a port
+   * available for sending packets. 
+   *
+   * @param port - local port throught which packets are received.
+   * @param incomingPacketQueue - queue to put the received packets.
+   * @param outgoingPacketQueue - packets are taken out of this queue and sent.
    *
    * @throws SocketOpeningException - if a server socket could not be opened or it cannot be
    *     bound to the specified local port.
    * @throws SecurityException - if a security manager does not allow an operation.
-   * @throws NullPointerException - if any of the specified transfer queues is <code>null</code>.
+   * @throws NullPointerException - if any of the specified transfer queues is {@code null}.
    */
   public UdpHandler(int port, TransferQueue<DatagramPacket> incomingPacketQueue,
       TransferQueue<DatagramPacket> outgoingPacketQueue) throws SocketOpeningException {
@@ -67,18 +68,14 @@ public class UdpHandler implements Service<Void> {
    * Start receiving and sending packets.
    *
    * @throws ExecutionException - if an exception occurs during execution.
-   * @throws InterruptedServiceException - if the service is interrupted prior to shutdown.
+   * @throws InterruptedException - if the service is interrupted prior to shutdown.
    * @throws RejectedExecutionException - if the task cannot be executed.
    */
   @Override
-  public Void call() throws ExecutionException, InterruptedServiceException {
+  public Void call() throws ExecutionException, InterruptedException {
     List<Future<?>> future = new ArrayList<>();
-    try {
-      future.add(receiverExecutor.submit(receiver));
-      future.add(senderExecutor.submit(sender));
-    } catch (NullPointerException nullPtrException) {
-      throw new AssertionError(NULL_ARGUMENT);
-    }
+    future.add(receiverExecutor.submit(receiver));
+    future.add(senderExecutor.submit(sender));
     final long checkingRateMilliseconds = 1000;
     while (state.get()) {
       try {
@@ -92,19 +89,14 @@ public class UdpHandler implements Service<Void> {
       } catch (CancellationException | InterruptedException exception) {
         if (state.get()) {
           state.set(false);
-          throw new InterruptedServiceException(exception);
+          throw new InterruptedException();
         }
       }
     }
     return null;
   }
 
-  /**
-   * The handler will no longer be able to receive and send packets.
-   *
-   * @throws SecurityException - from {@link ExecutorService#shutdown()}.
-   * @throws RuntimePermission - from {@link ExecutorService#shutdown()}.
-   */
+  /** The handler will no longer be able to receive and send packets. */
   @Override
   public void shutdown() {
     state.set(false);

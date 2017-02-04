@@ -2,15 +2,15 @@ package spaceinvaders.server.network.udp;
 
 import static java.util.logging.Level.SEVERE;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.concurrent.TransferQueue;
 import java.util.logging.Logger;
-import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
-/** Takes enqued UDP packets and sends them to their destination. */
+/** Takes UDP packets out of a transfer queue and sends them to their destination. */
 class UdpSender implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(UdpSender.class.getName());
 
@@ -19,14 +19,16 @@ class UdpSender implements Service<Void> {
   private final ServiceState state = new ServiceState();
 
   /**
-   * Construct an UDP sender that takes packets from the <code>outgoingPacketQueue</code> and
-   * forwards them throught the socket <code>serverSocket</code>.
+   * Construct an UDP sender over an open socket.
    *
-   * @throws NullPointerException - if an argument is <code>null</code>.
+   * @param serverSocket - socket thought which packets are sent.
+   * @param outgoingPacketQueue - queue from which packets are taken out before being sent.
+   *
+   * @throws NullPointerException - if an argument is {@code null}.
    */
-  public UdpSender(DatagramSocket serverSocket, TransferQueue<DatagramPacket> outgoingPacketQueue)
-      throws SocketOpeningException {
-    if (outgoingPacketQueue == null || serverSocket == null) {
+  public UdpSender(DatagramSocket serverSocket,
+      TransferQueue<DatagramPacket> outgoingPacketQueue) {
+    if (serverSocket == null || outgoingPacketQueue == null) {
       throw new NullPointerException();
     }
     this.serverSocket = serverSocket;
@@ -34,32 +36,40 @@ class UdpSender implements Service<Void> {
     state.set(true);
   }
 
-  /** Start taking packets out of the queue and send them. */
+  /**
+   * Start sending packets.
+   *
+   * @throws IOException - if an I/O error occurs.
+   * @throws InterruptedException - if the service is interrupted prior to shutdown.
+   */
   @Override
-  public Void call() {
+  public Void call() throws IOException, InterruptedException {
     while (state.get()) {
       DatagramPacket packet = null;
       try {
         packet = outgoingPacketQueue.take();
-        if (packet == null) {
-          continue;
-        }
-        serverSocket.send(packet);
-      } catch (Exception exception) {
-        // Do not stop the server.
+      } catch (InterruptedException intException) {
         if (state.get()) {
-          LOGGER.log(SEVERE,exception.toString(),exception);
+          throw new InterruptedException();
+        }
+      }
+      try {
+        serverSocket.send(packet);
+      } catch (IOException ioException) {
+        if (state.get()) {
+          throw ioException;
+        }
+      } catch (RuntimeException rte) {
+        // Do not stop sending packets if one packet fails.
+        if (state.get()) {
+          LOGGER.log(SEVERE,rte.toString(),rte);
         }
       }
     }
     return null;
   }
 
-  /**
-   * Close the server socket.
-   *
-   * <p>Packets left in the transfer queue ar discarded.
-   */
+  /** Close the socket, discarding any unsent packets. */
   @Override
   public void shutdown() {
     state.set(false);

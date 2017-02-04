@@ -1,8 +1,8 @@
 package spaceinvaders.server.network.udp;
 
 import static java.util.logging.Level.SEVERE;
-import static spaceinvaders.exceptions.AssertionsEnum.BOUNDED_TRANSFER_QUEUE;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.concurrent.TransferQueue;
@@ -11,7 +11,7 @@ import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
-/** Receives UDP packets and enqueues them for transfer. */
+/** Receives UDP packets. */
 class UdpReceiver implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(UdpReceiver.class.getName());
 
@@ -21,10 +21,11 @@ class UdpReceiver implements Service<Void> {
   private final ServiceState state = new ServiceState();
 
   /**
-   * Construct an UDP receiver that receives packets of size <code>maxPacketSize</code> through
-   * the socket <code>serverSocket</code>, forwarding them into <code>incomingPacketQueue</code>.
+   * @param serverSocket - open socket used for receiving packets.
+   * @param maxPacketSize - maximum size of a packet (in bytes).
+   * @param incomingPacketQueue - where to put packets after they are received.
    *
-   * @throws NullPointerException - if an argument is <code>null</code>.
+   * @throws NullPointerException - if an argument is {@code null}.
    */
   public UdpReceiver(DatagramSocket serverSocket, int maxPacketSize,
       TransferQueue<DatagramPacket> incomingPacketQueue) throws SocketOpeningException {
@@ -37,21 +38,30 @@ class UdpReceiver implements Service<Void> {
     state.set(true);
   }
 
-  /** Start receiving and forwarding packets. */
+  /**
+   * Start listening for incoming packets.
+   *
+   * @throws IOException - if an I/O error occurs.
+   */
   @Override
-  public Void call() {
+  public Void call() throws IOException {
     while (state.get()) {
       byte[] buffer = new byte[maxPacketSize];
       DatagramPacket packet = new DatagramPacket(buffer,buffer.length);
       try {
         serverSocket.receive(packet);
         if (!incomingPacketQueue.offer(packet)) {
-          throw new AssertionError(BOUNDED_TRANSFER_QUEUE.toString());
+          // This should never happen.
+          throw new AssertionError();
         }
-      } catch (Exception exception) {
-        // Do not stop the server.
+      } catch (IOException ioException) {
         if (state.get()) {
-          LOGGER.log(SEVERE,exception.toString(),exception);
+          throw ioException;
+        }
+      } catch (RuntimeException rti) {
+        // Do not stop the server in case one packet fails.
+        if (state.get()) {
+          LOGGER.log(SEVERE,rti.toString(),rti);
         }
       }
     }
@@ -59,9 +69,9 @@ class UdpReceiver implements Service<Void> {
   }
 
   /**
-   * Close the server socket.
+   * Close the socket.
    *
-   * <p>No more packets can be received by this listener.
+   * <p>No more packets can be received.
    */
   @Override
   public void shutdown() {
