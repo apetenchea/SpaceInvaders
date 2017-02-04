@@ -1,29 +1,17 @@
 package spaceinvaders.server.player;
 
-import java.net.SocketAddress;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 import spaceinvaders.command.Command;
-import spaceinvaders.exceptions.InterruptedServiceException;
 import spaceinvaders.server.network.Connection;
-import spaceinvaders.utility.ServiceState;
 
-/**
- * A player connected to the server.
- *
- * <p> Observers are notified when the player is no longer available.
- */
+/** A player ready to join a game. */
 public class Player {
   private static final Logger LOGGER = Logger.getLogger(Player.class.getName());
 
   private final Connection connection;
-  private final ExecutorService connectionExecutor;
   private final Future<Void> connectionFuture;
   private String name;
   private Integer teamSize;
@@ -31,23 +19,24 @@ public class Player {
   /**
    * Wrap a player around the specified connection.
    *
-   * @throws RejectedExecutionException - if a task required by <code>connection</code> cannot
-   *     be scheduled for execution.
-   * @throws NullPointerException - if any of the arguments is <code>null</code>.
+   * @param connection - the part of this player used for network communication.
+   * @param connectionExecutor - used to run tasks needed by the {@code connection}.
+   *
+   * @throws RejectedExecutionException - if the task cannot be executed.
+   * @throws NullPointerException - if an arguments is {@code null}.
    */
   public Player(Connection connection, ExecutorService connectionExecutor) {
     if (connection == null || connectionExecutor == null) {
       throw new NullPointerException();
     }
     this.connection = connection;
-    this.connectionExecutor = connectionExecutor;
     connectionFuture = connectionExecutor.submit(connection);
   }
 
   /**
-   * Push data to the client.
+   * Push a command to the client.
    *
-   * @throws NullPointerException - if the command is <code>null</code>.
+   * @throws NullPointerException - if the command is {@code null}.
    */
   public void push(Command command) {
     if (command == null) {
@@ -57,22 +46,23 @@ public class Player {
   }
 
   /**
-   * Pull data.
+   * Pull all commands received by the player.
    *
-   * @return a list containing all commands received or <code>null</code> there are none.
+   * @return a list containing all commands received an empty list if there are none.
    */
   public List<Command> pull() {
     return connection.readCommands();
   }
 
-  /** Flush buffered commands. */
+  /** Flush commands to the client. */
   public void flush() {
-    connection.flushUdp();
+    connection.flush();
   }
 
-  /** Close connection. */
+  /** Close the connection. */
   public void close() {
-    LOGGER.info("Closing connection on player: " + getId());
+    LOGGER.info("Connection " + getId() + " closed");
+
     connection.shutdown();
     connectionFuture.cancel(true);
   }
@@ -101,7 +91,8 @@ public class Player {
     this.teamSize = teamSize;
   }
 
+  /** Set the remote port to which UDP packets should be sent. */
   public void setUdpDestinationPort(int port) {
-    connection.setUdpDestination(port);
+    connection.setUdpChain(port);
   }
 }
