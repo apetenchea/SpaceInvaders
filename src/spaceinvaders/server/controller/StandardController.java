@@ -14,7 +14,7 @@ public class StandardController extends ServiceController {
 
   @Override
   protected void interpret(String input) {
-    // Primitive switch.
+    /* Primitive switch. */
     switch (input) {
       case "quit":
         server.shutdown();

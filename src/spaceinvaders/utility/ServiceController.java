@@ -4,27 +4,26 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import spaceinvaders.exceptions.InterruptedServiceException;
 
-/** Provides interaction with a service. */
+/** Provides control over a service. */
 public abstract class ServiceController implements Service<Void> {
   private final BufferedReader inputReader;
   private ServiceState state = new ServiceState();
 
-  /** Control the server using input from <code>inputReader</code>. */
+  /** Control the server through {@code inputReader}. */
   protected ServiceController(InputStream inputReader) {
-    this.inputReader = new BufferedReader(new InputStreamReader(System.in));
+    this.inputReader = new BufferedReader(new InputStreamReader(inputReader));
     state.set(true);
   }
 
   /**
    * Start reading commands.
    *
-   * @throws IOException - if an I/O exception occurs while reading.
-   * @throws IOException - if the service is interrupted prior to shutdown.
+   * @throws IOException - if an I/O exception occurs while reading from input.
+   * @throws InterruptedException - if the service is interrupted prior to shutdown.
    */
   @Override
-  public Void call() throws IOException, InterruptedServiceException {
+  public Void call() throws IOException, InterruptedException {
     final int checkStateRatioMilliseconds = 1000;
     while (state.get() && isServiceRunning()) {
       String input = null;
@@ -49,7 +48,7 @@ public abstract class ServiceController implements Service<Void> {
         Thread.sleep(checkStateRatioMilliseconds);
       } catch (InterruptedException exception) {
         if (state.get()) {
-          throw new InterruptedServiceException(exception);
+          throw new InterruptedException();
         }
       }
     }
