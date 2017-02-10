@@ -2,28 +2,38 @@ package spaceinvaders.game;
 
 import spaceinvaders.utility.Couple;
 
-/** Everything that exists in the game world. */
-public class Entity {
+/** Everything that the user can interact with. */
+public class Entity implements Cloneable {
   private EntityEnum type;
-  private Integer id = hashCode();
+  private Integer id;
   private Couple<Integer,Integer> pos;
 
-  public Entity(Entity entity) {
-    type = entity.type;
-    id = entity.id;
-    pos = entity.pos;
-  }
-
-  public Entity(EntityEnum type, int id, Couple <Integer,Integer> pos) {
+  /**
+   * @param type - the type of the entity.
+   * @param id - the id of the entity.
+   * @param posX - x coordinate.
+   * @param posY - y coordinate.
+   */
+  public Entity(EntityEnum type, int id, int posX, int posY) {
     this.type = type;
     this.id = id;
-    this.pos = pos;
+    this.pos = new Couple<>(posX,posY);
   }
 
-  public Entity(EntityEnum type, int xPos, int yPos) {
+  /**
+   * @param type - the type of the entity.
+   * @param posX - x coordinate.
+   * @param posY - y coordinate.
+   */
+  public Entity(EntityEnum type, int posX, int posY) {
     this.type = type;
     id = hashCode();
-    this.pos = new Couple<Integer,Integer>(xPos,yPos);
+    this.pos = new Couple<>(posX,posY);
+  }
+
+  @Override
+  public Entity clone() throws CloneNotSupportedException {
+    return (Entity) super.clone();
   }
 
   public int getId() {
@@ -44,9 +54,5 @@ public class Entity {
 
   public int getY() {
     return pos.getSecond();
-  }
-
-  public Couple<Integer,Integer> getPos() {
-    return pos;
   }
 }
