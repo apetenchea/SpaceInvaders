@@ -60,7 +60,8 @@ public class GameManager implements Observer, Service<Void> {
     }
     List<Player> team = teams.get(player.getTeamSize() - 1);
     team.add(player);
-    // Clean up the team.
+
+    /* Clean up the team. */
     Iterator<Player> it = team.iterator();
     while (it.hasNext()) {
       Player ply = it.next();
@@ -68,13 +69,14 @@ public class GameManager implements Observer, Service<Void> {
         it.remove();
       }
     }
+
     if (team.size() == player.getTeamSize()) {
       teams.set(team.size() - 1,new ArrayList<Player>(team.size()));
       futureListLock.lock();
       try {
         future.add(cachedThreadPool.submit(new Game(team,cachedThreadPool)));
       } catch (Exception exception) {
-        // Do not crash.
+        // Do not stop this thread.
         LOGGER.log(SEVERE,exception.toString(),exception);
         for (Player ply : team) {
           ply.close();
@@ -106,7 +108,7 @@ public class GameManager implements Observer, Service<Void> {
               throw new InterruptedException();
             }
           } catch (ExecutionException execException) {
-            // Do not crash.
+            // Do not stop the game manager.
             LOGGER.log(SEVERE,execException.toString(),execException);
           }
           it.remove();
