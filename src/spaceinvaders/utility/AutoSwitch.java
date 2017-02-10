@@ -1,6 +1,6 @@
 package spaceinvaders.utility;
 
-/** Automatically turns on, at a fixed rate. */
+/** Used to delay an action by a fixed number of milliseconds. */
 public class AutoSwitch implements Service<Void> {
   private final ServiceState running = new ServiceState();
   private final ServiceState switchState = new ServiceState();
@@ -11,11 +11,11 @@ public class AutoSwitch implements Service<Void> {
     running.set(true);
   }
 
- /**
-  * Start with a delay, and then turn on the switch at a fixed rate.
-  *
-  * @throws InterruptedException - if interrupted prior to shutdown.
-  */
+  /**
+   * Start with a delay, and then turn on the switch at a fixed rate, after each toggle.
+   *
+   * @throws InterruptedException - if interrupted prior to shutdown.
+   */
   @Override
   public Void call() throws InterruptedException {
     while (running.get()) {
@@ -47,6 +47,7 @@ public class AutoSwitch implements Service<Void> {
     return switchState.get();
   }
 
+  /** Toggle the switch and resume the cycle. */
   public void toggle() {
     boolean value = switchState.get();
     switchState.set(!value);
