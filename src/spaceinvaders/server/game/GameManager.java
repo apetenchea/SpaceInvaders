@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -19,7 +21,12 @@ import spaceinvaders.server.player.Player;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
-/** Manages games. */
+/**
+ * Creates new games.
+ *
+ * <p>When a player is ready to play, he joins a team. If then the team has the desired size, the
+ * game can start. Otherwise, he has to wait until other players join.
+ */
 public class GameManager implements Observer, Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(GameManager.class.getName());
   private static final int MAX_TEAM_SIZE = 3;
@@ -30,6 +37,9 @@ public class GameManager implements Observer, Service<Void> {
   private final ServiceState state = new ServiceState();
   private final ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 
+  /**
+   * Construct a game manager for handling games of max {@value #MAX_TEAM_SIZE} players.
+   */ 
   public GameManager() {
     for (int index = 0; index < MAX_TEAM_SIZE; ++index) {
       teams.add(new ArrayList<Player>(index));
@@ -39,41 +49,48 @@ public class GameManager implements Observer, Service<Void> {
 
   @Override
   public void update(Observable observable, Object obj) {
-    if (obj instanceof Player) {
-      Player player = (Player) obj;
-      int teamSize = player.getTeamSize();
-      if (teamSize < 1 || teamSize > MAX_TEAM_SIZE) {
-        player.close();
-        return;
-      }
-      List<Player> team = teams.get(teamSize - 1);
-      team.add(player);
-      if (team.size() == teamSize) {
-        teams.set(teamSize - 1,new ArrayList<Player>(teamSize));
-        futureListLock.lock();
-        try {
-          future.add(cachedThreadPool.submit(new Game(team,cachedThreadPool)));
-        } catch (Exception exception) {
-          // Do not crash.
-          LOGGER.log(SEVERE,exception.toString(),exception);
-          for (Player it : team) {
-            it.close();
-          }
-        }
-        futureListLock.unlock();
-      }
-    } else {
+    if (!(obj instanceof Player)) {
+      // This should never happen.
       throw new AssertionError();
+    }
+    Player player = (Player) obj;
+    if (player.getTeamSize() < 1 || player.getTeamSize() > MAX_TEAM_SIZE) {
+      player.close();
+      return;
+    }
+    List<Player> team = teams.get(player.getTeamSize() - 1);
+    team.add(player);
+    // Clean up the team.
+    Iterator<Player> it = team.iterator();
+    while (it.hasNext()) {
+      Player ply = it.next();
+      if (!ply.isOnline()) {
+        it.remove();
+      }
+    }
+    if (team.size() == player.getTeamSize()) {
+      teams.set(team.size() - 1,new ArrayList<Player>(team.size()));
+      futureListLock.lock();
+      try {
+        future.add(cachedThreadPool.submit(new Game(team,cachedThreadPool)));
+      } catch (Exception exception) {
+        // Do not crash.
+        LOGGER.log(SEVERE,exception.toString(),exception);
+        for (Player ply : team) {
+          ply.close();
+        }
+      }
+      futureListLock.unlock();
     }
   }
 
   /**
-   * Look after running games.
+   * Continuous checking of currently running games.
    *
-   * @throws InterruptedServiceException - if the service is interrupted prior to shutdown.
+   * @throws InterruptedException - if the service is interrupted prior to shutdown.
    */
   @Override
-  public Void call() throws InterruptedServiceException {
+  public Void call() throws InterruptedException {
     final long checkingRateMilliseconds = 1000;
     Iterator<Future<?>> it;
     while (state.get()) {
@@ -84,9 +101,13 @@ public class GameManager implements Observer, Service<Void> {
         if (game.isDone()) {
           try {
             game.get();
-          } catch (Exception exception) {
+          } catch (InterruptedException | CancellationException intException) {
+            if (state.get()) {
+              throw new InterruptedException();
+            }
+          } catch (ExecutionException execException) {
             // Do not crash.
-            LOGGER.log(SEVERE,exception.toString(),exception);
+            LOGGER.log(SEVERE,execException.toString(),execException);
           }
           it.remove();
         }
@@ -96,8 +117,7 @@ public class GameManager implements Observer, Service<Void> {
         Thread.sleep(checkingRateMilliseconds);
       } catch (InterruptedException exception) {
         if (state.get()) {
-          state.set(false);
-          throw new InterruptedServiceException(exception);
+          throw new InterruptedException();
         }
       }
     }
