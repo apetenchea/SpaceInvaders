@@ -1,6 +1,6 @@
 package spaceinvaders.utility;
 
-/** A switch that automatically turns on, at fixed rate. */
+/** Automatically turns on, at a fixed rate. */
 public class AutoSwitch implements Service<Void> {
   private final ServiceState running = new ServiceState();
   private final ServiceState switchState = new ServiceState();
@@ -9,7 +9,6 @@ public class AutoSwitch implements Service<Void> {
   public AutoSwitch(long rateMs) {
     this.rateMs = rateMs;
     running.set(true);
-    switchState.set(false);
   }
 
  /**
@@ -22,12 +21,19 @@ public class AutoSwitch implements Service<Void> {
     while (running.get()) {
       try {
         Thread.sleep(rateMs);
-      } catch (InterruptedException interruptedException) {
+      } catch (InterruptedException intException) {
         if (running.get()) {
-          throw interruptedException;
+          throw new InterruptedException();
         }
       }
       switchState.set(true);
+      try {
+        wait();
+      } catch (InterruptedException intException) {
+        if (running.get()) {
+          throw new InterruptedException();
+        }
+      }
     }
     return null;
   }
@@ -44,5 +50,6 @@ public class AutoSwitch implements Service<Void> {
   public void toggle() {
     boolean value = switchState.get();
     switchState.set(!value);
+    notify();
   }
 }
