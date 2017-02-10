@@ -35,12 +35,7 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
 
   @Override
   public void update(Observable observable, Object arg) {
-    if (arg instanceof Connection) {
-      if (!connectionQueue.offer((Connection) arg)) {
-        // This should never happen.
-        throw new AssertionError();
-      }
-    } else {
+    if (!(arg instanceof Connection && connectionQueue.offer((Connection) arg))) {
       // This should never happen.
       throw new AssertionError();
     }
