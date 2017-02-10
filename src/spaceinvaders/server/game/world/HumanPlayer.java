@@ -1,17 +1,22 @@
 package spaceinvaders.server.game.world;
 
-import spaceinvaders.game.Entity;
-import spaceinvaders.game.EntityEnum;
+import static spaceinvaders.game.EntityEnum.PLAYER;
+
 import spaceinvaders.game.GameConfig;
-import spaceinvaders.utility.Couple;
 
 /** Human player character. */
-public class HumanPlayer extends LogicEntity {
+class HumanPlayer extends LogicEntity {
   private final GameConfig config = GameConfig.getInstance();
 
-  public HumanPlayer(int posX, int posY) {
-    super(EntityEnum.PLAYER,posX,posY,
+  /**
+   * @param id - player ID.
+   * @param posX - X coordinate.
+   * @param posY - Y coordinate.
+   */
+  public HumanPlayer(int id, int posX, int posY) {
+    super(PLAYER,posX,posY,
           GameConfig.getInstance().player().getWidth(),
           GameConfig.getInstance().player().getHeight());
+    setId(id);
   }
 }

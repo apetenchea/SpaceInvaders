@@ -2,14 +2,25 @@ package spaceinvaders.server.game.world;
 
 import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;
-import spaceinvaders.utility.Couple;
 
 public class LogicEntity {
   private final Entity body;
   private final Integer width;
   private final Integer height;
 
-  public LogicEntity(EntityEnum type, int posX, int posY, int width, int height) {
+  /**
+   * @param type - type of the entity.
+   * @param posX - the X coordinate.
+   * @param posY - the Y coordinate.
+   * @param width - the width of the entity.
+   * @param height - the height of the entity.
+   *
+   * @throws NullPointerException - if an argument is {@code null}.
+   */
+  protected LogicEntity(EntityEnum type, int posX, int posY, int width, int height) {
+    if (type == null) {
+      throw new NullPointerException();
+    }
     this.body = new Entity(type,posX,posY); 
     this.width = width;
     this.height = height;
@@ -17,12 +28,12 @@ public class LogicEntity {
 
   /** Move the entity to a new position. */
   public void move(int newX, int newY) {
-    Couple<Integer,Integer> pos = body.getPos();
-    pos.setFirst(newX);
-    pos.setSecond(newY);
+    body.setPos(newX,newY);
   }
 
   /**
+   * Box collision detection.
+   *
    * @return true if entities collide, false otherwise.
    */
   public boolean collides(LogicEntity entity) {
@@ -32,7 +43,10 @@ public class LogicEntity {
       && entity.getY() < getY() + height;
   }
 
-  public Entity getEntity() {
+  /**
+   * Return an {@link Entity} representation, which is at the lowest level.
+   */
+  public Entity getBase() {
     return body;
   }
 
@@ -48,7 +62,11 @@ public class LogicEntity {
     return body.getY();
   }
 
-  public void setId(int id) {
+  public int getId() {
+    return body.getId();
+  }
+
+  protected void setId(int id) {
     body.setId(id);
   }
 }

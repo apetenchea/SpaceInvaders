@@ -1,16 +1,20 @@
 package spaceinvaders.server.game.world;
 
+import static spaceinvaders.game.EntityEnum.SHIELD;
+
 import spaceinvaders.game.Entity;
-import spaceinvaders.game.EntityEnum;
 import spaceinvaders.game.GameConfig;
-import spaceinvaders.utility.Couple;
 
 /** A shield protecting the player. */
-public class Shield extends LogicEntity {
+class Shield extends LogicEntity {
   private final GameConfig config = GameConfig.getInstance();
 
+  /**
+   * @param posX - X coordinate.
+   * @param posY - Y coordinate.
+   */
   public Shield(int posX, int posY) {
-    super(EntityEnum.SHIELD,posX,posY,
+    super(SHIELD,posX,posY,
           GameConfig.getInstance().shield().getWidth(),
           GameConfig.getInstance().shield().getHeight());
   }

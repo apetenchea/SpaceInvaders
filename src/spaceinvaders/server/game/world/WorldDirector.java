@@ -7,7 +7,7 @@ public class WorldDirector {
   private WorldBuilder builder;
 
   /**
-   * @throws NullPointerException - if {@code builder} is {@code null}.
+   * @throws NullPointerException - if argument is {@code null}.
    */
   public WorldDirector(WorldBuilder builder) {
     if (builder == null) {
@@ -20,9 +20,12 @@ public class WorldDirector {
     return builder.getWorld();
   }
 
-  public void makeWorld(int teamSize) {
+  /**
+   * Assemble the {@link World}.
+   */
+  public void makeWorld(List<Integer> idList) {
     builder.buildInvaders();
-    builder.buildPlayers(teamSize);
+    builder.buildPlayers(idList);
     builder.buildShields();
     builder.buildBullets();
   }

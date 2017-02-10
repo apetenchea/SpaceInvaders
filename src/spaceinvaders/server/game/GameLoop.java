@@ -15,7 +15,6 @@ import java.util.concurrent.Future;
 import spaceinvaders.game.GameConfig;
 import spaceinvaders.command.Command;
 import spaceinvaders.game.EntityEnum;
-import spaceinvaders.game.GameConfig;
 import spaceinvaders.server.game.world.LogicEntity;
 import spaceinvaders.server.game.world.World;
 import spaceinvaders.server.player.Player;

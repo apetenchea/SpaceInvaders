@@ -1,16 +1,20 @@
 package spaceinvaders.server.game.world;
 
-import spaceinvaders.game.GameConfig;
+import static spaceinvaders.game.EntityEnum.INVADER;
+
 import spaceinvaders.game.Entity;
-import spaceinvaders.game.EntityEnum;
-import spaceinvaders.utility.Couple;
+import spaceinvaders.game.GameConfig;
 
 /** Invader character. */
-public class Invader extends LogicEntity {
+class Invader extends LogicEntity {
   private final GameConfig config = GameConfig.getInstance();
 
+  /**
+   * @param posX - X coordinate.
+   * @param posY - Y coordinate.
+   */
   public Invader(int posX, int posY) {
-    super(EntityEnum.INVADER,posX,posY,
+    super(INVADER,posX,posY,
           GameConfig.getInstance().invader().getWidth(),
           GameConfig.getInstance().invader().getHeight());
   }

@@ -6,7 +6,7 @@ import java.util.List;
 interface WorldBuilder {
   public void buildInvaders();
 
-  public void buildPlayers(int teamSize);
+  public void buildPlayers(List<Integer> idList);
 
   public void buildShields();
 

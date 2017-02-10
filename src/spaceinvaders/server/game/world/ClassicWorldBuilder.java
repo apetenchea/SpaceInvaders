@@ -1,5 +1,11 @@
 package spaceinvaders.server.game.world;
 
+import static spaceinvaders.game.EntityEnum.INVADER;
+import static spaceinvaders.game.EntityEnum.INVADER_BULLET;
+import static spaceinvaders.game.EntityEnum.PLAYER;
+import static spaceinvaders.game.EntityEnum.PLAYER_BULLET;
+import static spaceinvaders.game.EntityEnum.SHIELD;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -8,7 +14,7 @@ import spaceinvaders.game.EntityEnum;
 import spaceinvaders.game.GameConfig;
 
 /**
- * Assembles parts of the {@link World}.
+ * Builds parts of the {@link World}.
  */
 public class ClassicWorldBuilder implements WorldBuilder {
   private final GameConfig config = GameConfig.getInstance();
@@ -27,6 +33,7 @@ public class ClassicWorldBuilder implements WorldBuilder {
     final int heightOffset = invaderH;
 
     if (witdthOffset <= 0 || heightOffset <= 0) {
+      // This should never happen.
       throw new AssertionError();
     }
 
@@ -41,12 +48,18 @@ public class ClassicWorldBuilder implements WorldBuilder {
       offsetX = witdthOffset;
       offsetY += jumpY;
     }
-    world.setEntities(EntityEnum.INVADER,invaders);
+    world.setEntities(INVADER,invaders);
   }
 
   @Override
-  public void buildPlayers(int teamSize) {
+  public void buildPlayers(List<Integer> idList) {
+    if (idList == null) {
+      throw new NullPointerException();
+    }
+
+    int teamSize = idList.size();
     if (teamSize <= 0) {
+      // This should never happen.
       throw new AssertionError();
     }
 
@@ -65,23 +78,22 @@ public class ClassicWorldBuilder implements WorldBuilder {
     int offsetX = witdthOffset;
     List<LogicEntity> players = new ArrayList<>(teamSize);
     for (int player = 0; player < teamSize; ++player) {
-      players.add(new HumanPlayer(offsetX,heightOffset));
+      players.add(new HumanPlayer(idList.get(player),offsetX,heightOffset));
       offsetX += witdthOffset;
     }
-    world.setEntities(EntityEnum.PLAYER,players);
+    world.setEntities(PLAYER,players);
   }
 
   /**
-   * <b>Warning:</b>
+   * {@b Warning:}
    * Must be called after the players have been built.
-   *
-   * @throws NullPointerException - if the players have not been buit.
    */
   @Override
   public void buildShields() {
     Iterator<LogicEntity> it = world.getIterator(EntityEnum.PLAYER);
     if (it == null) {
-      throw new NullPointerException();
+      // This should never happen.
+      throw new AssertionError();
     }
 
     final int frameH = config.frame().getHeight();

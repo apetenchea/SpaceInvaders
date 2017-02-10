@@ -4,7 +4,6 @@ import static spaceinvaders.game.EntityEnum.INVADER;
 import static spaceinvaders.game.EntityEnum.PLAYER;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
@@ -16,10 +15,7 @@ import spaceinvaders.command.client.GameOverCommand;
 import spaceinvaders.command.client.QuitGameCommand;
 import spaceinvaders.command.client.SetPlayerNamesCommand;
 import spaceinvaders.command.client.StartGameCommand;
-import spaceinvaders.game.EntityEnum;
-import spaceinvaders.game.GameConfig;
 import spaceinvaders.server.game.world.ClassicWorldBuilder;
-import spaceinvaders.server.game.world.LogicEntity;
 import spaceinvaders.server.game.world.World;
 import spaceinvaders.server.game.world.WorldDirector;
 import spaceinvaders.server.player.Player;
@@ -59,17 +55,12 @@ class Game implements Service<Void> {
 
     /* Build world. */
     WorldDirector director = new WorldDirector(new ClassicWorldBuilder());
-    director.makeWorld(team.size());
-    world = director.getWorld();
-
-    /* Match players with game entities. */
-    Iterator<LogicEntity> entityIt = world.getIterator(EntityEnum.PLAYER);
-    Iterator<Player> playerIt = team.iterator();
-    while (entityIt.hasNext() && playerIt.hasNext()) {
-      LogicEntity entity = entityIt.next();
-      Player player = playerIt.next();
-      entity.getEntity().setId(player.getId());
+    List<Integer> idList = new ArrayList<>(team.size());
+    for (int index = 0; index < idList.size(); ++index) {
+      idList.set(index,team.get(index).getId());
     }
+    director.makeWorld(idList);
+    world = director.getWorld();
 
     if (PREDICTABLE_GAME) {
       rng = new Random(1103515245);

@@ -6,6 +6,7 @@ import spaceinvaders.utility.Couple;
 public class Entity implements Cloneable {
   private EntityEnum type;
   private Integer id;
+  // Upper-left corner coordinates.
   private Couple<Integer,Integer> pos;
 
   /**
@@ -13,8 +14,13 @@ public class Entity implements Cloneable {
    * @param id - the id of the entity.
    * @param posX - x coordinate.
    * @param posY - y coordinate.
+   *
+   * @throws NullPointerException - if an argument is {@code null}.
    */
   public Entity(EntityEnum type, int id, int posX, int posY) {
+    if (type == null) {
+      throw new NullPointerException();
+    }
     this.type = type;
     this.id = id;
     this.pos = new Couple<>(posX,posY);
@@ -24,8 +30,13 @@ public class Entity implements Cloneable {
    * @param type - the type of the entity.
    * @param posX - x coordinate.
    * @param posY - y coordinate.
+   *
+   * @throws NullPointerException - if an argument is {@code null}.
    */
   public Entity(EntityEnum type, int posX, int posY) {
+    if (type == null) {
+      throw new NullPointerException();
+    }
     this.type = type;
     id = hashCode();
     this.pos = new Couple<>(posX,posY);
@@ -54,5 +65,10 @@ public class Entity implements Cloneable {
 
   public int getY() {
     return pos.getSecond();
+  }
+
+  public void setPos(int posX, int posY) {
+    pos.setFirst(posX);
+    pos.setSecond(posY);
   }
 }
