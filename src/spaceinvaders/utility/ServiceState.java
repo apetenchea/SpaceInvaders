@@ -9,25 +9,19 @@ public class ServiceState {
   private AtomicBoolean state;
   private ReadWriteLock stateLock;
 
-  /**
-   * Construct a state variable initially set to false.
-   */
+  /** Construct a state variable initially set to false. */
   public ServiceState() {
     state = new AtomicBoolean();
     stateLock = new ReentrantReadWriteLock();
   }
 
-  /**
-   * Construct a state variable having the provided initial state.
-   */
+  /** Construct a state variable having the provided initial state. */
   public ServiceState(boolean initialState) {
     state = new AtomicBoolean(initialState);
     stateLock = new ReentrantReadWriteLock();
   }
 
-  /**
-   * Get the value of the state variable.
-   */
+  /** Get the value of the state variable. */
   public boolean get() {
     boolean result;
     stateLock.readLock().lock();
@@ -36,9 +30,7 @@ public class ServiceState {
     return result;
   }
 
-  /**
-   * Set value of the state variable.
-   */
+  /** Set value of the state variable. */
   public void set(boolean flag) {
     stateLock.writeLock().lock();
     state.set(flag);
