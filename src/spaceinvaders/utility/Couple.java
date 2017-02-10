@@ -1,8 +1,6 @@
 package spaceinvaders.utility;
 
-/**
- * 2-tuple.
- */
+/** * 2-tuple. */
 public class Couple<T1,T2> {
   private T1 first;
   private T2 second;
