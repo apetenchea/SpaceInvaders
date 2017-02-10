@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TransferQueue;
 import spaceinvaders.command.Command;
+import spaceinvaders.server.game.GameManager;
 import spaceinvaders.command.client.SetPlayerIdCommand;
 import spaceinvaders.server.network.Connection;
 import spaceinvaders.utility.Service;
@@ -75,7 +76,7 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
         setChanged();
         notifyObservers(player);
       } else {
-        // Player did not respect the protocol or it went offline.
+        // Player did not respect the protocol or he went offline.
         player.close();
       }
     }
@@ -86,5 +87,15 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
   public void shutdown() {
     state.set(false);
     threadPool.shutdownNow();
+  }
+
+  /**
+   * @throws NullPointerException - if the argument is {@code null}.
+   */
+  public void addGameManager(GameManager gameManager) {
+    if (gameManager == null) {
+      throw new NullPointerException();
+    }
+    addObserver(gameManager);
   }
 }
