@@ -1,7 +1,7 @@
 package spaceinvaders.utility;
 
 /**
- * Chain of Responsability.
+ * Chain of Responsibility.
  *
  * <p>A pattern for organizing the execution of processing flows.
  */
