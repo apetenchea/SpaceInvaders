@@ -28,7 +28,7 @@ import spaceinvaders.utility.AutoSwitch;
 import spaceinvaders.utility.Service;
 
 /** Handles user input and advances the game simulation. */
-class GameLoop implements Service<Void> {
+public class GameLoop implements Service<Void> {
   private static final int GUARD_PIXELS = 32;
 
   public final GameConfig config = GameConfig.getInstance();

@@ -19,6 +19,13 @@ public interface Model extends Service<Void> {
   /** Exit the game.*/
   public void exitGame();
 
+  /**
+   * @return true if the game is on, false otherwise.
+   */
   public boolean getGameState();
+
+  /**
+   * Set the game state to {@code state}.
+   */
   public void setGameState(boolean state);
 }

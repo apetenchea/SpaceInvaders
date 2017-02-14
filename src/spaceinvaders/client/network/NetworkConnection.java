@@ -1,8 +1,6 @@
 package spaceinvaders.client.network;
 
 import static java.util.logging.Level.SEVERE;
-import static spaceinvaders.exceptions.AssertionsEnum.NULL_ARGUMENT;
-import static spaceinvaders.exceptions.AssertionsEnum.UNBOUND_SOCKET;
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -12,8 +10,6 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TransferQueue;
-import java.util.concurrent.LinkedTransferQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -22,22 +18,20 @@ import java.util.concurrent.Future;
 import java.util.logging.Logger;
 import spaceinvaders.client.ClientConfig;
 import spaceinvaders.command.Command;
-import spaceinvaders.exceptions.InterruptedServiceException;
 import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
-import spaceinvaders.utility.Sender;
+import spaceinvaders.utility.Chain;
 
 /** Network connection with the server. */
 public class NetworkConnection implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(NetworkConnection.class.getName());
 
-  private final TransferQueue<String> incomingQueue;
   private final Socket tcpSocket;
   private final DatagramSocket incomingUdpSocket;
   private final DatagramSocket outgoingUdpSocket;
-  private final Sender sender;
+  private final Chain<Command> sender;
   private final Service<Void> tcpReceiver;
   private final Service<Void> udpReceiver;
   private final ExecutorService tcpReceiverExecutor;
@@ -51,7 +45,7 @@ public class NetworkConnection implements Service<Void> {
    *
    * @throws SocketOpeningException - if a socket could not be opened.
    * @throws IllegalPortNumberException - if the port parameter is not a valid port value.
-   * @throws NullPointerException - if the argument is <code>null</code>.
+   * @throws NullPointerException - if the argument is {@code null}.
    * @throws SecurityException - if a security manager doesn't allow an operation.
    */
   public NetworkConnection(TransferQueue<String> incomingQueue) throws SocketOpeningException {
@@ -59,7 +53,6 @@ public class NetworkConnection implements Service<Void> {
     if (incomingQueue == null) {
       throw new NullPointerException();
     }
-    this.incomingQueue = incomingQueue;
     try {
       tcpSocket = new Socket(config.getServerAddr(),config.getServerPort());
     } catch (IOException ioException) {
@@ -70,7 +63,8 @@ public class NetworkConnection implements Service<Void> {
     // Bind outgoing UDP socket to the same local address as the TCP socket.
     SocketAddress bindAddr = tcpSocket.getLocalSocketAddress();
     if (bindAddr == null) {
-      throw new AssertionError(UNBOUND_SOCKET.toString());
+      // This should never happen.
+      throw new AssertionError();
     }
     try {
       outgoingUdpSocket = new DatagramSocket(bindAddr);
@@ -80,8 +74,8 @@ public class NetworkConnection implements Service<Void> {
       throw new SocketOpeningException(socketException);
     }
     config.setUdpIncomingPort(incomingUdpSocket.getLocalPort());
-    Sender tcpSender = null;
-    Sender udpSender = null;
+    Chain<Command> tcpSender = null;
+    Chain<Command> udpSender = null;
     try {
       tcpSender = new TcpSender(tcpSocket);
       tcpReceiver = new TcpReceiver(tcpSocket,incomingQueue);
@@ -90,7 +84,7 @@ public class NetworkConnection implements Service<Void> {
     } catch (IOException exception) {
       throw new SocketOpeningException(exception);
     }
-    udpSender.setNextChain(tcpSender);
+    udpSender.setNext(tcpSender);
     sender = udpSender;
     tcpReceiverExecutor = Executors.newSingleThreadExecutor();
     udpReceiverExecutor = Executors.newSingleThreadExecutor();
@@ -101,18 +95,14 @@ public class NetworkConnection implements Service<Void> {
    * Start network I/O.
    *
    * @throws ExecutionException - if an exception occurs during execution.
-   * @throws InterruptedServiceException - if the service is interrupted prior to shutdown.
+   * @throws InterruptedException - if the service is interrupted prior to shutdown.
    * @throws RejectedExecutionException - if the task cannot be executed.
    */
   @Override
-  public Void call() throws ExecutionException, InterruptedServiceException {
+  public Void call() throws ExecutionException, InterruptedException {
     List<Future<?>> future = new ArrayList<>();
-    try {
-      future.add(tcpReceiverExecutor.submit(tcpReceiver));
-      future.add(udpReceiverExecutor.submit(udpReceiver));
-    } catch (NullPointerException nullPtrException) {
-      throw new AssertionError(NULL_ARGUMENT.toString(),nullPtrException);
-    }
+    future.add(tcpReceiverExecutor.submit(tcpReceiver));
+    future.add(udpReceiverExecutor.submit(udpReceiver));
     final long checkingRateMilliseconds = 1000;
     while (state.get()) {
       try {
@@ -120,25 +110,20 @@ public class NetworkConnection implements Service<Void> {
           if (it.isDone()) {
             state.set(false);
             it.get();
+            break;
           }
         }
         Thread.sleep(checkingRateMilliseconds);
       } catch (CancellationException | InterruptedException exception) {
         if (state.get()) {
           state.set(false);
-          throw new InterruptedServiceException(exception);
+          throw new InterruptedException();
         }
       }
     }
     return null;
   }
 
-  /**
-   * Stop service execution.
-   *
-   * @throws SecurityException - from {@link ExecutorService#shutdown()}.
-   * @throws RuntimePermission - from {@link ExecutorService#shutdown()}.
-   */
   @Override
   public void shutdown() {
     state.set(false);
@@ -161,6 +146,6 @@ public class NetworkConnection implements Service<Void> {
    * @throws NullPointerException - if {@code command} is {@code null}.
    */
   public void send(Command command) {
-    sender.send(command);
+    sender.handle(command);
   }
 }

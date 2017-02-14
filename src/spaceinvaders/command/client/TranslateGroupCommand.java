@@ -27,7 +27,7 @@ public class TranslateGroupCommand extends Command {
 
   @Override
   public void execute() {
-    for (View voew : executor.getViews()) {
+    for (View view : executor.getViews()) {
       view.translateGroup(type,offsetX,offsetY);
     }
   }

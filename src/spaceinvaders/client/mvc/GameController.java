@@ -17,19 +17,16 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import spaceinvaders.client.ClientConfig;
 import spaceinvaders.command.Command;
-import spaceinvaders.command.CommandDirector;
-import spaceinvaders.exceptions.IllegalPortNumberException;
-import spaceinvaders.exceptions.InvalidServerAddressException;
-import spaceinvaders.exceptions.InvalidUserNameException;
-import spaceinvaders.game.Entity;
-import spaceinvaders.utility.Couple;
 import spaceinvaders.command.server.MovePlayerLeftCommand;
 import spaceinvaders.command.server.MovePlayerRightCommand;
 import spaceinvaders.command.server.PlayerShootCommand;
+import spaceinvaders.exceptions.IllegalPortNumberException;
+import spaceinvaders.exceptions.InvalidServerAddressException;
+import spaceinvaders.exceptions.InvalidUserNameException;
+import spaceinvaders.utility.Chain;
 
 /**
  * Handles communication between one or more views and a model.
@@ -57,11 +54,11 @@ public class GameController implements Controller {
     if (!views.contains(view)) {
       view.addStartGameListener(new StartGameListener());
       view.addQuitAppListener(new QuitAppListener());
-      view.addKeyListener(
+      view.addKeyListener(new KeyPressListener(
           new MoveLeftListener(
-            new MoveRightListener(
-              new ShootListener(
-                new QuitGameListener(null)))));
+          new MoveRightListener(
+          new ShootListener(
+          new QuitGameListener(null))))));
       views.add(view);
     }
   }
@@ -82,12 +79,9 @@ public class GameController implements Controller {
       Command command = (Command) arg;
       command.setExecutor(this);
       command.execute();
-    }
-    if (arg == null) {
-      model.exitGame();
-      for (View view : views) {
-        view.showMenu();
-      }
+    } else {
+      // This should never happen.
+      throw new AssertionError();
     }
   }
 
@@ -100,8 +94,10 @@ public class GameController implements Controller {
 
   private class StartGameListener implements ActionListener {
     public void actionPerformed(ActionEvent event) {
-      assert views.size() > 0;
-      LOGGER.info("Play");
+      if (views.size() == 0) {
+        // This should never happen.
+        throw new AssertionError();
+      }
 
       views.get(0).setConfig();
       ClientConfig config = ClientConfig.getInstance();;
@@ -154,87 +150,132 @@ public class GameController implements Controller {
     }
   }
 
-  private abstract class ChainListener extends KeyAdapter {
-    private ChainListener nextChain;
+  private class KeyPressListener extends KeyAdapter implements Chain<KeyEvent> {
+    private Chain<KeyEvent> nextChain;
 
-    public ChainListener(ChainListener nextChain) {
+    public KeyPressListener(Chain<KeyEvent> nextChain) {
       this.nextChain = nextChain;
     }
-
-    public void pass(KeyEvent event) {
-      if (nextChain == null) {
-        throw new AssertionError();
-      }
-      nextChain.keyPressed(event);
-    }
-  }
-
-  private class MoveLeftListener extends ChainListener {
-    public MoveLeftListener(ChainListener nextChain) {
-      super(nextChain);
+    
+    @Override
+    public void keyPressed(KeyEvent event) {
+      handle(event);
     }
 
     @Override
-    public void keyPressed(KeyEvent event) {
+    public void handle(KeyEvent event) {
+      // Slide.
+      nextChain.handle(event);
+    }
+
+    @Override
+    public void setNext(Chain<KeyEvent> nextChain) {
+      this.nextChain = nextChain;
+    }
+  }
+
+  private class MoveLeftListener implements Chain<KeyEvent> {
+    private Chain<KeyEvent> nextChain;
+
+    public MoveLeftListener(Chain<KeyEvent> nextChain) {
+      this.nextChain = nextChain;
+    }
+
+    @Override
+    public void handle(KeyEvent event) {
       if (event.getKeyCode() == VK_LEFT) {
         if (model.getGameState()) {
           model.doCommand(new MovePlayerLeftCommand(ClientConfig.getInstance().getId()));
         }
       } else {
-        pass(event);
+        if (nextChain != null) {
+          nextChain.handle(event);
+        }
       }
-    }
-  }
-
-  private class MoveRightListener extends ChainListener {
-    public MoveRightListener(ChainListener nextChain) {
-      super(nextChain);
     }
 
     @Override
-    public void keyPressed(KeyEvent event) {
+    public void setNext(Chain<KeyEvent> nextChain) {
+      this.nextChain = nextChain;
+    }
+  }
+
+  private class MoveRightListener implements Chain<KeyEvent> {
+    private Chain<KeyEvent> nextChain;
+
+    public MoveRightListener(Chain<KeyEvent> nextChain) {
+      this.nextChain = nextChain;
+    }
+
+    @Override
+    public void handle(KeyEvent event) {
       if (event.getKeyCode() == VK_RIGHT) {
         if (model.getGameState()) {
           model.doCommand(new MovePlayerRightCommand(ClientConfig.getInstance().getId()));
         }
       } else {
-        pass(event);
+        if (nextChain != null) {
+          nextChain.handle(event);
+        }
       }
-    }
-  }
-
-  private class ShootListener extends ChainListener {
-    public ShootListener(ChainListener nextChain) {
-      super(nextChain);
     }
 
     @Override
-    public void keyPressed(KeyEvent event) {
+    public void setNext(Chain<KeyEvent> nextChain) {
+      this.nextChain = nextChain;
+    }
+  }
+
+  private class ShootListener implements Chain<KeyEvent> {
+    private Chain<KeyEvent> nextChain;
+
+    public ShootListener(Chain<KeyEvent> nextChain) {
+      this.nextChain = nextChain;
+    }
+
+    @Override
+    public void handle(KeyEvent event) {
       if (event.getKeyCode() == VK_SPACE) {
         if (model.getGameState()) {
           model.doCommand(new PlayerShootCommand(ClientConfig.getInstance().getId()));
         }
       } else {
-        pass(event);
+        if (nextChain != null) {
+          nextChain.handle(event);
+        }
       }
-    }
-  }
-
-  private class QuitGameListener extends ChainListener {
-    public QuitGameListener(ChainListener nextChain) {
-      super(nextChain);
     }
 
     @Override
-    public void keyPressed(KeyEvent event) {
+    public void setNext(Chain<KeyEvent> nextChain) {
+      this.nextChain = nextChain;
+    }
+  }
+
+  private class QuitGameListener implements Chain<KeyEvent> {
+    private Chain<KeyEvent> nextChain;
+
+    public QuitGameListener(Chain<KeyEvent> nextChain) {
+      this.nextChain = nextChain;
+    }
+
+    @Override
+    public void handle(KeyEvent event) {
       if (event.getKeyCode() == VK_ESCAPE) {
         model.exitGame();
         for (View view : views) {
           view.showMenu();
         }
       } else {
-        pass(event);
+        if (nextChain != null) {
+          nextChain.handle(event);
+        }
       }
+    }
+
+    @Override
+    public void setNext(Chain<KeyEvent> nextChain) {
+      this.nextChain = nextChain;
     }
   }
 }

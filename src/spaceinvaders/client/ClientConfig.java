@@ -16,9 +16,7 @@ public class ClientConfig {
   private String userName = "default";
   private Integer udpIncomingPort;
 
-  /**
-   * Get a ClientConfig instance.
-   */
+  /** Get a ClientConfig instance. */
   public static synchronized ClientConfig getInstance() {
     if (singleton == null) {
       singleton = new ClientConfig();
@@ -26,9 +24,7 @@ public class ClientConfig {
     return singleton;
   }
 
-  /**
-   * Check if the server address is valid.
-   */
+  /** Check if the server address is valid. */
   public boolean isAddrValid() {
     final Pattern validIpAddressRegex = Pattern.compile(
         "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}"
@@ -55,9 +51,7 @@ public class ClientConfig {
     return userName.length() <= 10 && validUserName.matcher(userName).matches();
   }
 
-  /**
-   * Verify the data integrity.
-   */
+  /** Check the data integrity. */
   public void verify() throws InvalidServerAddressException, IllegalPortNumberException,
          InvalidUserNameException {
     if (!isPortValid()) {

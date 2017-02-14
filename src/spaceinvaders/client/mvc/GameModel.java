@@ -1,15 +1,12 @@
 package spaceinvaders.client.mvc;
 
 import static java.util.logging.Level.SEVERE;
-import static spaceinvaders.exceptions.AssertionsEnum.NULL_ARGUMENT;
-import static spaceinvaders.exceptions.AssertionsEnum.BOUNDED_TRANSFER_QUEUE;
 
 import com.google.gson.JsonSyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -23,7 +20,6 @@ import spaceinvaders.command.Command;
 import spaceinvaders.command.CommandDirector;
 import spaceinvaders.command.CommandBuilder;
 import spaceinvaders.command.client.ClientCommandBuilder;
-import spaceinvaders.exceptions.InterruptedServiceException;
 import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.exceptions.CommandNotFoundException;
 import spaceinvaders.utility.ServiceState;
@@ -32,7 +28,7 @@ import spaceinvaders.utility.Service;
 /**
  * Provides the game data.
  *
- * <p>It acts like a gateway to the game's logic and physics, which all happen on the server side.
+ * <p>Gateway to the server.
  */
 public class GameModel implements Model {
   private static final Logger LOGGER = Logger.getLogger(GameModel.class.getName());
@@ -40,17 +36,14 @@ public class GameModel implements Model {
   private final ClientConfig config = ClientConfig.getInstance();
   private final TransferQueue<String> incomingQueue = new LinkedTransferQueue<>();
   private final CommandDispatcher dispatcher = new CommandDispatcher();
-  private final ExecutorService connectionExecutor;
-  private final ExecutorService dispatcherExecutor;
+  private final ExecutorService connectionExecutor = Executors.newSingleThreadExecutor();
+  private final ExecutorService dispatcherExecutor = Executors.newSingleThreadExecutor();
+  private final List<Future<?>> future = new ArrayList<>();
   private final ServiceState connectionState = new ServiceState();
   private final ServiceState gameState = new ServiceState();
-  private final List<Future<?>> future = new ArrayList<>();
   private NetworkConnection connection;
 
-  /** Constructs a new game model, initially without any controller. */
   public GameModel() {
-    connectionExecutor = Executors.newSingleThreadExecutor();
-    dispatcherExecutor = Executors.newSingleThreadExecutor();
     future.add(dispatcherExecutor.submit(dispatcher));
   }
 
@@ -59,24 +52,17 @@ public class GameModel implements Model {
    *
    * @throws SocketOpeningException - if the connection could not be established.
    * @throws ExecutionException - if an exception occurs during execution.
-   * @throws InterruptedServiceException - if the service is interrupted prior to shutdown.
+   * @throws InterruptedException - if the service is interrupted prior to shutdown.
    * @throws IllegalPortNumberException - if the port parameter is not a valid port value.
    * @throws RejectedExecutionException - if a task cannot be scheduled for execution.
    */
   @Override
   public Void call() throws SocketOpeningException, ExecutionException,
-         InterruptedServiceException {
+         InterruptedException {
     incomingQueue.clear();
-    try {
-      connection = new NetworkConnection(incomingQueue);
-    } catch (NullPointerException nullPtrException) {
-      throw new AssertionError(NULL_ARGUMENT.toString(),nullPtrException);
-    }
-    try {
-      future.add(connectionExecutor.submit(connection));
-    } catch (NullPointerException nullPtrException) {
-      throw new AssertionError(NULL_ARGUMENT.toString(),nullPtrException);
-    }
+    // This will open up a network connection, and might throw exceptions.
+    connection = new NetworkConnection(incomingQueue);
+    future.add(connectionExecutor.submit(connection));
     final long checkingRateMilliseconds = 1000;
     connectionState.set(true);
     while (connectionState.get()) {
@@ -92,7 +78,7 @@ public class GameModel implements Model {
       } catch (CancellationException | InterruptedException exception) {
         if (connectionState.get()) {
           gameState.set(false);
-          throw new InterruptedServiceException(exception);
+          throw new InterruptedException();
         }
       }
     }
@@ -100,11 +86,11 @@ public class GameModel implements Model {
   }
 
   /**
-   * Couple <code>contoller</code> with this model.
+   * Couple {@code contoller} with this model.
    *
    * <p>The controller will receive updates.
    *
-   * @throws NullPointerException - if the controller is <code>null</code>.
+   * @throws NullPointerException - if an argument is {@code null}.
    */
   @Override
   public void addController(Controller controller) {
@@ -149,12 +135,6 @@ public class GameModel implements Model {
     gameState.set(state);
   }
 
-  /**
-   * Stop service execution.
-   *
-   * @throws SecurityException - from {@link ExecutorService#shutdown()}.
-   * @throws RuntimePermission - from {@link ExecutorService#shutdown()}.
-   */
   @Override
   public void shutdown() {
     exitGame();
@@ -163,23 +143,17 @@ public class GameModel implements Model {
     dispatcherExecutor.shutdownNow();
   }
 
-  /**
-   * Takes data out of the incoming queue and forwards it to the controller.
-   *
-   * <p>Data is converted into {@link Command}. If <code>null</code> is found in the queue,
-   * it is associated with EOF. The controller gets notified with <code>null</code> as well,
-   * and any data left in the queue is discarded.
-   */
+  /** Takes data out of the incoming queue and forwards it to the controller. */
   private class CommandDispatcher extends Observable implements Service<Void> {
     private final ServiceState state = new ServiceState();
 
     /** 
      * Start converting and forwarding data.
      *
-     * @throws InterruptedServiceException - if the service is interrupted prior to shutdown.
+     * @throws InterruptedException - if the service is interrupted prior to shutdown.
      */
     @Override
-    public Void call() throws InterruptedServiceException {
+    public Void call() throws InterruptedException {
       CommandDirector director = new CommandDirector(new ClientCommandBuilder());
       state.set(true);
       while (state.get()) {
@@ -189,18 +163,16 @@ public class GameModel implements Model {
         } catch (InterruptedException interruptedException) {
           if (state.get()) {
             state.set(false);
-            throw new InterruptedServiceException(interruptedException);
+            throw new InterruptedException();
           }
         }
-        LOGGER.info(data);
         try {
           director.makeCommand(data);
           setChanged();
+          // Notify the controller.
           notifyObservers(director.getCommand());
-        } catch (JsonSyntaxException jsonException) {
-          LOGGER.log(SEVERE,jsonException.toString(),jsonException);
-        } catch (CommandNotFoundException commandException) {
-          LOGGER.log(SEVERE,commandException.toString(),commandException);
+        } catch (JsonSyntaxException | CommandNotFoundException exception) {
+          LOGGER.log(SEVERE,exception.toString(),exception);
         }
       }
       return null;

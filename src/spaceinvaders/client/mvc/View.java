@@ -6,6 +6,7 @@ import java.util.List;
 import spaceinvaders.client.ClientConfig;
 import spaceinvaders.utility.Couple;
 import spaceinvaders.game.Entity;
+import spaceinvaders.game.EntityEnum;
 
 /**
  * View component of the application.
@@ -51,6 +52,16 @@ public interface View {
   public void gameOver();
 
   public void setFrameContent(List<Entity> content);
+
+  public void moveEntity(int entityId, int newX, int newY);
+
+  public void spawnEntity(int id, EntityEnum type, int posX, int posY);
+
+  public void youWon();
+
+  public void wipeOutEntity(int id);
+
+  public void translateGroup(EntityEnum type,  int offsetX, int offsetY);
 
   public void setConfig();
  

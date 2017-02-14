@@ -18,12 +18,12 @@ public interface Controller extends Observer {
   public void registerView(View view);
 
   /**
-   * Return the only model registered with this controller.
+   * @return the model registered with this controller.
    */
   public Model getModel(); 
 
   /**
-   * Return a list of all views registered with this controller.
+   * @return a list of all views registered with this controller.
    */
   public List<View> getViews();
 }

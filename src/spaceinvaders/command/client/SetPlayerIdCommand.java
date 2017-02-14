@@ -7,7 +7,6 @@ import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.Model;
 import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
-import spaceinvaders.command.ProtocolEnum;
 import spaceinvaders.command.server.ConfigurePlayerCommand;
 
 /** Set the ID of the player. */

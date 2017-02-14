@@ -8,18 +8,19 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.logging.Logger;
 import spaceinvaders.command.Command;
-import spaceinvaders.utility.Sender;
+import spaceinvaders.utility.Chain;
 
 /** Send commands over UDP. */
-class UdpSender implements Sender {
+class UdpSender implements Chain<Command> {
   private static final Logger LOGGER = Logger.getLogger(UdpSender.class.getName());
+
   private final DatagramSocket socket;
-  private Sender nextChain;
+  private Chain<Command> nextChain;
 
   /**
-   * Construct a sender that will use the socket <code>socket</code>.
+   * Construct a sender that will communicate through {@code socket}.
    *
-   * @throws NullPointerException - if the specified socket is <code>null</code>.
+   * @throws NullPointerException - if the specified socket is {@code null}.
    */
   public UdpSender(DatagramSocket socket) throws IOException {
     if (socket == null) {
@@ -29,39 +30,33 @@ class UdpSender implements Sender {
   }
 
   /**
-   * @throws NullPointerException - if <code>command</code> is <code>null</code>.
+   * @throws NullPointerException - if {@code command} is {@code null}.
    */
   @Override
-  public void send(Command command) {
+  public void handle(Command command) {
     if (command == null) {
       throw new NullPointerException();
     }
     if (command.getProtocol().equals(UDP)) {
       String data = command.toJson();
-      LOGGER.info("Sending " + data);
       DatagramPacket packet = new DatagramPacket(data.getBytes(),data.length());
       try {
         socket.send(packet);
       } catch (Exception exception) {
-        // Do not stop the game.
+        // Do not stop the game in case one packet fails.
         LOGGER.log(SEVERE,exception.toString(),exception);
       }
     } else {
       if (nextChain == null) {
+        // This should never happen.
         throw new AssertionError();
       }
-      nextChain.send(command);
+      nextChain.handle(command);
     }
   }
 
-  /**
-   * @throws NullPointerException - if <code>nextChain</code> is <code>null</code>.
-   */
   @Override
-  public void setNextChain(Sender nextChain) {
-    if (nextChain == null) {
-      throw new NullPointerException();
-    }
+  public void setNext(Chain<Command> nextChain) {
     this.nextChain = nextChain;
   }
 }

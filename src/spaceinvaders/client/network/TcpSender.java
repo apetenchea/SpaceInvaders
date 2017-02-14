@@ -6,34 +6,32 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import spaceinvaders.command.Command;
-import spaceinvaders.utility.Sender;
+import spaceinvaders.utility.Chain;
 
 /** Send commands over TCP. */
-class TcpSender implements Sender {
-  private final Socket socket;
+class TcpSender implements Chain<Command> {
   private final PrintWriter writer;
-  private Sender nextChain;
+  private Chain<Command> nextChain;
 
   /**
-   * Construct a sender that will use the socket <code>socket</code>.
+   * Construct a sender that will use the socket {@code socket}.
    *
    * @throws IOException - if the output stream cannot be created or if the socket is
    *     not connected.
-   * @throws NullPointerException - if the specified socket is <code>null</code>.
+   * @throws NullPointerException - if the specified socket is {@code null}.
    */
   public TcpSender(Socket socket) throws IOException {
     if (socket == null) {
       throw new NullPointerException();
     }
-    this.socket = socket;
     writer = new PrintWriter(socket.getOutputStream(),true);
   }
 
   /**
-   * @throws NullPointerException - if <code>command</code> is <code>null</code>.
+   * @throws NullPointerException - if an argument is {@code null}.
    */
   @Override
-  public void send(Command command) {
+  public void handle(Command command) {
     if (command == null) {
       throw new NullPointerException();
     }
@@ -41,20 +39,15 @@ class TcpSender implements Sender {
       writer.println(command.toJson()); 
     } else {
       if (nextChain == null) {
+        // This should never happen.
         throw new AssertionError();
       }
-      nextChain.send(command);
+      nextChain.handle(command);
     }
   }
 
-  /**
-   * @throws NullPointerException - if <code>nextChain</code> is <code>null</code>.
-   */
   @Override
-  public void setNextChain(Sender nextChain) {
-    if (nextChain == null) {
-      throw new NullPointerException();
-    }
+  public void setNext(Chain<Command> nextChain) {
     this.nextChain = nextChain;
   }
 }
