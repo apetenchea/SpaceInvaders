@@ -12,9 +12,9 @@ public class CommandDirector {
   private final CommandBuilder builder;
 
   /**
-   * Constrct a director that uses the <code>builder</code> to make commands.
+   * Constrct a director that uses the {@code builder} to make commands.
    *
-   * @throws NullPointerException if builder is <code>null</code>.
+   * @throws NullPointerException if builder is {@code null}.
    */
   public CommandDirector(CommandBuilder builder) {
     if (builder == null) {
@@ -24,29 +24,23 @@ public class CommandDirector {
   }
 
   /**
-   * Convert <code>json</code> into a {@link Command}.
+   * Convert the {@code json} into a {@link Command}.
    *
    * @throws JsonSyntaxException - if the specified JSON is invalid.
    * @throws CommandNotFoundException - if the command could not be recognized.
-   * @throws NullPointerException - if the json is <code>null</code>.
+   * @throws NullPointerException - if the json is {@code null}.
    */
   public void makeCommand(String json) throws JsonSyntaxException, CommandNotFoundException {
     if (json == null) {
       throw new NullPointerException();
     }
-    //TODO remove this try catch
-    try {
-      builder.buildCommand(json);
-    } catch (Exception e) {
-      System.err.println("Error on json " + json);
-      throw e;
-    }
+    builder.buildCommand(json);
   }
 
   /**
-   * Get the last command successfully built.
+   * Get the last succesfully built command.
    *
-   * @return last command, or <code>null</code> if there was no such command.
+   * @return last command, or {@code null} if there was no such command.
    */
   public Command getCommand() {
     return builder.getCommand();

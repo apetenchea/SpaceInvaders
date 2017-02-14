@@ -6,7 +6,8 @@ import spaceinvaders.command.CommandBuilder;
 public class ServerCommandBuilder extends CommandBuilder {
   /** Construct the builder with all the available commands. */
   public ServerCommandBuilder() {
-    super(new ConfigurePlayerCommand(),
+    super(
+        new ConfigurePlayerCommand(),
         new MovePlayerLeftCommand(),
         new MovePlayerRightCommand(),
         new PlayerShootCommand());

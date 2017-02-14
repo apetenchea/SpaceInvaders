@@ -1,15 +1,11 @@
 package spaceinvaders.server.game.world;
 
 import static spaceinvaders.game.EntityEnum.INVADER;
-import static spaceinvaders.game.EntityEnum.INVADER_BULLET;
 import static spaceinvaders.game.EntityEnum.PLAYER;
-import static spaceinvaders.game.EntityEnum.PLAYER_BULLET;
-import static spaceinvaders.game.EntityEnum.SHIELD;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;
 import spaceinvaders.game.GameConfig;
 
@@ -18,7 +14,7 @@ import spaceinvaders.game.GameConfig;
  */
 public class ClassicWorldBuilder implements WorldBuilder {
   private final GameConfig config = GameConfig.getInstance();
-  private final World world = new World();
+  private final WorldPlan world = new World();
 
   @Override
   public void buildInvaders() {
@@ -125,6 +121,6 @@ public class ClassicWorldBuilder implements WorldBuilder {
 
   @Override
   public World getWorld() {
-    return world;
+    return (World) world;
   }
 }

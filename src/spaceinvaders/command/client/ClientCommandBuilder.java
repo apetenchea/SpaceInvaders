@@ -6,13 +6,17 @@ import spaceinvaders.command.CommandBuilder;
 public class ClientCommandBuilder extends CommandBuilder {
   /** Construct the builder with all the available commands. */
   public ClientCommandBuilder() {
-    super(new SetPlayerIdCommand(),
-        new FlushScreenCommand(),
-        new GameOverCommand(),
-        new SetPlayerNamesCommand(),
-        new StartGameCommand(),
-        new QuitGameCommand(),
-        new PackCommand(),
-        new RefreshEntitiesCommand());
+    super(new FlushScreenCommand(),
+          new GameOverCommand(),
+          new IncrementScoreCommand(),
+          new MoveEntityCommand(),
+          new PlayersWonCommand(),
+          new RefreshEntitiesCommand(),
+          new SetPlayerIdCommand(),
+          new SetPlayerNamesCommand(),
+          new SpawnEntityCommand(),
+          new StartGameCommand(),
+          new TranslateGroupCommand(),
+          new WipeOutEntityCommand());
   }
 }

@@ -18,7 +18,7 @@ import spaceinvaders.utility.ServiceState;
 /**
  * Handles I/O using the UDP protocol.
  *
- * <p>UDP is used for common data during the game.
+ * <p>UDP is used for repetitive commands during the game.
  */
 public class UdpHandler implements Service<Void> {
   private static final int MAX_INCOMING_PACKET_SIZE = 256;

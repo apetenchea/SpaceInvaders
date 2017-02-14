@@ -36,5 +36,4 @@ public class ServiceState {
     state.set(flag);
     stateLock.writeLock().unlock();
   }
-
 }

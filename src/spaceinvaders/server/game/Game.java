@@ -12,7 +12,9 @@ import java.util.logging.Logger;
 import spaceinvaders.command.Command;
 import spaceinvaders.command.client.FlushScreenCommand;
 import spaceinvaders.command.client.GameOverCommand;
+import spaceinvaders.command.client.PlayersWonCommand;
 import spaceinvaders.command.client.QuitGameCommand;
+import spaceinvaders.command.client.RefreshEntitiesCommand;
 import spaceinvaders.command.client.SetPlayerNamesCommand;
 import spaceinvaders.command.client.StartGameCommand;
 import spaceinvaders.server.game.world.ClassicWorldBuilder;
@@ -93,11 +95,13 @@ class Game implements Service<Void> {
     }
     distributeCommand(new SetPlayerNamesCommand(idToName));
     distributeCommand(new StartGameCommand());
+    distributeCommand(new RefreshEntitiesCommand(world.getEntities()));
     distributeCommand(new FlushScreenCommand());
     flushCommands();
 
     gameLoop.call();
     try {
+      int frameCounter = 0;
       while (state.get()) {
         gameLoop.processInput();
         gameLoop.update();
@@ -108,8 +112,13 @@ class Game implements Service<Void> {
           distributeCommand(new GameOverCommand());
           state.set(false);
         } else if (world.count(INVADER) == 0) {
-          //distributeCommand(new PlayersWonCommand());
+          distributeCommand(new PlayersWonCommand());
           state.set(false);
+        }
+        /* Once every 5 seconds do a complete refresh. */
+        frameCounter = (frameCounter + 1) % (FRAMES_PER_SECOND * 5);
+        if (frameCounter == 0) {
+          distributeCommand(new RefreshEntitiesCommand(world.getEntities()));
         }
         distributeCommand(new FlushScreenCommand());
         for (Player player : team) {

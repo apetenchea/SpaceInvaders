@@ -31,7 +31,7 @@ public abstract class CommandBuilder {
    *
    * @throws JsonSyntaxException - if the specified JSON is not valid.
    * @throws CommandNotFoundException - if the command could not be recognized.
-   * @throws NullPointerException - if the specified JSON is <code>null</code>.
+   * @throws NullPointerException - if the specified JSON is {@code null}.
    */
   public void buildCommand(String json) throws JsonSyntaxException, CommandNotFoundException {
     if (json == null) {

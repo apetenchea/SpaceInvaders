@@ -6,20 +6,25 @@ import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 
-/** Start the game. */
-public class StartGameCommand extends Command {
+/** Wipe out a destroyed player from the screen. */
+public class WipeOutEntityCommand extends Command {
   private transient Controller executor;
+  private int entityId;
 
-  public StartGameCommand() {
-    super(StartGameCommand.class.getName(),TCP);
+  WipeOutEntityCommand() {
+    super(WipeOutEntityCommand.class.getName(),TCP);
+  }
+
+  public WipeOutEntityCommand(int entityId) {
+    this();
+    this.entityId = entityId;
   }
 
   @Override
   public void execute() {
     for (View view : executor.getViews()) {
-      view.startGame();
+      view.wipeOutEntity(entityId);
     }
-    executor.getModel().setGameState(true);
   }
 
   @Override

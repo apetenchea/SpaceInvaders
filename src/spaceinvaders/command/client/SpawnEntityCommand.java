@@ -5,21 +5,36 @@ import static spaceinvaders.command.ProtocolEnum.TCP;
 import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
+import spaceinvaders.game.EntityEnum;
 
-/** Start the game. */
-public class StartGameCommand extends Command {
+/** Spawn an entity. */
+public class SpawnEntityCommand extends Command {
   private transient Controller executor;
+  private Integer id;
+  private EntityEnum type;
+  private Integer posX;
+  private Integer posY;
 
-  public StartGameCommand() {
-    super(StartGameCommand.class.getName(),TCP);
+  SpawnEntityCommand() {
+    super(SpawnEntityCommand.class.getName(),TCP);
+  }
+
+  /**
+   * @throws NullPointerException - if an argument is {@code null}.
+   */
+  public SpawnEntityCommand(int id, EntityEnum type, int posX, int posY) {
+    this();
+    this.id = id;
+    this.type = type;
+    this.posX = posX;
+    this.posY = posY;
   }
 
   @Override
   public void execute() {
     for (View view : executor.getViews()) {
-      view.startGame();
+      view.spawnEntity(id,type,posX,posY);
     }
-    executor.getModel().setGameState(true);
   }
 
   @Override

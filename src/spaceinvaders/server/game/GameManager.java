@@ -16,7 +16,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
-import spaceinvaders.exceptions.InterruptedServiceException;
 import spaceinvaders.server.player.Player;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
@@ -33,7 +32,7 @@ public class GameManager implements Observer, Service<Void> {
 
   private final List<List<Player>> teams = new ArrayList<>(MAX_TEAM_SIZE);
   private final List<Future<?>> future = new LinkedList<>();
-  private final ReentrantLock futureListLock = new ReentrantLock();
+  private final Lock futureListLock = new ReentrantLock();
   private final ServiceState state = new ServiceState();
   private final ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 

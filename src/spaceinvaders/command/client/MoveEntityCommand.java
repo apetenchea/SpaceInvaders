@@ -1,25 +1,34 @@
 package spaceinvaders.command.client;
 
-import static spaceinvaders.command.ProtocolEnum.TCP;
+import static spaceinvaders.command.ProtocolEnum.UDP;
 
 import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 
-/** Start the game. */
-public class StartGameCommand extends Command {
+/** Move an entity to a new position. */
+public class MoveEntityCommand extends Command {
   private transient Controller executor;
+  private Integer entityId;
+  private Integer newX;
+  private Integer newY;
 
-  public StartGameCommand() {
-    super(StartGameCommand.class.getName(),TCP);
+  MoveEntityCommand() {
+    super(MoveEntityCommand.class.getName(),UDP);
+  }
+
+  public MoveEntityCommand(int entityId, int newX, int newY) {
+    this();
+    this.entityId = entityId;
+    this.newX = newX;
+    this.newY = newY;
   }
 
   @Override
   public void execute() {
     for (View view : executor.getViews()) {
-      view.startGame();
+      view.moveEntity(entityId,newX,newY);
     }
-    executor.getModel().setGameState(true);
   }
 
   @Override

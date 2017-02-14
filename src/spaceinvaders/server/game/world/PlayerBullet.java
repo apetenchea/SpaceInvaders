@@ -2,12 +2,10 @@ package spaceinvaders.server.game.world;
 
 import static spaceinvaders.game.EntityEnum.PLAYER_BULLET;
 
-import spaceinvaders.game.Entity;
 import spaceinvaders.game.GameConfig;
 
 /** Bullet shot by a player. */
 class PlayerBullet extends LogicEntity {
-  private final GameConfig config = GameConfig.getInstance();
   private final Integer shooterId;
 
   /**

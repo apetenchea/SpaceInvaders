@@ -6,8 +6,6 @@ import spaceinvaders.game.GameConfig;
 
 /** Human player character. */
 class HumanPlayer extends LogicEntity {
-  private final GameConfig config = GameConfig.getInstance();
-
   /**
    * @param id - player ID.
    * @param posX - X coordinate.

@@ -14,9 +14,6 @@ public abstract class Command {
     this.protocol = protocol;
   }
 
-  /** Execute the command. */
-  public abstract void execute();
-
   /** Get the JSON representation of this command. */
   public String toJson() {
     return GSON.toJson(this);
@@ -30,5 +27,9 @@ public abstract class Command {
     return protocol;
   }
 
+  /** Execute the command. */
+  public abstract void execute();
+
+  /** Set the object upon which execution takes place. */
   public abstract void setExecutor(Object executor);
 }
