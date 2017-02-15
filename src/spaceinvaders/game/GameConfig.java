@@ -4,13 +4,9 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;
-import spaceinvaders.utility.Couple;
 
 /** Configuration for game entities. */
 public class GameConfig {
@@ -27,11 +23,11 @@ public class GameConfig {
   private GameConfig() {
     frame = new FrameConfig();
     speed = new Speed();
-    entityMap.put(EntityEnum.INVADER,new EntityConfig(EntityEnum.INVADER,64,64));
-    entityMap.put(EntityEnum.PLAYER,new EntityConfig(EntityEnum.PLAYER,64,64));
-    entityMap.put(EntityEnum.SHIELD,new EntityConfig(EntityEnum.SHIELD,32,32));
-    entityMap.put(EntityEnum.PLAYER_BULLET,new EntityConfig(EntityEnum.PLAYER_BULLET,24,24));
-    entityMap.put(EntityEnum.INVADER_BULLET,new EntityConfig(EntityEnum.INVADER_BULLET,24,24));
+    entityMap.put(EntityEnum.INVADER,new EntityConfig(64,64));
+    entityMap.put(EntityEnum.PLAYER,new EntityConfig(64,64));
+    entityMap.put(EntityEnum.SHIELD,new EntityConfig(32,32));
+    entityMap.put(EntityEnum.PLAYER_BULLET,new EntityConfig(24,24));
+    entityMap.put(EntityEnum.INVADER_BULLET,new EntityConfig(24,24));
   }
 
   public static GameConfig getInstance() {
@@ -127,12 +123,10 @@ public class GameConfig {
   }
 
   public class EntityConfig {
-    private EntityEnum type;
     private Integer width;
     private Integer height;
 
-    public EntityConfig(EntityEnum type, int width, int height) {
-      this.type = type;
+    public EntityConfig(int width, int height) {
       this.width = width;
       this.height = height;
     }

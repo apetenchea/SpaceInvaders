@@ -8,30 +8,30 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
 import java.awt.Color;
-
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
-
-import spaceinvaders.game.GameConfigOld;
+import spaceinvaders.game.GameConfig;
 import spaceinvaders.game.Entity;
+import spaceinvaders.game.EntityEnum;
 import spaceinvaders.utility.Couple;
 
-/** Display the game. */
+/** Displays the game. */
 public class GameGraphics implements UiObject {
   private static final Logger LOGGER = Logger.getLogger(GameGraphics.class.getName());
+  // TODO solve this
   private static final int FRAME_HEIGHT_COMPENSATION = 64;
 
   private final JFrame frame;
   private final GamePanel gamePanel = new GamePanel();
-  private JLabel messageLbl = new JLabel();
+  private final JLabel messageLbl = new JLabel();
 
   /** Construct an empty game frame. */
   public GameGraphics() {
-    GameConfigOld config = GameConfigOld.getInstance();
+    GameConfig config = GameConfig.getInstance();
     frame = new JFrame();
     frame.setResizable(false);
     frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    frame.setSize(config.getGameFrameWidth(),config.getGameFrameHeight() + FRAME_HEIGHT_COMPENSATION);
+    frame.setSize(config.frame().getWidth(),config.frame().getHeight() + FRAME_HEIGHT_COMPENSATION);
 
     JPanel contentPane = new JPanel();
     contentPane.setBorder(new EmptyBorder(5,5,5,5));
@@ -74,6 +74,26 @@ public class GameGraphics implements UiObject {
 
   public void setFrameContent(List<Entity> content) {
     gamePanel.refreshEntities(content);
+  }
+
+  public void moveEntity(int entityId, int newX, int newY) {
+    gamePanel.moveEntity(entityId,newX,newY);
+  }
+
+  public void spawnEntity(int id, EntityEnum type, int posX, int posY) {
+    gamePanel.spawnEntity(id,type,posX,posY);
+  }
+
+  public void youWon() {
+    setMessage("You won!");
+  }
+
+  public void wipeOutEntity(int id) {
+    gamePanel.wipeOutEntity(id);
+  }
+
+  public void translateGroup(EntityEnum type, int offsetX, int offsetY) {
+    gamePanel.translateGroup(type,offsetX,offsetY);
   }
 
   /** Repainting data on the screen. */

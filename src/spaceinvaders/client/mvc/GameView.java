@@ -5,14 +5,14 @@ import java.awt.event.KeyListener;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import spaceinvaders.client.ClientConfig;
 import spaceinvaders.client.gui.GameGraphics;
 import spaceinvaders.client.gui.Menu;
 import spaceinvaders.utility.Couple;
 import spaceinvaders.game.Entity;
+import spaceinvaders.game.EntityEnum;
 
 /**
- * User interface for the game.
+ * User interface.
  *
  * @see spaceinvaders.client.mvc.GameController
  * @see spaceinvaders.client.mvc.GameModel
@@ -21,13 +21,6 @@ public class GameView implements View {
   private final GameGraphics game = new GameGraphics();
   private final Menu menu = new Menu();
   private JFrame currentFrame;
-
-  /**
-   * Constructs a new starting with the menu.
-   */
-  public GameView() {
-    menu.show();
-  }
 
   @Override
   public void addStartGameListener(ActionListener listener) {
@@ -80,6 +73,31 @@ public class GameView implements View {
   @Override
   public void setFrameContent(List<Entity> content) {
     game.setFrameContent(content);
+  }
+
+  @Override
+  public void moveEntity(int entityId, int newX, int newY) {
+    game.moveEntity(entityId,newX,newY);
+  }
+
+  @Override
+  public void spawnEntity(int id, EntityEnum type, int posX, int posY) {
+    game.spawnEntity(id,type,posX,posY);
+  }
+
+  @Override
+  public void youWon() {
+    game.setMessage("You won!");
+  }
+
+  @Override
+  public void wipeOutEntity(int id) {
+    game.wipeOutEntity(id);
+  }
+
+  @Override
+  public void translateGroup(EntityEnum type, int offsetX, int offsetY) {
+    game.translateGroup(type,offsetX,offsetY);
   }
 
   @Override

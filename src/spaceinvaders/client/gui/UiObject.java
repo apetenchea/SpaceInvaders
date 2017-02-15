@@ -1,10 +1,8 @@
 package spaceinvaders.client.gui;
 
-/**
- * A window that the user interacts with.
- */
+/** A window with which the user interacts. */
 public interface UiObject {
-  /** Free resources and never use it again. */
+  /** Free resources and never use the window again. */
   public void destroy();
 
   /** Become invisible. */

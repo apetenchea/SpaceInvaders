@@ -14,11 +14,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TransferQueue;
 import java.util.logging.Logger;
-import spaceinvaders.client.ClientConfig;
 import spaceinvaders.client.network.NetworkConnection;
 import spaceinvaders.command.Command;
 import spaceinvaders.command.CommandDirector;
-import spaceinvaders.command.CommandBuilder;
 import spaceinvaders.command.client.ClientCommandBuilder;
 import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.exceptions.CommandNotFoundException;
@@ -33,7 +31,6 @@ import spaceinvaders.utility.Service;
 public class GameModel implements Model {
   private static final Logger LOGGER = Logger.getLogger(GameModel.class.getName());
 
-  private final ClientConfig config = ClientConfig.getInstance();
   private final TransferQueue<String> incomingQueue = new LinkedTransferQueue<>();
   private final CommandDispatcher dispatcher = new CommandDispatcher();
   private final ExecutorService connectionExecutor = Executors.newSingleThreadExecutor();

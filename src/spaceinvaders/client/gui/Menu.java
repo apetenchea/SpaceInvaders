@@ -13,24 +13,22 @@ import spaceinvaders.client.ClientConfig;
 /**
  * Game menu.
  *
- * <p>This is the first UI element encountered by the user. It can be used to CONFIGure the game.
+ * <p>This is the first UI element encountered by the user. It is used to configure the game.
  */
 public class Menu implements UiObject {
   public static final ClientConfig CONFIG = ClientConfig.getInstance();
 
-  private JFrame menuFrame;
-  private JButton playBtn;
-  private JButton quitBtn;
-  private JLabel serverLbl;
-  private JLabel userNameLbl;
-  private JTextField serverAddrTxt;
-  private JTextField serverPortTxt;
-  private JTextField userNameTxt;
-  private JSpinner teamSizeSpn;
+  private final JFrame menuFrame;
+  private final JButton playBtn;
+  private final JButton quitBtn;
+  private final JLabel serverLbl;
+  private final JLabel userNameLbl;
+  private final JTextField serverAddrTxt;
+  private final JTextField serverPortTxt;
+  private final JTextField userNameTxt;
+  private final JSpinner teamSizeSpn;
 
-  /**
-   * Construct a new menu with the defaults already entered.
-   */
+  /** Construct a new menu with the default values. */
   public Menu() {
     menuFrame = new JFrame("SpaceInvaders - Menu");
     menuFrame.setSize(500,500);
