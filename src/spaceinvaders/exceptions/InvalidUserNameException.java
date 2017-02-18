@@ -1,8 +1,6 @@
 package spaceinvaders.exceptions;
 
-/**
- * Thrown when user submits an invalid invalid user name.
- */
+/** Thrown when user submits an invalid invalid user name. */
 @SuppressWarnings("serial")
 public class InvalidUserNameException extends Exception {
   private static final String MESSAGE =

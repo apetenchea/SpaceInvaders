@@ -1,8 +1,6 @@
 package spaceinvaders.exceptions;
 
-/**
- * Thrown when user submits an invalid server address.
- */
+/** Thrown when user submits an invalid server address. */
 @SuppressWarnings("serial")
 public class InvalidServerAddressException extends Exception {
   private static final String MESSAGE = "The provided server address is not a standard address!";

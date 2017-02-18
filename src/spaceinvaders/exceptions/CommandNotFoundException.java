@@ -1,8 +1,6 @@
 package spaceinvaders.exceptions;
 
-/**
- * Thrown to indicate an unrecognized command.
- */
+/** Thrown to indicate an unrecognized command. */
 @SuppressWarnings("serial")
 public class CommandNotFoundException extends Exception {
   private static final String MESSAGE = "Command not found!";

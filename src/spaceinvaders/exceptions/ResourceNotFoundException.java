@@ -2,9 +2,7 @@ package spaceinvaders.exceptions;
 
 import java.io.IOException;
 
-/**
- * Thrown when the connection times out.
- */
+/** Thrown when a resource could not be located. */
 @SuppressWarnings("serial")
 public class ResourceNotFoundException extends IOException {
   private static final String MESSAGE = "Resource not found!"; 
