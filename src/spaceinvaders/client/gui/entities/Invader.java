@@ -1,11 +1,17 @@
 package spaceinvaders.client.gui.entities;
 
-import java.io.IOException;
-import spaceinvaders.game.GameConfigOld;
+import static spaceinvaders.game.EntityEnum.INVADER;
+
+import spaceinvaders.client.ResourcesConfig;
 
 /** The invader character. */
 public class Invader extends GraphicalEntity {
-  public Invader() throws IOException {
-    super(GameConfigOld.getInstance().getInvaderImage());
+  public Invader() {
+    super(ResourcesConfig.getInstance().getAvatars(INVADER));
+  }
+
+  @Override
+  public void draw(GraphicalEntityVisitor visitor) {
+    visitor.visit(this);
   }
 }

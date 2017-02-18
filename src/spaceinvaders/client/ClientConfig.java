@@ -10,11 +10,18 @@ public class ClientConfig {
   private static ClientConfig singleton;
 
   private Integer id;
-  private Integer teamSize = 1;
-  private String serverAddr = "localhost";
-  private Integer serverPort = 5412;
-  private String userName = "default";
+  private Integer teamSize;
+  private String serverAddr;
+  private Integer serverPort;
+  private String userName;
   private Integer udpIncomingPort;
+
+  private ClientConfig() {
+    teamSize = 1;
+    serverAddr = "localhost";
+    serverPort = 5412;
+    userName = "default";
+  }
 
   /** Get a ClientConfig instance. */
   public static synchronized ClientConfig getInstance() {

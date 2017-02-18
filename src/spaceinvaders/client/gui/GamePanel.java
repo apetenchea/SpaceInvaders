@@ -9,8 +9,11 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
+import spaceinvaders.client.gui.entities.Drawable;
 import spaceinvaders.client.gui.entities.GraphicalEntity;
+import spaceinvaders.client.gui.entities.GraphicalEntityVisitor;
 import spaceinvaders.client.gui.entities.GraphicsFactory;
+import spaceinvaders.client.gui.entities.PaintingVisitor;
 import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;
 import spaceinvaders.game.GameConfig;
@@ -18,7 +21,7 @@ import spaceinvaders.game.GameConfig;
 /**
  * Main panel of the game.
  *
- * <p> Contains all visible elements of the game. Controls the painting and repainting.
+ * <p>Contains all the visible elements of the game. Controls painting and repainting.
  */
 @SuppressWarnings("serial")
 class GamePanel extends JPanel {
@@ -26,8 +29,8 @@ class GamePanel extends JPanel {
 
   private final GameConfig config = GameConfig.getInstance();
   private final GraphicsFactory factory = GraphicsFactory.getInstance();
-  private final Map<Integer,String> playerNamesMap = new HashMap<>();
   private final List<GraphicalEntity> entities = new ArrayList<>();
+  private final GraphicalEntityVisitor painter = new PaintingVisitor(getGraphics(),this);
   
   public GamePanel() {
     setBackground(Color.BLACK);
@@ -37,22 +40,16 @@ class GamePanel extends JPanel {
   @Override
   protected void paintComponent(Graphics graphics) {
     super.paintComponent(graphics);
-
     graphics.setColor(Color.WHITE);
     graphics.setFont(new Font("Courier",Font.BOLD,15));
-
-    for (GraphicalEntity entity : entities) {
-      graphics.drawImage(entity.getImage(),entity.getX(),entity.getY(),this);
-      String name = playerNamesMap.get(entity.getId());
-      if (name != null) {
-        graphics.drawString(name,entity.getX(),entity.getY() + config.player().getHeight()
-            + config.player().getHeight() / 4);
-      }
+    for (Drawable entity : entities) {
+      entity.draw(painter);
     }
   }
 
   public void init() {
     playerNamesMap.clear();
+    entities.clear();
   }
 
   public void refreshEntities(List<Entity> updates) {
@@ -79,6 +76,7 @@ class GamePanel extends JPanel {
     // TODO
   }
 
+  // TODO maybe rename to setPlayerNames
   public void addPlayer(Integer id, String name) {
     playerNamesMap.put(id,name);
   }
