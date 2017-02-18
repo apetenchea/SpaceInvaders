@@ -10,7 +10,7 @@ public class MovePlayerRightCommand extends Command {
   private transient GameLoop executor;
   private Integer id;
 
-  public MovePlayerRightCommand() {
+  MovePlayerRightCommand() {
     super(MovePlayerRightCommand.class.getName(),UDP);
   }
 

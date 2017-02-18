@@ -53,7 +53,7 @@ public class GameController implements Controller {
   public void registerView(View view) {
     if (!views.contains(view)) {
       view.addStartGameListener(new StartGameListener());
-      view.addQuitAppListener(new QuitAppListener());
+      view.addQuitAppListener(new CloseAppListener());
       view.addKeyListener(new KeyPressListener(
           new MoveLeftListener(
           new MoveRightListener(
@@ -92,6 +92,7 @@ public class GameController implements Controller {
     }
   }
 
+  /** User starts a new game. */
   private class StartGameListener implements ActionListener {
     public void actionPerformed(ActionEvent event) {
       if (views.size() == 0) {
@@ -136,9 +137,10 @@ public class GameController implements Controller {
     }
   }
 
-  private class QuitAppListener implements ActionListener {
+  /** User close the application. */
+  private class CloseAppListener implements ActionListener {
+    @Override
     public void actionPerformed(ActionEvent event) {
-      System.err.println("Quit");
       shuttingDown = true;
       model.exitGame();
       model.shutdown();
@@ -150,6 +152,7 @@ public class GameController implements Controller {
     }
   }
 
+  /** Handle key press events. */
   private class KeyPressListener extends KeyAdapter implements Chain<KeyEvent> {
     private Chain<KeyEvent> nextChain;
 
@@ -174,6 +177,7 @@ public class GameController implements Controller {
     }
   }
 
+  /** Player moves left. */
   private class MoveLeftListener implements Chain<KeyEvent> {
     private Chain<KeyEvent> nextChain;
 
@@ -200,6 +204,7 @@ public class GameController implements Controller {
     }
   }
 
+  /** Player moves right. */
   private class MoveRightListener implements Chain<KeyEvent> {
     private Chain<KeyEvent> nextChain;
 
@@ -226,6 +231,7 @@ public class GameController implements Controller {
     }
   }
 
+  /** Player shoots a bullet. */
   private class ShootListener implements Chain<KeyEvent> {
     private Chain<KeyEvent> nextChain;
 
@@ -252,6 +258,7 @@ public class GameController implements Controller {
     }
   }
 
+  /** Player quits the game. */
   private class QuitGameListener implements Chain<KeyEvent> {
     private Chain<KeyEvent> nextChain;
 

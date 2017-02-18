@@ -14,7 +14,7 @@ public class RefreshEntitiesCommand extends Command {
   private transient Controller executor;
   private List<Entity> entities;
 
-  public RefreshEntitiesCommand() {
+  RefreshEntitiesCommand() {
     super(RefreshEntitiesCommand.class.getName(),UDP);
   }
 

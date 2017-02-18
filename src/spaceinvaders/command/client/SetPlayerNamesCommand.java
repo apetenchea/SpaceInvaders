@@ -13,7 +13,7 @@ public class SetPlayerNamesCommand extends Command {
   private transient Controller executor;
   private List<Couple<Integer,String>> idToName;
 
-  public SetPlayerNamesCommand() {
+  SetPlayerNamesCommand() {
     super(SetPlayerNamesCommand.class.getName(),TCP);
   }
 

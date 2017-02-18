@@ -11,12 +11,13 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import spaceinvaders.game.Entity;
+import spaceinvaders.game.EntityEnum;
 
 /** Game entity that can be drawn on the screen. */
 public abstract class GraphicalEntity implements Cloneable, Drawable {
   private static final Logger LOGGER = Logger.getLogger(GraphicalEntity.class.getName());
 
-  private final List<BufferedImage> avatar; 
+  private final List<BufferedImage> avatar = new ArrayList<>(); 
   private Entity body;
   private Integer avatarNumber = 0;
 
@@ -59,6 +60,30 @@ public abstract class GraphicalEntity implements Cloneable, Drawable {
    */
   public void setBody(Entity body) {
     this.body = body;
+  }
+
+  /**
+   * Change the coordinates.
+   * 
+   * @param newX - new coordinate on X Axis.
+   * @param newY - new coordinate on Y Axis.
+   */
+  public void relocate(int newX, int newY) {
+    body.setPos(newX,newY);
+  }
+
+  /**
+   * Translate the entity in space.
+   *
+   * @param offsetX - offset on X Axis.
+   * @param offsetY - offset on Y Axis.
+   */
+  public void translate(int offsetX, int offsetY) {
+    body.setPos(body.getX() + offsetX,body.getY() + offsetY);
+  }
+
+  public EntityEnum getType() {
+    return body.getType();
   }
 
   /**

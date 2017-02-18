@@ -16,7 +16,9 @@ public class IncrementScoreCommand extends Command {
 
   @Override
   public void execute() {
-    //TODO
+    for (View view : executor.getViews()) {
+      view.incrementScore();
+    }
   }
 
   @Override

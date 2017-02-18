@@ -3,10 +3,9 @@ package spaceinvaders.client.mvc;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyListener;
 import java.util.List;
-import spaceinvaders.client.ClientConfig;
-import spaceinvaders.utility.Couple;
 import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;
+import spaceinvaders.utility.Couple;
 
 /**
  * View component of the application.
@@ -15,68 +14,69 @@ import spaceinvaders.game.EntityEnum;
  * @see spaceinvaders.client.mvc.Model
  */
 public interface View {
-  /**
-   * Add a listener for starting a new game.
-   */
+  /** Add a listener for starting a new game. */
   public void addStartGameListener(ActionListener listener);
 
-  /**
-   * Add a listener for closing the application.
-   */
+  /** Add a listener for closing the application. */
   public void addQuitAppListener(ActionListener listener);
 
-  /**
-   * Add a listener for key bindings.
-   */
+  /** Add a listener for key bindings. */
   public void addKeyListener(KeyListener listener);
+
+  /** Set the client configuration. */
+  public void setConfig();
   
-  /**
-   * Display an error message and stop the game.
-   */
+  /** Display an error message. */
   public void displayError(Exception exception);
 
-  /**
-   * Associate the IDs of the participating players with their names.
-   */
-  public void setPlayerNames(List<Couple<Integer,String>> players);
-
-  /**
-   * Display the current state of the view.
-   */
+  /** Flush all changes to the view. */
   public void flush();
-
-  public void quitGame();
-
-  public void startGame();
-
-  public void gameOver();
-
-  public void setFrameContent(List<Entity> content);
-
-  public void moveEntity(int entityId, int newX, int newY);
-
-  public void spawnEntity(int id, EntityEnum type, int posX, int posY);
-
-  public void youWon();
-
-  public void wipeOutEntity(int id);
-
-  public void translateGroup(EntityEnum type,  int offsetX, int offsetY);
-
-  public void setConfig();
  
-  /**
-   * Play game.
-   */
+  /** Show the game frame. */
   public void showGame();
 
-  /**
-   * Configure game.
-   */
+  /** Show the manu frame. */
   public void showMenu();
 
+  /** Player quits game. */
+  public void quitGame();
+
+  /** Player starts a new game. */
+  public void startGame();
+
+  /** Player lost. */
+  public void gameOver();
+
+  /** Player won. */
+  public void youWon();
+
+  /** Increase player score. */
+  public void incrementScore();
+
+  /** Associate the IDs of players with their names. */
+  public void setPlayerNames(List<Couple<Integer,String>> players);
+
+  /** Set entities that appear in the frame. */
+  public void setFrameContent(List<Entity> content);
+
+  /** Move an entity. */
+  public void moveEntity(int entityId, int newX, int newY);
+
+  /** Spawn an entity. */
+  public void spawnEntity(int id, EntityEnum type, int posX, int posY);
+
+  /** Remove an entity. */
+  public void wipeOutEntity(int id);
+
   /**
-   * Terminate all threads started by the view.
+   * Translate in space a group of entities.
+   *
+   * @param type - type of the group.
+   * @param offsetX - offset on X Axis.
+   * @param offsetY - offset on Y Axis.
    */
+  public void translateGroup(EntityEnum type, int offsetX, int offsetY);
+
+  /** Destroy. */
   public void shutdown();
 }

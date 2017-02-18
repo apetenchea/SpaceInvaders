@@ -12,9 +12,9 @@ import spaceinvaders.command.server.ConfigurePlayerCommand;
 /** Set the ID of the player. */
 public class SetPlayerIdCommand extends Command {
   private transient Controller executor;
-  public Integer id;
+  private Integer id;
 
-  public SetPlayerIdCommand() {
+  SetPlayerIdCommand() {
     super(SetPlayerIdCommand.class.getName(),TCP);
   }
 

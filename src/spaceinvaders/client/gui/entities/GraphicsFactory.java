@@ -47,7 +47,6 @@ public class GraphicsFactory {
   public GraphicalEntity create(Entity entity) {
     GraphicalEntity value = entitiesMap.get(entity.getType());
     if (value == null) {
-      // This should never happen.
       throw new NullPointerException();
     }
     value = (GraphicalEntity) value.clone();

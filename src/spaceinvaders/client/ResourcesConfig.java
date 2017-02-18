@@ -16,7 +16,7 @@ import spaceinvaders.game.EntityEnum;
 
 /** Used to retrive resources. */
 public class ResourcesConfig {
-  private static final String RESOURCES_CONFIG_FILE = "../resources/";
+  //private static final String RESOURCES_CONFIG_FILE = "../resources/";
   private static final String RESOURCES_FOLDER = "../resources/";
   private static ResourcesConfig singleton;
 

@@ -10,7 +10,7 @@ public class PlayerShootCommand extends Command {
   private transient GameLoop executor;
   private Integer id;
 
-  public PlayerShootCommand() {
+  PlayerShootCommand() {
     super(PlayerShootCommand.class.getName(),UDP);
   }
 

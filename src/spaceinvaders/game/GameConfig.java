@@ -50,7 +50,7 @@ public class GameConfig {
    * @throws InvalidPathException - if the configuration file cannot be found.
    * @throws SecurityException - if an operation is not allowed.
    */
-  private static GameConfig readConfig() throws IOException {
+  private GameConfig readConfig() throws IOException {
     String json = new String(Files.readAllBytes(
           Paths.get("/home/alex/work/eclipse/SpaceInvaders/WorldConfig.json")));
     Gson gson = new Gson();

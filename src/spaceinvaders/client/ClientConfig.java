@@ -8,6 +8,7 @@ import spaceinvaders.exceptions.InvalidUserNameException;
 /** Used to maintain the configuration of the client. */
 public class ClientConfig {
   private static ClientConfig singleton;
+  private static Integer MAX_UNAME_LENGTH = 10;
 
   private Integer id;
   private Integer teamSize;
@@ -29,6 +30,10 @@ public class ClientConfig {
       singleton = new ClientConfig();
     }
     return singleton;
+  }
+
+  public int getMaxUserNameLength() {
+    return MAX_UNAME_LENGTH;
   }
 
   /** Check if the server address is valid. */
@@ -55,7 +60,7 @@ public class ClientConfig {
    */
   public boolean isUserNameValid() {
     final Pattern validUserName = Pattern.compile("^([a-z]|[A-Z])([a-z]|[A-z]|\\d)+$");
-    return userName.length() <= 10 && validUserName.matcher(userName).matches();
+    return userName.length() <= MAX_UNAME_LENGTH && validUserName.matcher(userName).matches();
   }
 
   /** Check the data integrity. */
@@ -72,12 +77,12 @@ public class ClientConfig {
     }
   }
 
-  public void setId(int id) {
-    this.id = id;
-  }
-
   public int getId() {
     return id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
   }
 
   public int getTeamSize() {

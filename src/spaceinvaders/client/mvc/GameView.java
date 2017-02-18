@@ -7,9 +7,9 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import spaceinvaders.client.gui.GameGraphics;
 import spaceinvaders.client.gui.Menu;
-import spaceinvaders.utility.Couple;
 import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;
+import spaceinvaders.utility.Couple;
 
 /**
  * User interface.
@@ -38,21 +38,37 @@ public class GameView implements View {
   }
 
   @Override
+  public void setConfig() {
+    menu.setConfig();
+  }
+
+  @Override
   public void displayError(Exception exception) {
-    JOptionPane.showMessageDialog(currentFrame,
+    JOptionPane.showMessageDialog(
+        currentFrame,
         exception.toString(),
         exception.getMessage(),
         JOptionPane.ERROR_MESSAGE);
   }
   
   @Override
-  public void setPlayerNames(List<Couple<Integer,String>> players) {
-    game.setPlayerNames(players);
+  public void flush() {
+    game.flush();
   }
 
   @Override
-  public void flush() {
-    game.flush();
+  public void showGame() {
+    menu.hide();
+    game.init();
+    game.show();
+    currentFrame = game.getFrame();
+  }
+
+  @Override
+  public void showMenu() {
+    game.hide();
+    menu.show();
+    currentFrame = menu.getFrame();
   }
 
   @Override
@@ -71,6 +87,21 @@ public class GameView implements View {
   }
 
   @Override
+  public void youWon() {
+    game.setMessage("You won!");
+  }
+
+  @Override
+  public void incrementScore() {
+    game.incrementScore();
+  }
+
+  @Override
+  public void setPlayerNames(List<Couple<Integer,String>> players) {
+    game.setPlayerNames(players);
+  }
+
+  @Override
   public void setFrameContent(List<Entity> content) {
     game.setFrameContent(content);
   }
@@ -86,11 +117,6 @@ public class GameView implements View {
   }
 
   @Override
-  public void youWon() {
-    game.setMessage("You won!");
-  }
-
-  @Override
   public void wipeOutEntity(int id) {
     game.wipeOutEntity(id);
   }
@@ -98,25 +124,6 @@ public class GameView implements View {
   @Override
   public void translateGroup(EntityEnum type, int offsetX, int offsetY) {
     game.translateGroup(type,offsetX,offsetY);
-  }
-
-  @Override
-  public void setConfig() {
-    menu.setConfig();
-  }
-
-  @Override
-  public void showGame() {
-    menu.hide();
-    game.show();
-    currentFrame = game.getFrame();
-  }
-
-  @Override
-  public void showMenu() {
-    game.hide();
-    menu.show();
-    currentFrame = menu.getFrame();
   }
 
   @Override

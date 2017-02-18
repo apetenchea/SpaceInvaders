@@ -2,7 +2,6 @@ package spaceinvaders.command.server;
 
 import static spaceinvaders.command.ProtocolEnum.TCP;
 
-import java.net.SocketAddress;
 import spaceinvaders.command.Command;
 import spaceinvaders.server.player.Player;
 
@@ -13,7 +12,7 @@ public class ConfigurePlayerCommand extends Command {
   private Integer teamSize;
   private Integer receivingUdpPort;
 
-  public ConfigurePlayerCommand() {
+  ConfigurePlayerCommand() {
     super(ConfigurePlayerCommand.class.getName(),TCP);
   }
 
