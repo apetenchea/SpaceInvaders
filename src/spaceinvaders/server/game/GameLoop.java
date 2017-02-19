@@ -31,10 +31,10 @@ import spaceinvaders.utility.Service;
 public class GameLoop implements Service<Void> {
   private static final int GUARD_PIXELS = 32;
 
-  public final GameConfig config = GameConfig.getInstance();
+  private final GameConfig config = GameConfig.getInstance();
   private final AutoSwitch invadersMovement = new AutoSwitch(config.speed().invader().getRate()); 
   private final AutoSwitch bulletsMovement = new AutoSwitch(config.speed().bullet().getRate()); 
-  private final AutoSwitch invadersShooting = new AutoSwitch(config.getInvadersShootingRate()); 
+  private final AutoSwitch invadersShooting = new AutoSwitch(); 
   private final List<Future<?>> future = new ArrayList<>();
   private final List<Command> commandBuf = new ArrayList<>();
   private final List<Player> team;
@@ -61,6 +61,7 @@ public class GameLoop implements Service<Void> {
     this.world = world;
     this.rng = rng;
     this.threadPool = threadPool;
+    invadersShooting.setRate(world.count(INVADER) * config.getInvadersShootingFactor());
   }
 
   /**
@@ -184,45 +185,39 @@ public class GameLoop implements Service<Void> {
     if (invadersMovement.isOn()) {
       boolean moveDown = false;
       if (invadersVelocityX > 0) {
-        int maxW = Integer.MIN_VALUE;
+        int maxX = Integer.MIN_VALUE;
         it = world.getIterator(INVADER);
         while (it.hasNext()) {
           LogicEntity invader = it.next();
-          maxW = Math.max(maxW,invader.getX());
+          maxX = Math.max(maxX,invader.getX());
         }
-        if (maxW + config.invader().getWidth() >= config.invader().getWidth() + GUARD_PIXELS) {
+        if (maxX + config.invader().getWidth() >= config.frame().getWidth() - GUARD_PIXELS) {
           moveDown = true;
         }
       } else {
-        int minW = Integer.MAX_VALUE;
+        int minX = Integer.MAX_VALUE;
         it = world.getIterator(INVADER);
         while (it.hasNext()) {
           LogicEntity invader = it.next();
-          minW = Math.min(minW,invader.getX());
+          minX = Math.min(minX,invader.getX());
         }
-        if (minW <= GUARD_PIXELS) {
+        if (minX <= GUARD_PIXELS) {
           moveDown = true;
         }
       }
       if (moveDown) {
         // Change horizontal direction.
         invadersVelocityX = -invadersVelocityX;
-        int maxH = Integer.MIN_VALUE;
+        commandBuf.add(new TranslateGroupCommand(INVADER,0,config.speed().invader().getDistance()));
+        int maxY = Integer.MIN_VALUE;
         it = world.getIterator(INVADER);
-        LogicEntity invader = null;
         while (it.hasNext()) {
-          invader = it.next();
+          LogicEntity invader = it.next();
           invader.move(invader.getX(),invader.getY() + invadersVelocityY);
-          maxH = Math.max(maxH,invader.getY());
+          maxY = Math.max(maxY,invader.getY());
         }
-        if (maxH >= config.frame().getHeight() - config.player().getHeight()) {
-          if (invader == null) {
-            // This should never happen.
-            throw new AssertionError();
-          }
+        if (maxY >= config.frame().getHeight() - config.player().getHeight()) {
           /* Invaders reached players. */
-          commandBuf.add(
-              new TranslateGroupCommand(INVADER,0,config.speed().invader().getDistance()));
           commandBuf.add(new GameOverCommand());
           gameOver = true;
           return;
@@ -239,7 +234,7 @@ public class GameLoop implements Service<Void> {
           // This should never happen.
           throw new AssertionError();
         }
-        commandBuf.add(new TranslateGroupCommand(INVADER,config.speed().invader().getDistance(),0));
+        commandBuf.add(new TranslateGroupCommand(INVADER,invadersVelocityX,0));
       }
       invadersMovement.toggle();
     }
@@ -257,13 +252,14 @@ public class GameLoop implements Service<Void> {
           it.remove();
         }
       }
-      commandBuf.add(new TranslateGroupCommand(INVADER_BULLET,0,-distance));
+      commandBuf.add(new TranslateGroupCommand(INVADER_BULLET,0,distance));
 
       /* Player bullets */
+      distance = -distance;
       it = world.getIterator(PLAYER_BULLET);
       while (it.hasNext()) {
         LogicEntity bullet = it.next();
-        bullet.move(bullet.getX(),bullet.getY() - distance);
+        bullet.move(bullet.getX(),bullet.getY() + distance);
         if (bullet.getY() <= GUARD_PIXELS) {
           it.remove();
         }
@@ -311,7 +307,8 @@ public class GameLoop implements Service<Void> {
       int bulletY = shooter.getY() + config.invader().getHeight() + 5;
       LogicEntity bullet = world.spawnInvaderBullet(bulletX,bulletY);
       commandBuf.add(
-          new SpawnEntityCommand(bullet.getId(),PLAYER_BULLET,bullet.getX(),bullet.getY()));
+          new SpawnEntityCommand(bullet.getId(),INVADER_BULLET,bullet.getX(),bullet.getY()));
+      invadersShooting.setRate(world.count(INVADER) * config.getInvadersShootingFactor());
       invadersShooting.toggle();
     }
   }

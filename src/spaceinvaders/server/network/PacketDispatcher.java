@@ -45,6 +45,7 @@ class PacketDispatcher implements Service<Void> {
           state.set(false);
           throw new InterruptedException();
         }
+        break;
       }
       if (packet == null) {
         // This should never happen.

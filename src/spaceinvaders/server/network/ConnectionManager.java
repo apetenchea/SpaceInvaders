@@ -98,6 +98,7 @@ public class ConnectionManager implements Service<Void> {
           state.set(false);
           throw new InterruptedException();
         }
+        break;
       }
     }
     return null;

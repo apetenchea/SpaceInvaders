@@ -106,6 +106,7 @@ public class GameManager implements Observer, Service<Void> {
             if (state.get()) {
               throw new InterruptedException();
             }
+            break;
           } catch (ExecutionException execException) {
             // Do not stop the game manager.
             LOGGER.log(SEVERE,execException.toString(),execException);
@@ -120,6 +121,7 @@ public class GameManager implements Observer, Service<Void> {
         if (state.get()) {
           throw new InterruptedException();
         }
+        break;
       }
     }
     return null;

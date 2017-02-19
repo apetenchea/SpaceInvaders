@@ -30,7 +30,6 @@ class GamePanel extends JPanel {
 
   private final GraphicsFactory factory = GraphicsFactory.getInstance();
   private final NavigableMap<Integer,GraphicalEntity> entityMap = new TreeMap<>();
-  private final GraphicalEntityVisitor painter = new PaintingVisitor(getGraphics(),this);
   private Integer playerAvatarNumber;
   
   public GamePanel() {
@@ -41,6 +40,8 @@ class GamePanel extends JPanel {
   @Override
   protected void paintComponent(Graphics graphics) {
     super.paintComponent(graphics);
+    LOGGER.info("Painting\n");
+    final GraphicalEntityVisitor painter = new PaintingVisitor(graphics,this);
     graphics.setColor(Color.WHITE);
     graphics.setFont(new Font("Courier",Font.BOLD,15));
     for (Drawable entity : entityMap.values()) {

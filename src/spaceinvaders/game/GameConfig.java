@@ -15,7 +15,7 @@ public class GameConfig {
   private transient Map<EntityEnum,EntityConfig> entityMap = new HashMap<>();
   private Integer invaderRows = 3;
   private Integer invaderCols = 7;
-  private Integer invadersShootingRate = 1575;
+  private Integer invadersShootingFactor = 300;
   private Integer shieldsPerPlayer = 3;
   private FrameConfig frame;
   private Speed speed;
@@ -23,11 +23,11 @@ public class GameConfig {
   private GameConfig() {
     frame = new FrameConfig();
     speed = new Speed();
-    entityMap.put(EntityEnum.INVADER,new EntityConfig(64,64));
-    entityMap.put(EntityEnum.PLAYER,new EntityConfig(64,64));
-    entityMap.put(EntityEnum.SHIELD,new EntityConfig(32,32));
-    entityMap.put(EntityEnum.PLAYER_BULLET,new EntityConfig(24,24));
-    entityMap.put(EntityEnum.INVADER_BULLET,new EntityConfig(24,24));
+    entityMap.put(EntityEnum.INVADER,new EntityConfig(64,28));
+    entityMap.put(EntityEnum.PLAYER,new EntityConfig(64,62));
+    entityMap.put(EntityEnum.SHIELD,new EntityConfig(32,22));
+    entityMap.put(EntityEnum.PLAYER_BULLET,new EntityConfig(8,24));
+    entityMap.put(EntityEnum.INVADER_BULLET,new EntityConfig(22,24));
   }
 
   public static GameConfig getInstance() {
@@ -73,8 +73,8 @@ public class GameConfig {
     return invaderCols;
   }
 
-  public int getInvadersShootingRate() {
-    return invadersShootingRate;
+  public int getInvadersShootingFactor() {
+    return invadersShootingFactor;
   }
 
   public int getShieldsPerPlayer() {
@@ -164,9 +164,9 @@ public class GameConfig {
     private SpeedConfig bullet;
 
     public Speed() {
-      invader = new SpeedConfig(32,1025);
-      player = new SpeedConfig(32,0);
-      bullet = new SpeedConfig(8,250);
+      invader = new SpeedConfig(24,1200);
+      player = new SpeedConfig(12,0);
+      bullet = new SpeedConfig(6,80);
     }
 
     public SpeedConfig invader() {

@@ -69,6 +69,7 @@ class SocketWrapper extends Observable implements Service<Void> {
           state.set(false);
           throw new InterruptedException();
         }
+        break;
       }
       if (clientSocket == null) {
         continue;

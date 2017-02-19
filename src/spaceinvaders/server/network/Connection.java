@@ -78,6 +78,8 @@ public class Connection implements Service<Void> {
         }
         break;
       }
+      // TODO
+      System.err.println("TCP: " + data);
       if (data == null) {
         // EOF.
         throw new IOException();
@@ -116,6 +118,8 @@ public class Connection implements Service<Void> {
       throw new NullPointerException();
     }
     String data = new String(packet.getData());
+    // TODO
+    System.err.println("Packet: " + data);
     try {
       director.makeCommand(data.trim());
       if (!incomingCommandQueue.offer(director.getCommand())) {

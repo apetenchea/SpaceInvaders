@@ -35,7 +35,7 @@ public class ResourcesConfig {
     avatarsMap.put(PLAYER_BULLET,new ArrayList<>(Arrays.asList(
           RESOURCES_FOLDER + "bullet.png")));
     avatarsMap.put(SHIELD,new ArrayList<>(Arrays.asList(
-          RESOURCES_FOLDER + "shield.png")));
+          RESOURCES_FOLDER + "brickwall.png")));
   }
 
   /** Singleton. */

@@ -52,6 +52,7 @@ class UdpSender implements Service<Void> {
         if (state.get()) {
           throw new InterruptedException();
         }
+        break;
       }
       try {
         serverSocket.send(packet);

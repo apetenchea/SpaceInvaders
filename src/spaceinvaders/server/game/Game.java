@@ -58,8 +58,8 @@ class Game implements Service<Void> {
     /* Build world. */
     WorldDirector director = new WorldDirector(new ClassicWorldBuilder());
     List<Integer> idList = new ArrayList<>(team.size());
-    for (int index = 0; index < idList.size(); ++index) {
-      idList.set(index,team.get(index).getId());
+    for (Player player : team) {
+      idList.add(player.getId());
     }
     director.makeWorld(idList);
     world = director.getWorld();
@@ -89,13 +89,14 @@ class Game implements Service<Void> {
     }
     LOGGER.info("Started game with players: " + buf.toString());
 
+    distributeCommand(new RefreshEntitiesCommand(world.getEntities()));
+    flushCommands();
     List<Couple<Integer,String>> idToName = new ArrayList<>(team.size());
     for (Player player : team) {
       idToName.add(new Couple<Integer,String>(player.getId(),player.getName()));
     }
     distributeCommand(new SetPlayerNamesCommand(idToName));
     distributeCommand(new StartGameCommand());
-    distributeCommand(new RefreshEntitiesCommand(world.getEntities()));
     distributeCommand(new FlushScreenCommand());
     flushCommands();
 
@@ -103,26 +104,36 @@ class Game implements Service<Void> {
     try {
       int frameCounter = 0;
       while (state.get()) {
+        boolean commandsAvailable = false;
         gameLoop.processInput();
         gameLoop.update();
-        for (Command command : gameLoop.drainCommands()) {
+        Command[] commands = gameLoop.drainCommands();
+        if (0 != commands.length) {
+          commandsAvailable = true;
+        }
+        for (Command command : commands) {
           distributeCommand(command);
         }
         if (world.count(PLAYER) == 0) {
           distributeCommand(new GameOverCommand());
           state.set(false);
+          commandsAvailable = true;
         } else if (world.count(INVADER) == 0) {
           distributeCommand(new PlayersWonCommand());
           state.set(false);
+          commandsAvailable = true;
         }
         /* Once every 5 seconds do a complete refresh. */
         frameCounter = (frameCounter + 1) % (FRAMES_PER_SECOND * 5);
         if (frameCounter == 0) {
           distributeCommand(new RefreshEntitiesCommand(world.getEntities()));
+          commandsAvailable = true;
         }
-        distributeCommand(new FlushScreenCommand());
-        for (Player player : team) {
-          player.flush();
+        if (commandsAvailable) {
+          distributeCommand(new FlushScreenCommand());
+          for (Player player : team) {
+            player.flush();
+          }
         }
         Thread.sleep(1000 / FRAMES_PER_SECOND);
       }

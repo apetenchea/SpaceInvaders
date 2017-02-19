@@ -77,6 +77,7 @@ public class GameModel implements Model {
           gameState.set(false);
           throw new InterruptedException();
         }
+        break;
       }
     }
     return null;
@@ -162,7 +163,15 @@ public class GameModel implements Model {
             state.set(false);
             throw new InterruptedException();
           }
+          break;
         }
+        if (data.equals("EOF")) {
+          // Connection over.
+          state.set(false);
+          break;
+        }
+        // TODO
+        System.out.println("Got: " + data);
         try {
           director.makeCommand(data);
           setChanged();

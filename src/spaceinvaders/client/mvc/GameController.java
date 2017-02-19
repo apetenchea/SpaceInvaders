@@ -54,7 +54,8 @@ public class GameController implements Controller {
     if (!views.contains(view)) {
       view.addStartGameListener(new StartGameListener());
       view.addQuitAppListener(new CloseAppListener());
-      view.addKeyListener(new KeyPressListener(
+      view.addKeyListener(
+          new KeyPressListener(
           new MoveLeftListener(
           new MoveRightListener(
           new ShootListener(

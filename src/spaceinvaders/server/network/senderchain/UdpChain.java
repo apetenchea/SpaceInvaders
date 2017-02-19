@@ -57,10 +57,10 @@ public class UdpChain extends SenderChain {
   @Override
   public void flush() {
     List<DatagramPacket> packets = new ArrayList<>(buffer.size());
-    for (int i = 0, end = buffer.size(); i < end; ++i) {
-      String data = buffer.get(i).toJson();
+    for (Command command : buffer) {
+      String data = command.toJson();
       try {
-        packets.set(i,new DatagramPacket(data.getBytes(),data.length(),packetDestination));
+        packets.add(new DatagramPacket(data.getBytes(),data.length(),packetDestination));
       } catch (IllegalArgumentException illegalArgException) {
         // This should never happen.
         LOGGER.log(SEVERE,illegalArgException.toString(),illegalArgException);

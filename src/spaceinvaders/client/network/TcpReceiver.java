@@ -45,8 +45,9 @@ class TcpReceiver implements Service<Void> {
         }
       }
       if (data == null) {
-        // EOF.
-        throw new IOException();
+        /* EOF. */
+        data = new String("EOF");
+        state.set(false);
       }
       if (!incomingQueue.offer(data)) {
         // This should never happen.

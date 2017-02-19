@@ -40,6 +40,7 @@ class UdpReceiver implements Service<Void> {
       try {
         socket.receive(packet);
         if (!incomingQueue.offer((new String(packet.getData())).trim())) {
+          // This should never happen.
           throw new AssertionError();
         }
       } catch (Exception exception) {

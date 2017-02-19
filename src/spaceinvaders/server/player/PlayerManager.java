@@ -58,15 +58,18 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
         if (state.get()) {
           throw new InterruptedException();
         }
+        break;
       }
       Player player = new Player(connection,threadPool);
       player.push(new SetPlayerIdCommand(player.getId()));
+      player.flush();
       try {
         Thread.sleep(responseTimeoutMilliseconds);
       } catch (InterruptedException intException) {
         if (state.get()) {
           throw new InterruptedException();
         }
+        break;
       }
       List<Command> commands = player.pull();
       if (commands.size() == 1) {
@@ -74,6 +77,7 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
         command.setExecutor(player);
         command.execute();
         setChanged();
+        // Notify the game manager.
         notifyObservers(player);
       } else {
         // Player did not respect the protocol or he went offline.
