@@ -1,9 +1,12 @@
 package spaceinvaders.utility;
 
+import java.util.concurrent.Semaphore;
+
 /** Used to delay an action by a fixed number of milliseconds. */
 public class AutoSwitch implements Service<Void> {
   private final ServiceState running = new ServiceState();
   private final ServiceState switchState = new ServiceState();
+  private final Semaphore loop = new Semaphore(0);
   private final Long rateMs;
 
   public AutoSwitch(long rateMs) {
@@ -28,11 +31,12 @@ public class AutoSwitch implements Service<Void> {
       }
       switchState.set(true);
       try {
-        wait();
+        loop.acquire();
       } catch (InterruptedException intException) {
         if (running.get()) {
           throw new InterruptedException();
         }
+        break;
       }
     }
     return null;
@@ -51,6 +55,6 @@ public class AutoSwitch implements Service<Void> {
   public void toggle() {
     boolean value = switchState.get();
     switchState.set(!value);
-    notify();
+    loop.release();
   }
 }
