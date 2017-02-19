@@ -7,7 +7,13 @@ public class AutoSwitch implements Service<Void> {
   private final ServiceState running = new ServiceState();
   private final ServiceState switchState = new ServiceState();
   private final Semaphore loop = new Semaphore(0);
-  private final Long rateMs;
+  private Long rateMs;
+
+  /** Construct an {@code AutoSwitch} with the rate set to 1000 Ms. */
+  public AutoSwitch() {
+    rateMs = 1000L;
+    running.set(true);
+  }
 
   public AutoSwitch(long rateMs) {
     this.rateMs = rateMs;
@@ -56,5 +62,9 @@ public class AutoSwitch implements Service<Void> {
     boolean value = switchState.get();
     switchState.set(!value);
     loop.release();
+  }
+
+  public void setRate(long rateMs) {
+    this.rateMs = rateMs;
   }
 }
