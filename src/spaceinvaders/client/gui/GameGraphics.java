@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;
@@ -81,6 +82,7 @@ public class GameGraphics implements UiObject {
   /** Repainting data on the screen. */
   public void flush() {
     gamePanel.repaint();
+    gamePanel.revalidate();
   }
 
   /**
