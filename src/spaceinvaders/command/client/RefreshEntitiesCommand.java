@@ -1,6 +1,6 @@
 package spaceinvaders.command.client;
 
-import static spaceinvaders.command.ProtocolEnum.UDP;
+import static spaceinvaders.command.ProtocolEnum.TCP;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public class RefreshEntitiesCommand extends Command {
   private List<Entity> entities;
 
   RefreshEntitiesCommand() {
-    super(RefreshEntitiesCommand.class.getName(),UDP);
+    super(RefreshEntitiesCommand.class.getName(),TCP);
   }
 
   public RefreshEntitiesCommand(List<Entity> entities) {
