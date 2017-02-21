@@ -98,8 +98,9 @@ public class GameLoop implements Service<Void> {
   /** Handle user input that has happened since the last call. */
   public void processInput() {
     Iterator<Player> it = team.iterator();
+    Player player;
     while (it.hasNext()) {
-      Player player = it.next();
+      player = it.next();
       if (player.isOnline()) {
         List<Command> commands = player.pull();
         for (Command command : commands) {
@@ -109,6 +110,13 @@ public class GameLoop implements Service<Void> {
       } else {
         player.close();
         it.remove();
+        Iterator<LogicEntity> entityIt = world.getIterator(PLAYER);
+        while (entityIt.hasNext()) {
+          if (entityIt.next().getId() == player.getId()) {
+            entityIt.remove();
+            break;
+          }
+        }
         commandBuf.add(new WipeOutEntityCommand(player.getId()));
       }
     }

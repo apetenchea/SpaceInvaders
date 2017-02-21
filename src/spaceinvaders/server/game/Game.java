@@ -123,8 +123,8 @@ class Game implements Service<Void> {
           state.set(false);
           commandsAvailable = true;
         }
-        /* Once every 5 seconds do a complete refresh. */
-        frameCounter = (frameCounter + 1) % (FRAMES_PER_SECOND * 5);
+        /* Do a complete refresh every 8 seconds. */
+        frameCounter = (frameCounter + 1) % (FRAMES_PER_SECOND * 8);
         if (frameCounter == 0) {
           distributeCommand(new RefreshEntitiesCommand(world.getEntities()));
           commandsAvailable = true;
