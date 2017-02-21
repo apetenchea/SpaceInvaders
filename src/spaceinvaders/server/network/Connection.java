@@ -78,8 +78,9 @@ public class Connection implements Service<Void> {
         }
         break;
       }
-      // TODO
-      System.err.println("TCP: " + data);
+
+      LOGGER.info("TCP: " + data);
+
       if (data == null) {
         // EOF.
         throw new IOException();
