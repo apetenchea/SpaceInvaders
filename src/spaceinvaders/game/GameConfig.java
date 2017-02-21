@@ -164,9 +164,9 @@ public class GameConfig {
     private SpeedConfig bullet;
 
     public Speed() {
-      invader = new SpeedConfig(24,1200);
+      invader = new SpeedConfig(24,1000);
       player = new SpeedConfig(12,0);
-      bullet = new SpeedConfig(6,100);
+      bullet = new SpeedConfig(4,50);
     }
 
     public SpeedConfig invader() {

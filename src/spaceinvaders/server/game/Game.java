@@ -32,7 +32,7 @@ import spaceinvaders.utility.ServiceState;
  */
 class Game implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(Game.class.getName());
-  private static final int FRAMES_PER_SECOND = 20;
+  private static final int FRAMES_PER_SECOND = 40;
   private static final boolean PREDICTABLE_GAME = false;
 
   private final ServiceState state = new ServiceState();
