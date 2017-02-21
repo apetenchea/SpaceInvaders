@@ -125,9 +125,12 @@ class Game implements Service<Void> {
         }
         /* Do a complete refresh every 8 seconds. */
         frameCounter = (frameCounter + 1) % (FRAMES_PER_SECOND * 8);
-        if (frameCounter == 0) {
+        if (frameCounter == FRAMES_PER_SECOND * 8) {
           distributeCommand(new RefreshEntitiesCommand(world.getEntities()));
           commandsAvailable = true;
+          frameCounter = 0;
+        } else {
+          ++frameCounter;
         }
         if (commandsAvailable) {
           distributeCommand(new FlushScreenCommand());

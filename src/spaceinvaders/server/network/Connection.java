@@ -79,7 +79,7 @@ public class Connection implements Service<Void> {
         break;
       }
 
-      LOGGER.info("TCP: " + data);
+      LOGGER.fine("TCP: " + data);
 
       if (data == null) {
         // EOF.
@@ -119,8 +119,9 @@ public class Connection implements Service<Void> {
       throw new NullPointerException();
     }
     String data = new String(packet.getData());
-    // TODO
-    System.err.println("Packet: " + data);
+
+    LOGGER.fine("UDP: " + data);
+
     try {
       director.makeCommand(data.trim());
       if (!incomingCommandQueue.offer(director.getCommand())) {
