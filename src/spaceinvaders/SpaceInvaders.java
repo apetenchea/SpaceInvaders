@@ -23,7 +23,6 @@ public class SpaceInvaders {
   private static final Logger LOGGER = Logger.getLogger(SpaceInvaders.class.getName());
 
   public static void main(String[] args) {
-    setGlobalLoggingLevel(Level.FINE);
     if (args.length < 1) {
       LOGGER.info("Usage: " + args[0] + " help|client|server [options]");
     }
