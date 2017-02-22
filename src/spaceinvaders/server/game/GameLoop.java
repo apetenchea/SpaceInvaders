@@ -257,7 +257,8 @@ public class GameLoop implements Service<Void> {
         while (it.hasNext()) {
           LogicEntity bullet = it.next();
           bullet.move(bullet.getX(),bullet.getY() + distance);
-          if (bullet.getY() >= config.frame().getHeight() - GUARD_PIXELS) {
+          if (bullet.getY() >= config.frame().getHeight() + config.frame().getHeight() / 4) {
+            /* Dirty trick to make sure the bullet disappears. */
             it.remove();
           }
         }
@@ -271,7 +272,7 @@ public class GameLoop implements Service<Void> {
         while (it.hasNext()) {
           LogicEntity bullet = it.next();
           bullet.move(bullet.getX(),bullet.getY() + distance);
-          if (bullet.getY() <= GUARD_PIXELS) {
+          if (bullet.getY() + config.playerBullet().getHeight() < 0) {
             it.remove();
           }
         }
@@ -384,7 +385,6 @@ public class GameLoop implements Service<Void> {
 
           /* Speed things up. */
           invadersShooting.setRate(world.count(INVADER) * config.getInvadersShootingFactor());
-          invadersMovement.setRate(invadersMovement.getRate() - 10);
           break;
         }
       }
