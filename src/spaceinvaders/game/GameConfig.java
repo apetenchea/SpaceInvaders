@@ -13,6 +13,7 @@ public class GameConfig {
   private static transient GameConfig singleton;
 
   private transient Map<EntityEnum,EntityConfig> entityMap = new HashMap<>();
+  private Boolean predictable = false;
   private Integer invaderRows = 4;
   private Integer invaderCols = 7;
   private Integer invadersShootingFactor = 300;
@@ -55,6 +56,10 @@ public class GameConfig {
           Paths.get("/home/alex/work/eclipse/SpaceInvaders/WorldConfig.json")));
     Gson gson = new Gson();
     return gson.fromJson(json,GameConfig.class);
+  }
+
+  public boolean isPredictable() {
+    return predictable;
   }
 
   public FrameConfig frame() {
@@ -164,7 +169,7 @@ public class GameConfig {
     private SpeedConfig bullet;
 
     public Speed() {
-      invader = new SpeedConfig(24,1000);
+      invader = new SpeedConfig(24,900);
       player = new SpeedConfig(12,0);
       bullet = new SpeedConfig(4,50);
     }
