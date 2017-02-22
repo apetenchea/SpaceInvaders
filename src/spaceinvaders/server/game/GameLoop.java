@@ -41,7 +41,7 @@ public class GameLoop implements Service<Void> {
   private final World world;
   private final Random rng;
   private final ExecutorService threadPool;
-  private final Integer invadersVelocityY = config.speed().invader().getDistance();
+  private final Integer invadersVelocityY = config.speed().invader().getDistance() * 2;
   private Integer invadersVelocityX = config.speed().invader().getDistance();
   private boolean gameOver = false;
 
@@ -216,7 +216,7 @@ public class GameLoop implements Service<Void> {
       if (moveDown) {
         // Change horizontal direction.
         invadersVelocityX = -invadersVelocityX;
-        commandBuf.add(new TranslateGroupCommand(INVADER,0,config.speed().invader().getDistance()));
+        commandBuf.add(new TranslateGroupCommand(INVADER,0,invadersVelocityY));
         int maxY = Integer.MIN_VALUE;
         it = world.getIterator(INVADER);
         while (it.hasNext()) {
@@ -316,7 +316,6 @@ public class GameLoop implements Service<Void> {
       LogicEntity bullet = world.spawnInvaderBullet(bulletX,bulletY);
       commandBuf.add(
           new SpawnEntityCommand(bullet.getId(),INVADER_BULLET,bullet.getX(),bullet.getY()));
-      invadersShooting.setRate(world.count(INVADER) * config.getInvadersShootingFactor());
       invadersShooting.toggle();
     }
   }
@@ -378,6 +377,10 @@ public class GameLoop implements Service<Void> {
           commandBuf.add(new IncrementScoreCommand());
           invaderIt.remove();
           playerBulletIt.remove();
+
+          /* Speed things up. */
+          invadersShooting.setRate(world.count(INVADER) * config.getInvadersShootingFactor());
+          invadersMovement.setRate(invadersMovement.getRate() - 10);
           break;
         }
       }
