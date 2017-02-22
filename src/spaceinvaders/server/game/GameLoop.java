@@ -252,27 +252,31 @@ public class GameLoop implements Service<Void> {
       int distance = config.speed().bullet().getDistance();
 
       /* Invader bullets */
-      it = world.getIterator(INVADER_BULLET);
-      while (it.hasNext()) {
-        LogicEntity bullet = it.next();
-        bullet.move(bullet.getX(),bullet.getY() + distance);
-        if (bullet.getY() >= config.frame().getHeight() - GUARD_PIXELS) {
-          it.remove();
+      if (world.count(INVADER_BULLET) > 0) {
+        it = world.getIterator(INVADER_BULLET);
+        while (it.hasNext()) {
+          LogicEntity bullet = it.next();
+          bullet.move(bullet.getX(),bullet.getY() + distance);
+          if (bullet.getY() >= config.frame().getHeight() - GUARD_PIXELS) {
+            it.remove();
+          }
         }
+        commandBuf.add(new TranslateGroupCommand(INVADER_BULLET,0,distance));
       }
-      commandBuf.add(new TranslateGroupCommand(INVADER_BULLET,0,distance));
 
       /* Player bullets */
       distance = -distance;
-      it = world.getIterator(PLAYER_BULLET);
-      while (it.hasNext()) {
-        LogicEntity bullet = it.next();
-        bullet.move(bullet.getX(),bullet.getY() + distance);
-        if (bullet.getY() <= GUARD_PIXELS) {
-          it.remove();
+      if (world.count(PLAYER_BULLET) > 0) {
+        it = world.getIterator(PLAYER_BULLET);
+        while (it.hasNext()) {
+          LogicEntity bullet = it.next();
+          bullet.move(bullet.getX(),bullet.getY() + distance);
+          if (bullet.getY() <= GUARD_PIXELS) {
+            it.remove();
+          }
         }
+        commandBuf.add(new TranslateGroupCommand(PLAYER_BULLET,0,distance));
       }
-      commandBuf.add(new TranslateGroupCommand(PLAYER_BULLET,0,distance));
 
       bulletsMovement.toggle();
     }
