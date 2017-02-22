@@ -64,10 +64,6 @@ public class AutoSwitch implements Service<Void> {
     loop.release();
   }
 
-  public long getRate() {
-    return rateMs;
-  }
-
   public void setRate(long rateMs) {
     this.rateMs = rateMs;
   }
