@@ -13,7 +13,7 @@ public class GameConfig {
   private static transient GameConfig singleton;
 
   private transient Map<EntityEnum,EntityConfig> entityMap = new HashMap<>();
-  private Integer invaderRows = 3;
+  private Integer invaderRows = 4;
   private Integer invaderCols = 7;
   private Integer invadersShootingFactor = 300;
   private Integer shieldsPerPlayer = 3;
