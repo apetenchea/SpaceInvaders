@@ -11,6 +11,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import spaceinvaders.client.ClientConfig;
+import spaceinvaders.exceptions.IllegalPortNumberException;
 
 /**
  * Used to configure the game before playing.
@@ -29,7 +30,8 @@ public class Menu implements UiObject {
   private final JTextField serverPortTxt = new JTextField(Integer.toString(CONFIG.getServerPort()));
   private final JTextField userNameTxt = new JTextField(CONFIG.getUserName(),
       CONFIG.getMaxUserNameLength());
-  private final JSpinner teamSizeSpn = new JSpinner(new SpinnerNumberModel(1,1,3,1));
+  private final JSpinner teamSizeSpn = new JSpinner(
+      new SpinnerNumberModel(1,1,CONFIG.getMaxPlayers(),1));
 
   /** Construct a new menu with the default values. */
   public Menu() {
@@ -74,11 +76,19 @@ public class Menu implements UiObject {
     quitBtn.addActionListener(listener);
   }
 
-  /** Put the values entered in the form into the config. */
+  /**
+   * Put the values entered in the form into the config.
+   *
+   * @throws IllegalPortNumberException - if the port field contains illegal data.
+   */
   public void setConfig() {
     CONFIG.setTeamSize((Integer) teamSizeSpn.getValue());
     CONFIG.setServerAddr(serverAddrTxt.getText());
-    CONFIG.setServerPort(Integer.parseInt(serverPortTxt.getText()));
+    try {
+      CONFIG.setServerPort(Integer.parseInt(serverPortTxt.getText()));
+    } catch (NumberFormatException numException) {
+      throw new IllegalPortNumberException();
+    }
     CONFIG.setUserName(userNameTxt.getText());
   }
 

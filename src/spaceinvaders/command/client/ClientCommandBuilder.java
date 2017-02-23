@@ -8,9 +8,10 @@ public class ClientCommandBuilder extends CommandBuilder {
   public ClientCommandBuilder() {
     super(new FlushScreenCommand(),
           new GameOverCommand(),
-          new IncrementScoreCommand(),
+          new ChangeScoreCommand(),
           new MoveEntityCommand(),
           new PlayersWonCommand(),
+          new PlayersLostCommand(),
           new RefreshEntitiesCommand(),
           new SetPlayerIdCommand(),
           new SetPlayerNamesCommand(),

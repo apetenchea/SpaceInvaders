@@ -2,9 +2,6 @@ package spaceinvaders.client.mvc;
 
 import static java.util.logging.Level.SEVERE;
 
-import com.google.gson.JsonSyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Observable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
@@ -19,7 +16,6 @@ import spaceinvaders.command.Command;
 import spaceinvaders.command.CommandDirector;
 import spaceinvaders.command.client.ClientCommandBuilder;
 import spaceinvaders.exceptions.SocketOpeningException;
-import spaceinvaders.exceptions.CommandNotFoundException;
 import spaceinvaders.utility.ServiceState;
 import spaceinvaders.utility.Service;
 
@@ -35,13 +31,12 @@ public class GameModel implements Model {
   private final CommandDispatcher dispatcher = new CommandDispatcher();
   private final ExecutorService connectionExecutor = Executors.newSingleThreadExecutor();
   private final ExecutorService dispatcherExecutor = Executors.newSingleThreadExecutor();
-  private final List<Future<?>> future = new ArrayList<>();
   private final ServiceState connectionState = new ServiceState();
   private final ServiceState gameState = new ServiceState();
   private NetworkConnection connection;
 
   public GameModel() {
-    future.add(dispatcherExecutor.submit(dispatcher));
+    dispatcherExecutor.submit(dispatcher);
   }
 
   /**
@@ -56,20 +51,17 @@ public class GameModel implements Model {
   @Override
   public Void call() throws SocketOpeningException, ExecutionException,
          InterruptedException {
-    incomingQueue.clear();
     // This will open up a network connection, and might throw exceptions.
     connection = new NetworkConnection(incomingQueue);
-    future.add(connectionExecutor.submit(connection));
-    final long checkingRateMilliseconds = 1000;
+    Future<?> connectionFuture = connectionExecutor.submit(connection);
+    final long checkingRateMilliseconds = 500;
     connectionState.set(true);
     while (connectionState.get()) {
       try {
-        for (Future<?> it : future) {
-          if (it.isDone()) {
-            connectionState.set(false);
-            gameState.set(false);
-            it.get();
-          }
+        if (connectionFuture.isDone()) {
+          connectionState.set(false);
+          gameState.set(false);
+          connectionFuture.get();
         }
         Thread.sleep(checkingRateMilliseconds);
       } catch (CancellationException | InterruptedException exception) {
@@ -121,6 +113,7 @@ public class GameModel implements Model {
       connection.shutdown();
     }
     connection = null;
+    incomingQueue.clear();
   }
 
   @Override
@@ -159,6 +152,8 @@ public class GameModel implements Model {
         try {
           data = incomingQueue.take();
         } catch (InterruptedException interruptedException) {
+          connectionState.set(false);
+          gameState.set(false);
           if (state.get()) {
             state.set(false);
             throw new InterruptedException();
@@ -167,18 +162,17 @@ public class GameModel implements Model {
         }
         if (data.equals("EOF")) {
           // Connection over.
-          state.set(false);
-          break;
-        }
-        // TODO
-        System.out.println("Got: " + data);
-        try {
-          director.makeCommand(data);
-          setChanged();
-          // Notify the controller.
-          notifyObservers(director.getCommand());
-        } catch (JsonSyntaxException | CommandNotFoundException exception) {
-          LOGGER.log(SEVERE,exception.toString(),exception);
+          connectionState.set(false);
+          gameState.set(false);
+        } else {
+          try {
+            director.makeCommand(data);
+            setChanged();
+            // Notify the controller.
+            notifyObservers(director.getCommand());
+          } catch (Exception ex) {
+            LOGGER.log(SEVERE,ex.toString(),ex);
+          }
         }
       }
       return null;

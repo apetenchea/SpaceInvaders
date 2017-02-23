@@ -5,7 +5,7 @@ import static spaceinvaders.game.EntityEnum.PLAYER_BULLET;
 import spaceinvaders.game.GameConfig;
 
 /** Bullet shot by a player. */
-class PlayerBullet extends LogicEntity {
+public class PlayerBullet extends LogicEntity {
   private final Integer shooterId;
 
   /**

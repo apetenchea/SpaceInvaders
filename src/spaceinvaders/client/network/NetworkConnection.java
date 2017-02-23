@@ -103,7 +103,7 @@ public class NetworkConnection implements Service<Void> {
     List<Future<?>> future = new ArrayList<>();
     future.add(tcpReceiverExecutor.submit(tcpReceiver));
     future.add(udpReceiverExecutor.submit(udpReceiver));
-    final long checkingRateMilliseconds = 1000;
+    final long checkingRateMilliseconds = 500;
     while (state.get()) {
       try {
         for (Future<?> it : future) {

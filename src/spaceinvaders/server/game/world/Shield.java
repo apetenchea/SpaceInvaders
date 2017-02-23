@@ -5,7 +5,7 @@ import static spaceinvaders.game.EntityEnum.SHIELD;
 import spaceinvaders.game.GameConfig;
 
 /** A shield protecting the player. */
-class Shield extends LogicEntity {
+public class Shield extends LogicEntity {
   /**
    * @param posX - X coordinate.
    * @param posY - Y coordinate.

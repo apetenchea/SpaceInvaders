@@ -1,14 +1,17 @@
 package spaceinvaders.client.gui;
 
+import static spaceinvaders.game.EntityEnum.INVADER;
+import static spaceinvaders.game.EntityEnum.PLAYER;
+import static spaceinvaders.game.EntityEnum.PLAYER_BULLET;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
-import java.util.logging.Logger;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import javax.swing.JPanel;
 import spaceinvaders.client.gui.entities.Drawable;
 import spaceinvaders.client.gui.entities.GraphicalEntity;
@@ -26,10 +29,10 @@ import spaceinvaders.game.EntityEnum;
  */
 @SuppressWarnings("serial")
 class GamePanel extends JPanel {
-  private static final Logger LOGGER = Logger.getLogger(GamePanel.class.getName());
-
   private final GraphicsFactory factory = GraphicsFactory.getInstance();
-  private final NavigableMap<Integer,GraphicalEntity> entityMap = new TreeMap<>();
+  private final ConcurrentNavigableMap<Integer,GraphicalEntity> entityMap =
+    new ConcurrentSkipListMap<>();
+  private final SoundManager sound = new SoundManager();
   private Integer playerAvatarNumber;
   
   public GamePanel() {
@@ -40,7 +43,6 @@ class GamePanel extends JPanel {
   @Override
   protected void paintComponent(Graphics graphics) {
     super.paintComponent(graphics);
-    LOGGER.info("Painting\n");
     final GraphicalEntityVisitor painter = new PaintingVisitor(graphics,this);
     graphics.setColor(Color.WHITE);
     graphics.setFont(new Font("Courier",Font.BOLD,15));
@@ -146,6 +148,9 @@ class GamePanel extends JPanel {
    */
   public void spawnEntity(int id, EntityEnum type, int posX, int posY) {
     entityMap.put(id,factory.create(new Entity(type,id,posX,posY)));
+    if (type.equals(PLAYER_BULLET)) {
+      sound.shooting();
+    }
   }
 
   /**
@@ -156,8 +161,14 @@ class GamePanel extends JPanel {
    * @throws NullPointerException - if the {@code id} could not be found.
    */
   public void wipeOutEntity(int id) {
-    if (entityMap.remove(id) == null) {
+    GraphicalEntity entity = entityMap.remove(id);
+    if (entity == null) {
       throw new NullPointerException();
+    }
+    if (entity.getType().equals(INVADER)) {
+      sound.deadInvader();
+    } else if (entity.getType().equals(PLAYER)) {
+      sound.deadPlayer();
     }
   }
 

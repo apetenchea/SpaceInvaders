@@ -101,8 +101,13 @@ public class GameController implements Controller {
         throw new AssertionError();
       }
 
-      views.get(0).setConfig();
-      ClientConfig config = ClientConfig.getInstance();;
+      try {
+        views.get(0).setConfig();
+      } catch (IllegalPortNumberException portException) {
+        displayErrorOnViews(portException);
+        return;
+      }
+      ClientConfig config = ClientConfig.getInstance();
       try {
         config.verify();
       } catch (InvalidServerAddressException | IllegalPortNumberException
@@ -111,30 +116,35 @@ public class GameController implements Controller {
         LOGGER.log(SEVERE,exception.toString(),exception);
         return;
       }
-      try {
-        Future<?> modelFuture = modelExecutor.submit(model);
-        modelStateChecker.submit(new Callable<Void>() {
-          @Override
-          public Void call() {
-            final int checkingRateMs = 1000;
-            while (!modelFuture.isDone()) {
-              try {
-                Thread.sleep(checkingRateMs);
-                modelFuture.get();
-              } catch (Exception ex) {
-                if (!shuttingDown) {
-                  LOGGER.log(SEVERE,ex.toString(),ex);
-                  model.exitGame();
-                  break;
-                }
+      Future<?> modelFuture = modelExecutor.submit(model);
+      modelStateChecker.submit(new Callable<Void>() {
+        @Override
+        public Void call() {
+          final int checkingRateMs = 500;
+          while (!modelFuture.isDone()) {
+            try {
+              Thread.sleep(checkingRateMs);
+            } catch (InterruptedException intException) {
+              if (!shuttingDown) {
+                LOGGER.log(SEVERE,intException.toString(),intException);
               }
+              model.exitGame();
+              break;
             }
-            return null;
           }
-        });
-      } catch (Exception exception) {
-        LOGGER.log(SEVERE,exception.toString(),exception);
-      }
+          try {
+            modelFuture.get();
+          } catch (Exception ex) {
+            if (!shuttingDown) {
+              displayErrorOnViews((Exception) ex.getCause());
+              LOGGER.log(SEVERE,ex.toString(),ex);
+            }
+          } finally {
+            model.exitGame();
+          }
+          return null;
+        }
+      });
     }
   }
 

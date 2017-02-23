@@ -72,28 +72,30 @@ public class GameView implements View {
   }
 
   @Override
-  public void quitGame() {
-    game.setMessage("Press ESC to return to menu");
-  }
-
-  @Override
   public void startGame() {
-    game.setMessage("Game started");
+    game.setMessage("Game On!");
   }
 
   @Override
   public void gameOver() {
-    game.setMessage("Your ship has been destroyed. Press ESC to return to menu.");
+    game.setMessage("Your ship was destroyed!");
+    game.showGameOverImage();
   }
 
   @Override
   public void youWon() {
-    game.setMessage("You won!");
+    game.setMessage("Congratulations! Your team is victorious!");
+    game.showVictoryImage();
   }
 
   @Override
-  public void incrementScore() {
-    game.incrementScore();
+  public void youLost() {
+    game.setMessage("Your team was destroyed!");
+  }
+
+  @Override
+  public void changeScore(int playerId, int value) {
+    game.changeScore(playerId,value);
   }
 
   @Override

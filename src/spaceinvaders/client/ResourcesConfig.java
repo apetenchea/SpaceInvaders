@@ -20,7 +20,7 @@ public class ResourcesConfig {
   private static final String RESOURCES_FOLDER = "../resources/";
   private static ResourcesConfig singleton;
 
-  private Map<EntityEnum,List<String>> avatarsMap;
+  private final Map<EntityEnum,List<String>> avatarsMap;
 
   private ResourcesConfig() {
     avatarsMap = new HashMap<>();

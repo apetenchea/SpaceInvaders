@@ -13,8 +13,8 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import spaceinvaders.command.Command;
+import spaceinvaders.command.client.ChangeScoreCommand;
 import spaceinvaders.command.client.GameOverCommand;
-import spaceinvaders.command.client.IncrementScoreCommand;
 import spaceinvaders.command.client.MoveEntityCommand;
 import spaceinvaders.command.client.SpawnEntityCommand;
 import spaceinvaders.command.client.TranslateGroupCommand;
@@ -22,6 +22,7 @@ import spaceinvaders.command.client.WipeOutEntityCommand;
 import spaceinvaders.game.EntityEnum;
 import spaceinvaders.game.GameConfig;
 import spaceinvaders.server.game.world.LogicEntity;
+import spaceinvaders.server.game.world.PlayerBullet;
 import spaceinvaders.server.game.world.World;
 import spaceinvaders.server.player.Player;
 import spaceinvaders.utility.AutoSwitch;
@@ -273,6 +274,7 @@ public class GameLoop implements Service<Void> {
           LogicEntity bullet = it.next();
           bullet.move(bullet.getX(),bullet.getY() + distance);
           if (bullet.getY() + config.playerBullet().getHeight() < 0) {
+            commandBuf.add(new ChangeScoreCommand(((PlayerBullet) bullet).getShooterId(),-1));
             it.remove();
           }
         }
@@ -379,7 +381,7 @@ public class GameLoop implements Service<Void> {
         if (playerBullet.collides(invader)) {
           commandBuf.add(new WipeOutEntityCommand(invader.getId()));
           commandBuf.add(new WipeOutEntityCommand(playerBullet.getId()));
-          commandBuf.add(new IncrementScoreCommand());
+          commandBuf.add(new ChangeScoreCommand(((PlayerBullet) playerBullet).getShooterId(),2));
           invaderIt.remove();
           playerBulletIt.remove();
 

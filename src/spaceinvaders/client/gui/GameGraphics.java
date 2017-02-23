@@ -1,19 +1,21 @@
 package spaceinvaders.client.gui;
 
 import static java.awt.BorderLayout.CENTER;
-import static java.awt.BorderLayout.NORTH;
+import static java.awt.BorderLayout.WEST;
 import static javax.swing.JFrame.DO_NOTHING_ON_CLOSE;
 import static javax.swing.SwingConstants.LEFT;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+import javax.swing.Box;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import spaceinvaders.client.ClientConfig;
 import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;
 import spaceinvaders.game.GameConfig;
@@ -21,15 +23,14 @@ import spaceinvaders.utility.Couple;
 
 /** Displays the game. */
 public class GameGraphics implements UiObject {
-  private static final Logger LOGGER = Logger.getLogger(GameGraphics.class.getName());
-
-  // TODO try to eliminate the need of this.
-  private static final int FRAME_HEIGHT_COMPENSATION = 64;
-
+  private final ClientConfig config = ClientConfig.getInstance();
   private final JFrame frame = new JFrame("SpaceInvaders");
   private final GamePanel gamePanel = new GamePanel();
   private final JLabel messageLbl = new JLabel();
-  private Integer score;
+  private final JLabel[] scoreLbl = new JLabel[1 + config.getMaxPlayers()]; 
+  private final JLabel controlsLbl = new JLabel();
+  private final List<Couple<Integer,Integer>> score = new ArrayList<>();
+  private List<Couple<Integer,String>> playerNames = new ArrayList<>();
 
   /** Construct an empty game frame. */
   public GameGraphics() {
@@ -37,19 +38,40 @@ public class GameGraphics implements UiObject {
 
     frame.setResizable(false);
     frame.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    frame.setSize(config.frame().getWidth(),config.frame().getHeight() + FRAME_HEIGHT_COMPENSATION);
+    /* Full screen. */
+    frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+    frame.setUndecorated(true);
 
     final JPanel contentPane = new JPanel();
     contentPane.setBorder(new EmptyBorder(5,5,5,5));
     contentPane.setLayout(new BorderLayout(0,0));
-    frame.setContentPane(contentPane);
+
+    controlsLbl.setText("<html>Controls:" +
+        "<br>ESC - exit" +
+        "<br>SPACE - shoot" +
+        "<br>LEFT/RIGHT - move</html>");
 
     final JPanel messagePanel = new JPanel();
+    Box box = Box.createVerticalBox();
     messageLbl.setHorizontalAlignment(LEFT);
-    messagePanel.add(messageLbl);
+    box.add(messageLbl);
+    box.add(controlsLbl);
+    for (int index = 0; index < scoreLbl.length; ++index) {
+      scoreLbl[index] = new JLabel();
+      box.add(scoreLbl[index]);
+    }
+    scoreLbl[0].setText("Score");
+    messagePanel.add(box);
+    int screenWidth = (int) frame.getToolkit().getScreenSize().getWidth();
+    int screenHeight = (int) frame.getToolkit().getScreenSize().getHeight();
+    messagePanel.setPreferredSize(new Dimension(screenWidth - config.frame().getWidth(),screenHeight));
 
-    contentPane.add(messagePanel,NORTH);
+    gamePanel.setPreferredSize(new Dimension(config.frame().getWidth(),config.frame().getHeight()));
+
+    contentPane.add(messagePanel,WEST);
     contentPane.add(gamePanel,CENTER);
+
+    frame.setContentPane(contentPane);
   }
 
   @Override
@@ -75,7 +97,11 @@ public class GameGraphics implements UiObject {
 
   /** Initialize game. */
   public void init() {
-    score = 0;
+    for (int index = 1; index < scoreLbl.length; ++index) {
+      scoreLbl[index].setText("");
+    }
+    score.clear();
+    playerNames.clear();
     gamePanel.init();
   }
 
@@ -96,8 +122,12 @@ public class GameGraphics implements UiObject {
     if (couples == null) {
       throw new NullPointerException();
     }
+    playerNames = couples;
+    int index = 1;
     for (Couple<Integer,String> couple : couples) {
       gamePanel.setPlayer(couple.getFirst(),couple.getSecond());
+      score.add(new Couple<>(couple.getFirst(),0));
+      scoreLbl[index++].setText(couple.getSecond() + ": 0");
     }
   }
 
@@ -113,10 +143,27 @@ public class GameGraphics implements UiObject {
     messageLbl.setText(msg);
   }
 
-  /** Increment score. */
-  public void incrementScore() {
-    ++score;
-    setMessage("Score: " + Integer.toString(score));
+  /** Display a game over image on the game panel. */
+  public void showGameOverImage() {
+    //TODO
+  }
+
+  /** Display a victory image on the game panel. */
+  public void showVictoryImage() {
+    //TODO
+  }
+
+  /** Change score. */
+  public void changeScore(int playerId, int value) {
+    for (int index = 0; index < score.size(); ++index) {
+      int id = score.get(index).getFirst();
+      int scr = score.get(index).getSecond();
+      if (id == playerId) {
+        scr = Math.max(0,scr + value);
+        score.set(index,new Couple<>(id,scr));
+        scoreLbl[index + 1].setText(playerNames.get(index).getSecond() + ": " + scr);
+      }
+    }
   }
 
   /**

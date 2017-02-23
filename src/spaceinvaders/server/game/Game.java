@@ -11,12 +11,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 import spaceinvaders.command.Command;
 import spaceinvaders.command.client.FlushScreenCommand;
-import spaceinvaders.command.client.GameOverCommand;
 import spaceinvaders.command.client.PlayersWonCommand;
+import spaceinvaders.command.client.PlayersLostCommand;
 import spaceinvaders.command.client.QuitGameCommand;
 import spaceinvaders.command.client.RefreshEntitiesCommand;
 import spaceinvaders.command.client.SetPlayerNamesCommand;
 import spaceinvaders.command.client.StartGameCommand;
+import spaceinvaders.game.GameConfig;
 import spaceinvaders.server.game.world.ClassicWorldBuilder;
 import spaceinvaders.server.game.world.World;
 import spaceinvaders.server.game.world.WorldDirector;
@@ -33,7 +34,7 @@ import spaceinvaders.utility.ServiceState;
 class Game implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(Game.class.getName());
   private static final int FRAMES_PER_SECOND = 40;
-  private static final boolean PREDICTABLE_GAME = false;
+  private static final boolean PREDICTABLE_GAME = GameConfig.getInstance().isPredictable();
 
   private final ServiceState state = new ServiceState();
   private final List<Player> team;
@@ -87,7 +88,7 @@ class Game implements Service<Void> {
     for (Player player : team) {
       buf.append(player.getName() + "@" + player.getId() + " ");
     }
-    LOGGER.info("Started game with players: " + buf.toString());
+    LOGGER.info("Started game " + hashCode() + " with players: " + buf.toString());
 
     distributeCommand(new RefreshEntitiesCommand(world.getEntities()));
     flushCommands();
@@ -115,7 +116,7 @@ class Game implements Service<Void> {
           distributeCommand(command);
         }
         if (world.count(PLAYER) == 0) {
-          distributeCommand(new GameOverCommand());
+          distributeCommand(new PlayersLostCommand());
           state.set(false);
           commandsAvailable = true;
         } else if (world.count(INVADER) == 0) {
@@ -148,6 +149,7 @@ class Game implements Service<Void> {
       distributeCommand(new QuitGameCommand());
       shutdown();
     }
+    LOGGER.info("Game " + hashCode() + " terminated");
 
     return null; 
   }

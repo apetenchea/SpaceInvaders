@@ -5,7 +5,7 @@ import static spaceinvaders.game.EntityEnum.INVADER_BULLET;
 import spaceinvaders.game.GameConfig;
 
 /** Bullet shot by an invader. */
-class InvaderBullet extends LogicEntity {
+public class InvaderBullet extends LogicEntity {
   /**
    * @param posX - X coordinate.
    * @param posY - Y coordinate.

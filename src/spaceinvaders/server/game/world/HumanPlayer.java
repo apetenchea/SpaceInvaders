@@ -5,7 +5,7 @@ import static spaceinvaders.game.EntityEnum.PLAYER;
 import spaceinvaders.game.GameConfig;
 
 /** Human player character. */
-class HumanPlayer extends LogicEntity {
+public class HumanPlayer extends LogicEntity {
   /**
    * @param id - player ID.
    * @param posX - X coordinate.

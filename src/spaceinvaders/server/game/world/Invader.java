@@ -5,7 +5,7 @@ import static spaceinvaders.game.EntityEnum.INVADER;
 import spaceinvaders.game.GameConfig;
 
 /** Invader character. */
-class Invader extends LogicEntity {
+public class Invader extends LogicEntity {
   /**
    * @param posX - X coordinate.
    * @param posY - Y coordinate.

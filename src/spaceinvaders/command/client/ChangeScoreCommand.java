@@ -6,18 +6,26 @@ import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 
-/** Increment the score of the player. */
-public class IncrementScoreCommand extends Command {
+/** Change the score of a player. */
+public class ChangeScoreCommand extends Command {
   private transient Controller executor;
+  private Integer playerId;
+  private Integer change;
 
-  public IncrementScoreCommand() {
-    super(IncrementScoreCommand.class.getName(),UDP);
+  ChangeScoreCommand() {
+    super(ChangeScoreCommand.class.getName(),UDP);
+  }
+
+  public ChangeScoreCommand(int playerId, int change) {
+    this();
+    this.playerId = playerId;
+    this.change = change;
   }
 
   @Override
   public void execute() {
     for (View view : executor.getViews()) {
-      view.incrementScore();
+      view.changeScore(playerId,change);
     }
   }
 

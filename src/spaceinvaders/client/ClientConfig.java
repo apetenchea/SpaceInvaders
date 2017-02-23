@@ -8,7 +8,8 @@ import spaceinvaders.exceptions.InvalidUserNameException;
 /** Used to maintain the configuration of the client. */
 public class ClientConfig {
   private static ClientConfig singleton;
-  private static Integer MAX_UNAME_LENGTH = 10;
+  private static int MAX_UNAME_LENGTH = 10;
+  private static int MAX_PLAYERS = 3;
 
   private Integer id;
   private Integer teamSize;
@@ -34,6 +35,10 @@ public class ClientConfig {
 
   public int getMaxUserNameLength() {
     return MAX_UNAME_LENGTH;
+  }
+
+  public int getMaxPlayers() {
+    return MAX_PLAYERS;
   }
 
   /** Check if the server address is valid. */

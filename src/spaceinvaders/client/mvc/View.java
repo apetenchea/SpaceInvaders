@@ -38,20 +38,20 @@ public interface View {
   /** Show the manu frame. */
   public void showMenu();
 
-  /** Player quits game. */
-  public void quitGame();
-
   /** Player starts a new game. */
   public void startGame();
 
-  /** Player lost. */
+  /** Player is destroyed. */
   public void gameOver();
 
-  /** Player won. */
+  /** Players won. */
   public void youWon();
 
-  /** Increase player score. */
-  public void incrementScore();
+  /** Players lost. */
+  public void youLost();
+
+  /** Change player score, by adding {@code value}. */
+  public void changeScore(int playerId, int value);
 
   /** Associate the IDs of players with their names. */
   public void setPlayerNames(List<Couple<Integer,String>> players);

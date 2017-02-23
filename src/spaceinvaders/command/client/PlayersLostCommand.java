@@ -3,27 +3,29 @@ package spaceinvaders.command.client;
 import static spaceinvaders.command.ProtocolEnum.TCP;
 
 import spaceinvaders.client.mvc.Controller;
+import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 
-/** Quit game. */
-public class QuitGameCommand extends Command {
+/** Humans lost the game. */
+public class PlayersLostCommand extends Command {
   private transient Controller executor;
 
-  public QuitGameCommand() {
-    super(QuitGameCommand.class.getName(),TCP);
+  public PlayersLostCommand() {
+    super(PlayersLostCommand.class.getName(),TCP);
   }
 
   @Override
   public void execute() {
-    executor.getModel().exitGame();
+    for (View view : executor.getViews()) {
+      view.youLost();
+    }
+    executor.getModel().setGameState(false);
   }
 
   @Override
   public void setExecutor(Object executor) {
     if (executor instanceof Controller) {
       this.executor = (Controller) executor;
-    } else {
-      throw new AssertionError();
     }
   }
 }
