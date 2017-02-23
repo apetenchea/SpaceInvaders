@@ -2,20 +2,27 @@ package spaceinvaders.client.gui;
 
 import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.WEST;
+import static java.util.logging.Level.SEVERE;
 import static javax.swing.JFrame.DO_NOTHING_ON_CLOSE;
 import static javax.swing.SwingConstants.LEFT;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import spaceinvaders.client.ClientConfig;
+import spaceinvaders.client.ResourcesConfig;
 import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;
 import spaceinvaders.game.GameConfig;
@@ -23,13 +30,17 @@ import spaceinvaders.utility.Couple;
 
 /** Displays the game. */
 public class GameGraphics implements UiObject {
+  private static final Logger LOGGER = Logger.getLogger(GameGraphics.class.getName());
   private final ClientConfig config = ClientConfig.getInstance();
+  private final ResourcesConfig resources = ResourcesConfig.getInstance();
   private final JFrame frame = new JFrame("SpaceInvaders");
   private final GamePanel gamePanel = new GamePanel();
   private final JLabel messageLbl = new JLabel();
   private final JLabel[] scoreLbl = new JLabel[1 + config.getMaxPlayers()]; 
   private final JLabel controlsLbl = new JLabel();
   private final List<Couple<Integer,Integer>> score = new ArrayList<>();
+  private final BufferedImage gameOverImg;
+  private final BufferedImage victoryImg;;
   private List<Couple<Integer,String>> playerNames = new ArrayList<>();
 
   /** Construct an empty game frame. */
@@ -72,6 +83,14 @@ public class GameGraphics implements UiObject {
     contentPane.add(gamePanel,CENTER);
 
     frame.setContentPane(contentPane);
+
+    try {
+      gameOverImg = ImageIO.read(new File(resources.getDefeatImage()));
+      victoryImg = ImageIO.read(new File(resources.getVictoryImage()));
+    } catch (IOException ioException) {
+      LOGGER.log(SEVERE,ioException.toString(),ioException);
+      throw new AssertionError();
+    }
   }
 
   @Override
@@ -144,13 +163,13 @@ public class GameGraphics implements UiObject {
   }
 
   /** Display a game over image on the game panel. */
-  public void showGameOverImage() {
-    //TODO
+  public void showDefeatImage() {
+    gamePanel.showImage(gameOverImg);
   }
 
   /** Display a victory image on the game panel. */
   public void showVictoryImage() {
-    //TODO
+    gamePanel.showImage(victoryImg);
   }
 
   /** Change score. */

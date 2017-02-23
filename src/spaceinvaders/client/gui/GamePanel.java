@@ -7,11 +7,14 @@ import static spaceinvaders.game.EntityEnum.PLAYER_BULLET;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentNavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.swing.JPanel;
 import spaceinvaders.client.gui.entities.Drawable;
 import spaceinvaders.client.gui.entities.GraphicalEntity;
@@ -21,6 +24,8 @@ import spaceinvaders.client.gui.entities.PaintingVisitor;
 import spaceinvaders.client.gui.entities.Player;
 import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;
+import spaceinvaders.game.GameConfig;
+import spaceinvaders.utility.Couple;
 
 /**
  * Main panel of the game.
@@ -30,10 +35,14 @@ import spaceinvaders.game.EntityEnum;
 @SuppressWarnings("serial")
 class GamePanel extends JPanel {
   private final GraphicsFactory factory = GraphicsFactory.getInstance();
-  private final ConcurrentNavigableMap<Integer,GraphicalEntity> entityMap =
-    new ConcurrentSkipListMap<>();
+  private final NavigableMap<Integer,GraphicalEntity> entityMap = new TreeMap<>();
+  private final ReadWriteLock entitiesLock = new ReentrantReadWriteLock();
   private final SoundManager sound = new SoundManager();
+  private final GameConfig config = GameConfig.getInstance();
   private Integer playerAvatarNumber;
+  private BufferedImage centerImg;
+  private Couple<Integer,Integer> centerImgPos;
+  private Boolean gameOn;
   
   public GamePanel() {
     setBackground(Color.BLACK);
@@ -43,17 +52,45 @@ class GamePanel extends JPanel {
   @Override
   protected void paintComponent(Graphics graphics) {
     super.paintComponent(graphics);
-    final GraphicalEntityVisitor painter = new PaintingVisitor(graphics,this);
-    graphics.setColor(Color.WHITE);
-    graphics.setFont(new Font("Courier",Font.BOLD,15));
-    for (Drawable entity : entityMap.values()) {
-      entity.draw(painter);
+    if (gameOn) {
+      final GraphicalEntityVisitor painter = new PaintingVisitor(graphics,this);
+      graphics.setColor(Color.WHITE);
+      graphics.setFont(new Font("Courier",Font.BOLD,15));
+      entitiesLock.readLock().lock();
+      for (Drawable entity : entityMap.values()) {
+        entity.draw(painter);
+      }
+      entitiesLock.readLock().unlock();
+    } else {
+      graphics.drawImage(centerImg,centerImgPos.getFirst(),centerImgPos.getSecond(),this);
     }
   }
 
   public void init() {
+    gameOn = true;
     playerAvatarNumber = 0;
+    entitiesLock.writeLock().lock();
     entityMap.clear();
+    entitiesLock.writeLock().unlock();
+  }
+
+  /**
+   * End the game and draw an image in the center.
+   *
+   * @throws NullPointerException - if argument is {@code null}.
+   */
+  public void showImage(BufferedImage centerImg) {
+    if (centerImg == null) {
+      throw new NullPointerException();
+    }
+    this.centerImg = centerImg;
+    int width = centerImg.getWidth();
+    int height = centerImg.getHeight();
+    int posX = (config.frame().getWidth() - width) / 2;
+    int posY = (config.frame().getHeight() - height) / 2;
+    centerImgPos = new Couple<>(posX,posY);
+    gameOn = false;
+    paintComponent(getGraphics());
   }
 
   /**
@@ -67,6 +104,7 @@ class GamePanel extends JPanel {
     }
     final List<Integer> elim = new ArrayList<>();
     final boolean[] mark = new boolean[updates.size()];
+    entitiesLock.readLock().lock();
     for (Map.Entry<Integer,GraphicalEntity> entry : entityMap.entrySet()) {
       boolean found = false;
       int index = 0;
@@ -83,8 +121,10 @@ class GamePanel extends JPanel {
         elim.add(entry.getKey());
       }
     }
+    entitiesLock.readLock().unlock();
     
     /* Remove entities not found in the updates. */
+    entitiesLock.writeLock().lock();
     for (int key : elim) {
       entityMap.remove(key);
     }
@@ -98,6 +138,7 @@ class GamePanel extends JPanel {
       }
       ++index;
     }
+    entitiesLock.writeLock().unlock();
   }
 
   /**
@@ -147,7 +188,9 @@ class GamePanel extends JPanel {
    * @param posY - coordinate on Y Axis.
    */
   public void spawnEntity(int id, EntityEnum type, int posX, int posY) {
+    entitiesLock.writeLock().lock();
     entityMap.put(id,factory.create(new Entity(type,id,posX,posY)));
+    entitiesLock.writeLock().unlock();
     if (type.equals(PLAYER_BULLET)) {
       sound.shooting();
     }
@@ -161,7 +204,9 @@ class GamePanel extends JPanel {
    * @throws NullPointerException - if the {@code id} could not be found.
    */
   public void wipeOutEntity(int id) {
+    entitiesLock.writeLock().lock();
     GraphicalEntity entity = entityMap.remove(id);
+    entitiesLock.writeLock().unlock();
     if (entity == null) {
       throw new NullPointerException();
     }
@@ -180,10 +225,12 @@ class GamePanel extends JPanel {
    * @param offsetY - offset on Y Axis.
    */
   public void translateGroup(EntityEnum type, int offsetX, int offsetY) {
+    entitiesLock.readLock().lock();
     for (GraphicalEntity entity : entityMap.values()) {
       if (entity.getType().equals(type)) {
         entity.translate(offsetX,offsetY);
       }
     }
+    entitiesLock.readLock().unlock();
   }
 }

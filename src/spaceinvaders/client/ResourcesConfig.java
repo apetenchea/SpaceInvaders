@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import spaceinvaders.game.EntityEnum;
 
 /** Used to retrive resources. */
@@ -21,6 +20,8 @@ public class ResourcesConfig {
   private static ResourcesConfig singleton;
 
   private final Map<EntityEnum,List<String>> avatarsMap;
+  private final String defeatImage;
+  private final String victoryImage;
 
   private ResourcesConfig() {
     avatarsMap = new HashMap<>();
@@ -36,6 +37,8 @@ public class ResourcesConfig {
           RESOURCES_FOLDER + "bullet.png")));
     avatarsMap.put(SHIELD,new ArrayList<>(Arrays.asList(
           RESOURCES_FOLDER + "brickwall.png")));
+    defeatImage = RESOURCES_FOLDER + "poison.png";
+    victoryImage = RESOURCES_FOLDER + "stars.png";
   }
 
   /** Singleton. */
@@ -55,12 +58,24 @@ public class ResourcesConfig {
    *     have any avatars.
    */
   public List<String> getAvatars(EntityEnum type) {
+    if (type == null) {
+      throw new NullPointerException();
+    }
     List<String> avatars = avatarsMap.get(type);
     if (avatars == null) {
       throw new NullPointerException();
     }
     return avatars;
   }
+
+  public String getDefeatImage() {
+    return defeatImage;
+  }
+
+  public String getVictoryImage() {
+    return victoryImage;
+  }
+
   /*
   private void readConfig() {
   }

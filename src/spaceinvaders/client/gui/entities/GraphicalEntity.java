@@ -37,6 +37,7 @@ public abstract class GraphicalEntity implements Cloneable, Drawable {
         avatar.add(ImageIO.read(new File(imgPath.get(index))));
       } catch (IOException ioException) {
         LOGGER.log(SEVERE,ioException.toString(),ioException);
+        throw new AssertionError();
       }
     }
   }

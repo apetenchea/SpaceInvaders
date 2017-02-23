@@ -79,7 +79,6 @@ public class GameView implements View {
   @Override
   public void gameOver() {
     game.setMessage("Your ship was destroyed!");
-    game.showGameOverImage();
   }
 
   @Override
@@ -91,6 +90,7 @@ public class GameView implements View {
   @Override
   public void youLost() {
     game.setMessage("Your team was destroyed!");
+    game.showDefeatImage();
   }
 
   @Override

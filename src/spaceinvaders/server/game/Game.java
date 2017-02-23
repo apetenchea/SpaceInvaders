@@ -118,11 +118,13 @@ class Game implements Service<Void> {
         if (world.count(PLAYER) == 0) {
           distributeCommand(new PlayersLostCommand());
           state.set(false);
-          commandsAvailable = true;
+          flushCommands();
+          break;
         } else if (world.count(INVADER) == 0) {
           distributeCommand(new PlayersWonCommand());
           state.set(false);
-          commandsAvailable = true;
+          flushCommands();
+          break;
         }
         /* Do a complete refresh every 8 seconds. */
         frameCounter = (frameCounter + 1) % (FRAMES_PER_SECOND * 8);
@@ -135,9 +137,7 @@ class Game implements Service<Void> {
         }
         if (commandsAvailable) {
           distributeCommand(new FlushScreenCommand());
-          for (Player player : team) {
-            player.flush();
-          }
+          flushCommands();
         }
         Thread.sleep(1000 / FRAMES_PER_SECOND);
       }

@@ -227,7 +227,11 @@ public class GameLoop implements Service<Void> {
         }
         if (maxY >= config.frame().getHeight() - config.player().getHeight()) {
           /* Invaders reached players. */
-          commandBuf.add(new GameOverCommand());
+          it = world.getIterator(PLAYER);
+          while (it.hasNext()) {
+            it.next();
+            it.remove();
+          }
           gameOver = true;
           return;
         }
@@ -421,8 +425,8 @@ public class GameLoop implements Service<Void> {
         if (invaderBullet.collides(player)) {
           commandBuf.add(new WipeOutEntityCommand(invaderBullet.getId()));
           commandBuf.add(new WipeOutEntityCommand(player.getId()));
+          commandBuf.add(new GameOverCommand(player.getId()));
           invaderBulletIt.remove();
-          // also remove the real player
           playerIt.remove();
           break;
         }
