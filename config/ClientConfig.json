@@ -1,0 +1,8 @@
+{
+	"maxUserNameLength": 10,
+	"maxPlayersPerTeam": 3,
+	"teamSize": 1,
+	"serverAddr": "localhost",
+	"serverPort": 5412,
+	"userName": "default"
+}

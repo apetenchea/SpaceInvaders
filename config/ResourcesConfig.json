@@ -1,0 +1,11 @@
+{
+	"avatarsMap": {
+		"PLAYER": ["../resources/spacecraft1.png", "../resources/spacecraft2.png", "../resources/spacecraft3.png"],
+		"INVADER_BULLET": ["../resources/asteroid.png"],
+		"INVADER": ["../resources/ufo.png"],
+		"PLAYER_BULLET": ["../resources/bullet.png"],
+		"SHIELD": ["../resources/brickwall.png"]
+	},
+	"defeatImage": "../resources/poison.png",
+	"victoryImage": "../resources/stars.png"
+}
