@@ -1,16 +1,25 @@
 package spaceinvaders.client;
 
+import static java.util.logging.Level.SEVERE;
+
+import com.google.gson.Gson;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import spaceinvaders.Config;
 import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.InvalidServerAddressException;
 import spaceinvaders.exceptions.InvalidUserNameException;
 
 /** Used to maintain the configuration of the client. */
 public class ClientConfig {
-  private static ClientConfig singleton;
-  private static int MAX_UNAME_LENGTH = 10;
-  private static int MAX_PLAYERS = 3;
+  private static final transient Logger LOGGER = Logger.getLogger(ClientConfig.class.getName());
+  private static transient ClientConfig singleton;
 
+  private Integer maxUserNameLength;
+  private Integer maxPlayersPerTeam;
   private Integer id;
   private Integer teamSize;
   private String serverAddr;
@@ -18,27 +27,39 @@ public class ClientConfig {
   private String userName;
   private Integer udpIncomingPort;
 
-  private ClientConfig() {
-    teamSize = 1;
-    serverAddr = "localhost";
-    serverPort = 5412;
-    userName = "default";
-  }
+  private ClientConfig() {}
 
   /** Get a ClientConfig instance. */
   public static synchronized ClientConfig getInstance() {
     if (singleton == null) {
-      singleton = new ClientConfig();
+      try {
+        singleton = readConfig();
+      } catch (Exception ex) {
+        LOGGER.log(SEVERE,ex.toString(),ex);
+      }
     }
     return singleton;
   }
 
+  /**
+   * @throws IOException - if an error occurs while reading the configuration file.
+   * @throws OutOfMemoryError - if the configuration file is too large.
+   * @throws InvalidPathException - if the configuration file cannot be found.
+   * @throws JsonSyntaxException - if the json not valid.
+   */
+  private static ClientConfig readConfig() throws IOException {
+    Config config = Config.getInstance();
+    String json = new String(Files.readAllBytes(Paths.get(config.getClientConfigFile())));
+    Gson gson = new Gson();
+    return gson.fromJson(json,ClientConfig.class);
+  }
+
   public int getMaxUserNameLength() {
-    return MAX_UNAME_LENGTH;
+    return maxUserNameLength;
   }
 
   public int getMaxPlayers() {
-    return MAX_PLAYERS;
+    return maxPlayersPerTeam;
   }
 
   /** Check if the server address is valid. */
@@ -65,7 +86,7 @@ public class ClientConfig {
    */
   public boolean isUserNameValid() {
     final Pattern validUserName = Pattern.compile("^([a-z]|[A-Z])([a-z]|[A-z]|\\d)+$");
-    return userName.length() <= MAX_UNAME_LENGTH && validUserName.matcher(userName).matches();
+    return userName.length() <= maxUserNameLength && validUserName.matcher(userName).matches();
   }
 
   /** Check the data integrity. */

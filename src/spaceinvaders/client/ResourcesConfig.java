@@ -1,52 +1,51 @@
 package spaceinvaders.client;
 
-import static spaceinvaders.game.EntityEnum.INVADER;
-import static spaceinvaders.game.EntityEnum.INVADER_BULLET;
-import static spaceinvaders.game.EntityEnum.PLAYER;
-import static spaceinvaders.game.EntityEnum.PLAYER_BULLET;
-import static spaceinvaders.game.EntityEnum.SHIELD;
+import static java.util.logging.Level.SEVERE;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import com.google.gson.Gson;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
+import spaceinvaders.Config;
 import spaceinvaders.game.EntityEnum;
 
 /** Used to retrive resources. */
 public class ResourcesConfig {
-  //private static final String RESOURCES_CONFIG_FILE = "../resources/";
-  private static final String RESOURCES_FOLDER = "../resources/";
-  private static ResourcesConfig singleton;
+  private static final transient Logger LOGGER = Logger.getLogger(ResourcesConfig.class.getName());
+  private static transient ResourcesConfig singleton;
 
-  private final Map<EntityEnum,List<String>> avatarsMap;
-  private final String defeatImage;
-  private final String victoryImage;
+  private Map<EntityEnum,List<String>> avatarsMap;
+  private String defeatImage;
+  private String victoryImage;
 
-  private ResourcesConfig() {
-    avatarsMap = new HashMap<>();
-    avatarsMap.put(PLAYER,new ArrayList<>(Arrays.asList(
-          RESOURCES_FOLDER + "spacecraft1.png",
-          RESOURCES_FOLDER + "spacecraft2.png",
-          RESOURCES_FOLDER + "spacecraft3.png")));
-    avatarsMap.put(INVADER,new ArrayList<>(Arrays.asList(
-          RESOURCES_FOLDER + "ufo.png")));
-    avatarsMap.put(INVADER_BULLET,new ArrayList<>(Arrays.asList(
-          RESOURCES_FOLDER + "asteroid.png")));
-    avatarsMap.put(PLAYER_BULLET,new ArrayList<>(Arrays.asList(
-          RESOURCES_FOLDER + "bullet.png")));
-    avatarsMap.put(SHIELD,new ArrayList<>(Arrays.asList(
-          RESOURCES_FOLDER + "brickwall.png")));
-    defeatImage = RESOURCES_FOLDER + "poison.png";
-    victoryImage = RESOURCES_FOLDER + "stars.png";
-  }
+  private ResourcesConfig() {}
 
   /** Singleton. */
   public static ResourcesConfig getInstance() {
     if (singleton == null) {
-      singleton = new ResourcesConfig();
+      try {
+        singleton = readConfig();
+      } catch (Exception ex) {
+        LOGGER.log(SEVERE,ex.toString(),ex);
+      }
     }
     return singleton;
+  }
+
+  /**
+   * @throws IOException - if an error occurs while reading the configuration file.
+   * @throws OutOfMemoryError - if the configuration file is too large.
+   * @throws InvalidPathException - if the configuration file cannot be found.
+   * @throws JsonSyntaxException - if the json not valid.
+   */
+  private static ResourcesConfig readConfig() throws IOException {
+    Config config = Config.getInstance();
+    String json = new String(Files.readAllBytes(Paths.get(config.getResourcesConfigFile())));
+    Gson gson = new Gson();
+    return gson.fromJson(json,ResourcesConfig.class);
   }
 
   /**
@@ -75,17 +74,4 @@ public class ResourcesConfig {
   public String getVictoryImage() {
     return victoryImage;
   }
-
-  /*
-  private void readConfig() {
-  }
-
-  private class Config {
-    public List<String> playerAvatars;
-    public List<String> invaderAvatars;
-    public List<String> invaderBulletAvatars;
-    public List<String> playerBulletAvatars;
-    public List<String> shieldAvatars;
-  }
-  */
 }
