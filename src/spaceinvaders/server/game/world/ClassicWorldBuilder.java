@@ -64,7 +64,7 @@ public class ClassicWorldBuilder implements WorldBuilder {
     final int playerW = config.player().getWidth();
     final int playerH = config.player().getHeight();
     final int jumpX = playerW * 3;
-    final int witdthOffset = (frameW - teamSize * jumpX + Math.abs(playerW - jumpX)) / 2;
+    final int witdthOffset = (frameW - (teamSize - 1) * jumpX  - teamSize * playerW) / 2;
     final int heightOffset = frameH - playerH / 4;
 
     if (witdthOffset <= 0) {
@@ -75,7 +75,7 @@ public class ClassicWorldBuilder implements WorldBuilder {
     List<LogicEntity> players = new ArrayList<>(teamSize);
     for (int player = 0; player < teamSize; ++player) {
       players.add(new HumanPlayer(idList.get(player),offsetX,heightOffset));
-      offsetX += witdthOffset;
+      offsetX += jumpX;
     }
     world.setEntities(PLAYER,players);
   }
