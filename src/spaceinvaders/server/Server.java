@@ -7,6 +7,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.server.game.GameManager;
 import spaceinvaders.server.network.ConnectionManager;
@@ -55,7 +57,7 @@ public class Server implements Service<Void> {
    *
    * @throws ExecutionException - if an exception occurs during execution.
    * @throws InterruptedException - if the service is interrupted prior to shutdown.
-   * @throws RejectedExecutionException - from {@link Executor#execute()}.
+   * @throws RejectedExecutionException - if a subtask cannot be executed.
    */
   @Override
   public Void call() throws ExecutionException, InterruptedException {
