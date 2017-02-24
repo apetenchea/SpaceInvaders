@@ -3,7 +3,7 @@ package spaceinvaders.server.controller;
 import spaceinvaders.server.Server;
 import spaceinvaders.utility.ServiceController;
 
-/** Control the server from standard input. */
+/** Control the server by reading commands from stdin. */
 public class StandardController extends ServiceController {
   private final Server server;
 
