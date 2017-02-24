@@ -7,7 +7,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.Logger;
 import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.server.game.GameManager;
 import spaceinvaders.server.network.ConnectionManager;
@@ -21,13 +20,11 @@ import spaceinvaders.utility.ServiceState;
  * <p>Inside here happens all the game logic. It cannot be played without a running server.
  * 
  * <p>A player uses the client to communicate with the server. Once the connection is established,
- * the server starts the game. It sends game information to the client (like movement on the
- * screen), meanwhile the client sends the actions of the user. Once the game is over, the client is
- * disconnected.
+ * the server starts the game. The server sends game events to the client (for exemple the
+ * invaders have moved). Meanwhile the client sends the actions of the user. Once the game is over,
+ * the client is disconnected.
  */
 public class Server implements Service<Void> {
-  private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
-
   private final PlayerManager playerManager = new PlayerManager();
   private final GameManager gameManager = new GameManager();
   private final ConnectionManager connectionManager;
@@ -54,7 +51,7 @@ public class Server implements Service<Void> {
   }
 
   /**
-   * Start taking in connections and handle players.
+   * Start listening for connections and handling players.
    *
    * @throws ExecutionException - if an exception occurs during execution.
    * @throws InterruptedException - if the service is interrupted prior to shutdown.
@@ -62,8 +59,6 @@ public class Server implements Service<Void> {
    */
   @Override
   public Void call() throws ExecutionException, InterruptedException {
-    LOGGER.info("Server is starting.");
-
     List<Future<?>> future = new ArrayList<>();
     future.add(connectionManagerExecutor.submit(connectionManager));
     future.add(playerManagerExecutor.submit(playerManager));
@@ -91,8 +86,6 @@ public class Server implements Service<Void> {
 
   @Override
   public void shutdown() {
-    LOGGER.info("Server is shutting down.");
-
     state.set(false);
     connectionManager.shutdown();
     playerManager.shutdown();
