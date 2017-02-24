@@ -38,9 +38,9 @@ public class Server implements Service<Void> {
   /**
    * Construct a server that will listen for connections on port {@code port}.
    * 
-   * @throws SocketOpeningException - if a socket cannot be opened on the specified port.
-   * @throws SecurityException - if a security manager does not allow an operation.
-   * @throws IllegalPortNumberException - if the specified port number is invalid.
+   * @throws SocketOpeningException if a socket cannot be opened on the specified port.
+   * @throws SecurityException if a security manager does not allow an operation.
+   * @throws IllegalPortNumberException if the specified port number is invalid.
    */
   public Server(int port) throws SocketOpeningException {
     connectionManager = new ConnectionManager(port);
@@ -55,9 +55,9 @@ public class Server implements Service<Void> {
   /**
    * Start listening for connections and handling players.
    *
-   * @throws ExecutionException - if an exception occurs during execution.
-   * @throws InterruptedException - if the service is interrupted prior to shutdown.
-   * @throws RejectedExecutionException - if a subtask cannot be executed.
+   * @throws ExecutionException if an exception occurs during execution.
+   * @throws InterruptedException if the service is interrupted prior to shutdown.
+   * @throws RejectedExecutionException if a subtask cannot be executed.
    */
   @Override
   public Void call() throws ExecutionException, InterruptedException {

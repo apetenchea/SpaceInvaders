@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 import spaceinvaders.command.Command;
 import spaceinvaders.server.network.Connection;
 
-/** A player ready to join a game. */
+/** A player which has established a connection and is ready to join a game. */
 public class Player {
   private static final Logger LOGGER = Logger.getLogger(Player.class.getName());
 
@@ -19,11 +19,11 @@ public class Player {
   /**
    * Wrap a player around the specified connection.
    *
-   * @param connection - the part of this player used for network communication.
-   * @param connectionExecutor - used to run tasks needed by the {@code connection}.
+   * @param connection the part of this player used for network communication.
+   * @param connectionExecutor used to run tasks needed by the {@code connection}.
    *
-   * @throws RejectedExecutionException - if the task cannot be executed.
-   * @throws NullPointerException - if an arguments is {@code null}.
+   * @throws RejectedExecutionException if a subtask cannot be executed.
+   * @throws NullPointerException if an arguments is {@code null}.
    */
   public Player(Connection connection, ExecutorService connectionExecutor) {
     if (connection == null || connectionExecutor == null) {
@@ -36,7 +36,9 @@ public class Player {
   /**
    * Push a command to the client.
    *
-   * @throws NullPointerException - if the command is {@code null}.
+   * <p>The command is not sent over the network until {@link #flush() flush} is called.
+   *
+   * @throws NullPointerException if the command is {@code null}.
    */
   public void push(Command command) {
     if (command == null) {
@@ -48,13 +50,17 @@ public class Player {
   /**
    * Pull all commands received by the player.
    *
-   * @return a list containing all commands received an empty list if there are none.
+   * @return a list containing all commands received or an empty list if there are none.
    */
   public List<Command> pull() {
     return connection.readCommands();
   }
 
-  /** Flush commands to the client. */
+  /**
+   * Flush commands to the client.
+   *
+   * <p>All pushed commands are sent over the network.
+   */
   public void flush() {
     connection.flush();
   }
@@ -91,7 +97,12 @@ public class Player {
     this.teamSize = teamSize;
   }
 
-  /** Set the remote port to which UDP packets should be sent. */
+  /**
+   * Set the remote port to which UDP packets should be sent.
+   *
+   * <p>This remove port represents the UDP port on which the client is listening. It is not the
+   * same port as the one from which the client is sending UDP packets.
+   */
   public void setUdpDestinationPort(int port) {
     connection.setUdpChain(port);
   }

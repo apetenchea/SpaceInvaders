@@ -52,7 +52,7 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
    * client responds with the appropriate command within a second, the player is kept. Otherwise, it
    * is discarded.
    *
-   * @throws InterruptedException - if the service is interrupted prior to shutdown.
+   * @throws InterruptedException if the service is interrupted prior to shutdown.
    */
   @Override
   public Void call() throws InterruptedException {
@@ -108,7 +108,7 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
    * Set the {@link spaceinvaders.server.game.GameManager} to which all valid players are going to
    * be forwarded.
    *
-   * @throws NullPointerException - if the argument is {@code null}.
+   * @throws NullPointerException if the argument is {@code null}.
    */
   public void addGameManager(GameManager gameManager) {
     if (gameManager == null) {

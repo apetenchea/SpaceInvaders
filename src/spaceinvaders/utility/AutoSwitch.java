@@ -25,7 +25,7 @@ public class AutoSwitch implements Service<Void> {
   /**
    * Start the cycle, with the switch initially turned off.
    *
-   * @throws InterruptedException - if interrupted prior to shutdown.
+   * @throws InterruptedException if interrupted prior to shutdown.
    */
   @Override
   public Void call() throws InterruptedException {

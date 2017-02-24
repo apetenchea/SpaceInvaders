@@ -21,8 +21,8 @@ public abstract class ServiceController implements Service<Void> {
   /**
    * Start reading commands.
    *
-   * @throws IOException - if an I/O exception occurs while reading from input.
-   * @throws InterruptedException - if the service is interrupted prior to shutdown.
+   * @throws IOException if an I/O exception occurs while reading from input.
+   * @throws InterruptedException if the service is interrupted prior to shutdown.
    */
   @Override
   public Void call() throws IOException, InterruptedException {
