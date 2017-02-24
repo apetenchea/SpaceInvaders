@@ -9,6 +9,7 @@ import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TransferQueue;
 import spaceinvaders.command.Command;
 import spaceinvaders.command.client.SetPlayerIdCommand;
+import spaceinvaders.command.server.ConfigurePlayerCommand;
 import spaceinvaders.server.game.GameManager;
 import spaceinvaders.server.network.Connection;
 import spaceinvaders.utility.Service;
@@ -34,6 +35,7 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
     state.set(true);
   }
 
+  /** Receive a new connection. */
   @Override
   public void update(Observable observable, Object arg) {
     if (!(arg instanceof Connection && connectionQueue.offer((Connection) arg))) {
@@ -44,6 +46,11 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
 
   /**
    * Get connections out of the transfer queue and create new players.
+   *
+   * <p>When a {@link spaceinvaders.server.network.Connection} arrives, it is transformed into a
+   * {@link spaceinvaders.server.player.Player}. An ID is sent to the corresponding client. If the
+   * client responds with the appropriate command within a second, the player is kept. Otherwise, it
+   * is discarded.
    *
    * @throws InterruptedException - if the service is interrupted prior to shutdown.
    */
@@ -74,6 +81,10 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
       List<Command> commands = player.pull();
       if (commands.size() == 1) {
         Command command = commands.get(0);
+        if (!(command instanceof ConfigurePlayerCommand)) {
+          // This should never happen.
+          throw new AssertionError();
+        }
         command.setExecutor(player);
         command.execute();
         setChanged();
@@ -94,6 +105,9 @@ public class PlayerManager extends Observable implements Observer, Service<Void>
   }
 
   /**
+   * Set the {@link spaceinvaders.server.game.GameManager} to which all valid players are going to
+   * be forwarded.
+   *
    * @throws NullPointerException - if the argument is {@code null}.
    */
   public void addGameManager(GameManager gameManager) {
