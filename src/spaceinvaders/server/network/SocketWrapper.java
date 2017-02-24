@@ -16,9 +16,11 @@ import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
 /**
- * Wraps a {@link Socket} into a {@link Connection}.
+ * Wraps a {@link java.net.Socket} into a {@link Connection}.
  *
- * <p>The resulting connection is passed to {@link PlayerManager}.
+ * <p>When a new TCP socket is opened for an incoming connection, the socket is wrapped into a
+ * {@link Connection}. The result of the wrapping is passed to the
+ * {@link spaceinvaders.server.player.PlayerManager}.
  */
 class SocketWrapper extends Observable implements Service<Void> {
   private static Logger LOGGER = Logger.getLogger(SocketWrapper.class.getName());
@@ -30,13 +32,12 @@ class SocketWrapper extends Observable implements Service<Void> {
   private final ServiceState state = new ServiceState();
 
   /**
-   * @param socketQueue - new sockets will be taken from this queue.
-   * @param outgoingPacketQueue - any packet send by a connection will be going through this queue 
-   *     It is needed for contructing a {@link Connection).
-   * @param addressToConnection - used for mapping socket adresses to connections.
-   * @param  checkServerAvailability - checks if the server can accept an incomming connection.
+   * @param socketQueue new sockets will be taken from this queue.
+   * @param outgoingPacketQueue any packet sent by a connection will be going through this queue 
+   * @param addressToConnection  used for mapping socket adresses to connections.
+   * @param  checkServerAvailability checks if the server can accept any more incomming connection.
    * 
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public SocketWrapper(TransferQueue<Socket> socketQueue,
       TransferQueue<DatagramPacket> outgoingPacketQueue,
@@ -53,7 +54,13 @@ class SocketWrapper extends Observable implements Service<Void> {
   }
 
   /**
-   * @throws InterruptedException - if the service is interrupted prior to shutdown.
+   * Start polling from the {@code socketQueue}.
+   *
+   * <p>Once a new TCP socket is polled, it is forwarded to the
+   * {@link spaceinvaders.server.network.ConnectionManager}, or in case the server cannot accept
+   * any more players, the socket is closed.
+   *
+   * @throws InterruptedException if the service is interrupted prior to shutdown.
    */
   @Override
   public Void call() throws InterruptedException {
@@ -96,7 +103,15 @@ class SocketWrapper extends Observable implements Service<Void> {
 
         addressToConnection.put(connection.getRemoteSocketAddress(),connection);
         setChanged();
+
+        // Notify the connection manager.
         notifyObservers(connection);
+      } else {
+        try {
+          clientSocket.close();
+        } catch (IOException ioException) {
+          LOGGER.log(SEVERE,ioException.toString(),ioException);
+        }
       }
     }
     return null;
