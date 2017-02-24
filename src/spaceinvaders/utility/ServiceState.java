@@ -4,7 +4,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-/** State variable used to get and set the on/off state of a service. */
+/**
+ * Used to hold the on/off state of a service.
+ *
+ * <p>The implementation is thread-safe.
+ */
 public class ServiceState {
   private AtomicBoolean state;
   private ReadWriteLock stateLock;
@@ -15,7 +19,7 @@ public class ServiceState {
     stateLock = new ReentrantReadWriteLock();
   }
 
-  /** Construct a state variable having the provided initial state. */
+  /** Construct a state variable having the given initial state. */
   public ServiceState(boolean initialState) {
     state = new AtomicBoolean(initialState);
     stateLock = new ReentrantReadWriteLock();

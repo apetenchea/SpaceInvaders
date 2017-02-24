@@ -10,7 +10,7 @@ public interface Chain<T> {
   public void handle(T task);
 
   /**
-   * @param next - next in chain.
+   * @param next next in chain.
    */
   public void setNext(Chain<T> next);
 }

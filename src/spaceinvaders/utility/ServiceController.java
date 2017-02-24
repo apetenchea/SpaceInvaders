@@ -10,7 +10,9 @@ public abstract class ServiceController implements Service<Void> {
   private final BufferedReader inputReader;
   private ServiceState state = new ServiceState();
 
-  /** Control the server through {@code inputReader}. */
+  /**
+   * @param inputReader an input stream from which the commands are taken.
+   */
   protected ServiceController(InputStream inputReader) {
     this.inputReader = new BufferedReader(new InputStreamReader(inputReader));
     state.set(true);
@@ -60,13 +62,13 @@ public abstract class ServiceController implements Service<Void> {
     state.set(false);
   }
 
-  /** Interpret input. */
-  protected abstract void interpret(String input);
+  /**
+   * Interpret a {@code String} as a command.
+   */
+  protected abstract void interpret(String command);
 
   /**
-   * Check if the service is running.
-   *
-   * @return true - if the service is running, false otherwise.
+   * @return true if the service is running, false otherwise.
    */
   protected abstract boolean isServiceRunning();
 }
