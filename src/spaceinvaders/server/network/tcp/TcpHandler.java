@@ -13,7 +13,9 @@ import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
 /**
- * Listens TCP connections.
+ * Listens for TCP connections.
+ *
+ * <p>Handles the arrival and transfer of all sockets opened for incoming connections.
  *
  * <p>All clients initially establish a TCP connection. TCP is used only for commands for which
  * the arrival must be guaranteed and their order of arrival matters.
@@ -26,13 +28,13 @@ public class TcpHandler implements Service<Void> {
   private final ServiceState state = new ServiceState();
 
   /**
-   * @param port - the port on which incoming connections are expected to arrive.
-   * @param socketTransferQueue - a queue through which the newly open sockets are transferred.
+   * @param port the port on which incoming connections are expected to arrive.
+   * @param socketTransferQueue a queue through which the newly open sockets are transferred.
    *
-   * @throws SocketOpeningException - if an error occurs while opening the server's socket.
-   * @throws SecurityException - if the security manager does not allow an operation.
-   * @throws IllegalPortNumberException - if the port number is not valid.
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws SocketOpeningException if an error occurs while opening the server's socket.
+   * @throws SecurityException if the security manager does not allow an operation.
+   * @throws IllegalPortNumberException if the port number is not valid.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public TcpHandler(int port, TransferQueue<Socket> socketTransferQueue)
       throws SocketOpeningException, IllegalPortNumberException {

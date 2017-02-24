@@ -21,11 +21,11 @@ class UdpReceiver implements Service<Void> {
   private final ServiceState state = new ServiceState();
 
   /**
-   * @param serverSocket - open socket used for receiving packets.
-   * @param maxPacketSize - maximum size of a packet (in bytes).
-   * @param incomingPacketQueue - where to put packets after they are received.
+   * @param serverSocket open socket used for receiving packets.
+   * @param maxPacketSize maximum size of a packet (in bytes).
+   * @param incomingPacketQueue queue to put packets after they are received.
    *
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public UdpReceiver(DatagramSocket serverSocket, int maxPacketSize,
       TransferQueue<DatagramPacket> incomingPacketQueue) throws SocketOpeningException {
@@ -39,9 +39,9 @@ class UdpReceiver implements Service<Void> {
   }
 
   /**
-   * Start listening for incoming packets.
+   * Start listening for incoming UDP packets.
    *
-   * @throws IOException - if an I/O error occurs.
+   * @throws IOException if an I/O error occurs.
    */
   @Override
   public Void call() throws IOException {

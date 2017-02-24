@@ -26,7 +26,7 @@ import spaceinvaders.server.network.senderchain.UdpChain;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
-/** Network connection of a client. */
+/** Handles the connection with a client. */
 public class Connection implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(Connection.class.getName());
 
@@ -39,12 +39,12 @@ public class Connection implements Service<Void> {
   private SenderChain sender;
 
   /**
-   * @param socket - an already opened TCP socket.
-   * @param outgoingPacketQueue - used for sending UDP packets.
+   * @param socket an already opened TCP socket.
+   * @param outgoingPacketQueue used for sending UDP packets.
    *
-   * @throws IOException - if the {@code socket} is not connected or an exception occurs when
+   * @throws IOException if the {@code socket} is not connected or an exception occurs when
    *     opening the I/O streams.
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public Connection(Socket socket, TransferQueue<DatagramPacket> outgoingPacketQueue)
       throws IOException {
@@ -64,7 +64,7 @@ public class Connection implements Service<Void> {
   /**
    * Start reading from the TCP socket.
    *
-   * @throws IOException - if an error or EOF is reached while reading.
+   * @throws IOException if an error or EOF is reached while reading.
    */
   @Override
   public Void call() throws IOException {
@@ -112,15 +112,13 @@ public class Connection implements Service<Void> {
   /**
    * Unwrap an UDP packet and put it in the {@code incomingCommandQueue}.
    * 
-   * @throws NullPointerException - if argument is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   public void unwrapPacket(DatagramPacket packet) {
     if (packet == null) {
       throw new NullPointerException();
     }
-    String data = new String(packet.getData());
-
-    LOGGER.fine("UDP: " + data);
+    final String data = new String(packet.getData());
 
     try {
       director.makeCommand(data.trim());
@@ -135,7 +133,9 @@ public class Connection implements Service<Void> {
   /**
    * Send a command to the client.
    *
-   * @throws NullPointerException - if argument is {@code null}.
+   * <p>Commands are not actually send over the network until {@link #flush() flush} is called.
+   *
+   * @throws NullPointerException if argument is {@code null}.
    */
   public void send(Command command) {
     if (command == null) {
@@ -145,10 +145,12 @@ public class Connection implements Service<Void> {
   }
 
   /**
+   * Drains the {@code incomingCommandQueue} into a list.
+   *
    * @return a list with the contents of {@code incomingCommandQueue}.
    */
   public List<Command> readCommands() {
-    List<Command> commands = new ArrayList<>();
+    final List<Command> commands = new ArrayList<>();
     try {
       incomingCommandQueue.drainTo(commands);
     } catch (Exception exception) {
@@ -166,7 +168,7 @@ public class Connection implements Service<Void> {
     return socket.getRemoteSocketAddress();
   }
 
-  /** Flush all commands. */
+  /** Flush all commands from all network senders. */
   public void flush() {
     for (SenderChain it = sender; it != null; it = it.getNext()) {
       it.flush();
@@ -176,10 +178,10 @@ public class Connection implements Service<Void> {
   /**
    * Add an UDP sender to the chain.
    * 
-   * @param port - the port of the remote client, where UDP packets should be sent.
+   * @param port the port of the remote client, where UDP packets should be sent.
    */
   public void setUdpChain(int port) {
-    SenderChain temp = sender;
+    final SenderChain temp = sender;
     sender = new UdpChain(new InetSocketAddress(socket.getInetAddress(),port),outgoingPacketQueue);
     sender.setNext(temp);
   }

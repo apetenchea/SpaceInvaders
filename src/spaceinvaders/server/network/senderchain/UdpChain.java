@@ -11,9 +11,7 @@ import java.util.concurrent.TransferQueue;
 import java.util.logging.Logger;
 import spaceinvaders.command.Command;
 
-/**
- * Pack and send commands over UDP.
- */
+/** Pack and send commands over UDP. */
 public class UdpChain extends SenderChain {
   private static final Logger LOGGER = Logger.getLogger(UdpChain.class.getName());
 
@@ -22,10 +20,10 @@ public class UdpChain extends SenderChain {
   private final TransferQueue<DatagramPacket> outgoingQueue;
 
   /**
-   * @param packetDestination - address to which packets are sent.
-   * @param outgoingQueue - transfer queue for the packets.
+   * @param packetDestination address to which packets are sent.
+   * @param outgoingQueue transfer queue for the packets.
    *
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public UdpChain(SocketAddress packetDestination, TransferQueue<DatagramPacket> outgoingQueue) {
     if (packetDestination == null || outgoingQueue == null) {
@@ -36,7 +34,7 @@ public class UdpChain extends SenderChain {
   }
 
   /**
-   * @throws NullPointerException - if argument is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   @Override
   public void handle(Command command) {

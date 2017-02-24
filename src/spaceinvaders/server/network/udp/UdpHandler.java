@@ -10,13 +10,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TransferQueue;
 import spaceinvaders.exceptions.SocketOpeningException;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
 /**
- * Handles I/O using the UDP protocol.
+ * Handles I/O through the UDP protocol.
  *
  * <p>UDP is used for repetitive commands during the game.
  */
@@ -35,14 +36,14 @@ public class UdpHandler implements Service<Void> {
    * <p>The port for receiving packets must be a valid one. The system automatically finds a port
    * available for sending packets. 
    *
-   * @param port - local port throught which packets are received.
-   * @param incomingPacketQueue - queue to put the received packets.
-   * @param outgoingPacketQueue - packets are taken out of this queue and sent.
+   * @param port local port throught which packets are received.
+   * @param incomingPacketQueue queue to put the received packets.
+   * @param outgoingPacketQueue packets are taken out of this queue and sent.
    *
-   * @throws SocketOpeningException - if a server socket could not be opened or it cannot be
+   * @throws SocketOpeningException if a server socket could not be opened or it cannot be
    *     bound to the specified local port.
-   * @throws SecurityException - if a security manager does not allow an operation.
-   * @throws NullPointerException - if any of the specified transfer queues is {@code null}.
+   * @throws SecurityException if a security manager does not allow an operation.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public UdpHandler(int port, TransferQueue<DatagramPacket> incomingPacketQueue,
       TransferQueue<DatagramPacket> outgoingPacketQueue) throws SocketOpeningException {
@@ -67,9 +68,9 @@ public class UdpHandler implements Service<Void> {
   /**
    * Start receiving and sending packets.
    *
-   * @throws ExecutionException - if an exception occurs during execution.
-   * @throws InterruptedException - if the service is interrupted prior to shutdown.
-   * @throws RejectedExecutionException - if the task cannot be executed.
+   * @throws ExecutionException if an exception occurs during execution.
+   * @throws InterruptedException if the service is interrupted prior to shutdown.
+   * @throws RejectedExecutionException if the task cannot be executed.
    */
   @Override
   public Void call() throws ExecutionException, InterruptedException {
@@ -97,7 +98,7 @@ public class UdpHandler implements Service<Void> {
     return null;
   }
 
-  /** The handler will no longer be able to receive and send packets. */
+  /** The handler will no longer be able to receive or send packets. */
   @Override
   public void shutdown() {
     state.set(false);

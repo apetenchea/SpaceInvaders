@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TransferQueue;
 import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.SocketOpeningException;
@@ -27,10 +28,10 @@ import spaceinvaders.utility.ServiceState;
 /**
  * Manages I/O between clients and server.
  *
- * <p>A new client socket is filtered and wrapped into a {@link Connection}, which is forwarded to
- * {@link PlayerManager}.
- *
- * <p>An incoming packet goes through a dispatcher, wich forwards it to the right receiver.
+ * <p>A newly opened socket is filtered and wrapped into a
+ * {@link spaceinvaders.server.network.Connection}, which is forwarded to
+ * {@link spaceinvaders.server.player.PlayerManager}.
+ * An incoming packet goes through a dispatcher, wich forwards it to the intended receiver.
  */
 public class ConnectionManager implements Service<Void> {
   private static final int MAX_CONNECTIONS = 12;
@@ -53,11 +54,11 @@ public class ConnectionManager implements Service<Void> {
   private final ExecutorService dispatcherExecutor;
 
   /**
-   * @param port - port used for accepting new connections and receiving data.
+   * @param port port used for accepting new connections and receiving data.
    *
-   * @throws SocketOpeningException - if an error occurs while opening a socket.
-   * @throws SecurityException - if a security manager does not allow an operation.
-   * @throws IllegalPortNumberException - if the specified port number is invalid.
+   * @throws SocketOpeningException if an error occurs while opening a socket.
+   * @throws SecurityException if a security manager does not allow an operation.
+   * @throws IllegalPortNumberException if the specified port number is invalid.
    */
   public ConnectionManager(int port) throws SocketOpeningException {
     tcpHandler = new TcpHandler(port,socketQueue);
@@ -70,11 +71,13 @@ public class ConnectionManager implements Service<Void> {
   }
 
   /**
-   * Start executors.
+   * Start handling incoming connections.
    *
-   * @throws ExecutionException - if an exception occurs during execution.
-   * @throws InterruptedException - if the service is interrupted prior to shutdown.
-   * @throws RejectedExecutionException - if the task cannot be executed.
+   * <p>Network ports are opened, and tasks are passed to executors.
+   *
+   * @throws ExecutionException if an exception occurs during execution.
+   * @throws InterruptedException if the service is interrupted prior to shutdown.
+   * @throws RejectedExecutionException if the task cannot be executed.
    */
   @Override
   public Void call() throws ExecutionException, InterruptedException {
@@ -118,7 +121,10 @@ public class ConnectionManager implements Service<Void> {
   }
 
   /**
-   * @throws NullPointerException - if the argument is {@code null}.
+   * Add a {@link spaceinvaders.server.player.PlayerManager}, to which incoming connections are
+   * forwarded.
+   *
+   * @throws NullPointerException if the argument is {@code null}.
    */
   public void addPlayerManager(PlayerManager playerManager) {
     if (playerManager == null) {
@@ -127,7 +133,7 @@ public class ConnectionManager implements Service<Void> {
     connectionWrapper.addObserver(playerManager);
   }
 
-  /** Checks if the server can take in one more connection. */
+  /** Does the cleanup and checks if the server can take in one more connections. */
   private class CheckSeverAvailability implements Callable<Boolean> {
     @Override
     public Boolean call() {

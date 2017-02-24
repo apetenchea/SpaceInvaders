@@ -8,7 +8,11 @@ import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
 /**
- * Matches an incoming UDP packet to a {@link Connection}.
+ * Matches an incoming UDP packet to a {@link spaceinvaders.server.network.Connection}.
+ *
+ * <p>When an UDP packet arrives, it goes through the dispatcher and it is forwarded to the
+ * corresponding {@link spaceinvaders.server.network.Connection}, based on the address it was sent
+ * from.
  */
 class PacketDispatcher implements Service<Void> {
   private final TransferQueue<DatagramPacket> packetQueue;
@@ -16,10 +20,10 @@ class PacketDispatcher implements Service<Void> {
   private final ServiceState state = new ServiceState();
 
   /**
-   * @param packetQueue - incoming packets will be taken from this queue.
-   * @param addressToConnection - each socket address is mapped to a connection.
+   * @param packetQueue incoming packets will be taken from this queue.
+   * @param addressToConnection each socket address is mapped to a connection.
    *
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public PacketDispatcher(TransferQueue<DatagramPacket> packetQueue,
       ConcurrentMap<SocketAddress,Connection> addressToConnection) {
@@ -32,7 +36,9 @@ class PacketDispatcher implements Service<Void> {
   }
 
   /**
-   * @throws InterruptedException - if the service is interrupted prior to shutdown.
+   * Start dispatching incoming packets.
+   *
+   * @throws InterruptedException if the service is interrupted prior to shutdown.
    */
   @Override
   public Void call() throws InterruptedException {

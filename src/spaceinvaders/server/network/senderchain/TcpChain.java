@@ -10,9 +10,9 @@ public class TcpChain extends SenderChain {
   private final PrintWriter writer;
 
   /**
-   * @param writer - used to write data to the socket.
+   * @param writer writes data to the socket.
    *
-   * @throws NullPointerException - if argument is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   public TcpChain(PrintWriter writer) {
     if (writer == null) {
@@ -22,7 +22,7 @@ public class TcpChain extends SenderChain {
   }
 
   /**
-   * @throws NullPointerException - if argument is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   @Override
   public void handle(Command command) {
@@ -40,6 +40,7 @@ public class TcpChain extends SenderChain {
     }
   }
 
+  @Override
   public void flush() {
     writer.flush();
   }

@@ -21,10 +21,10 @@ class UdpSender implements Service<Void> {
   /**
    * Construct an UDP sender over an open socket.
    *
-   * @param serverSocket - socket thought which packets are sent.
-   * @param outgoingPacketQueue - queue from which packets are taken out before being sent.
+   * @param serverSocket socket thought which packets are sent.
+   * @param outgoingPacketQueue queue from which packets are taken out before being sent.
    *
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public UdpSender(DatagramSocket serverSocket,
       TransferQueue<DatagramPacket> outgoingPacketQueue) {
@@ -37,10 +37,10 @@ class UdpSender implements Service<Void> {
   }
 
   /**
-   * Start sending packets.
+   * Start polling packets from the queue and sending them.
    *
-   * @throws IOException - if an I/O error occurs.
-   * @throws InterruptedException - if the service is interrupted prior to shutdown.
+   * @throws IOException if an I/O error occurs.
+   * @throws InterruptedException if the service is interrupted prior to shutdown.
    */
   @Override
   public Void call() throws IOException, InterruptedException {
