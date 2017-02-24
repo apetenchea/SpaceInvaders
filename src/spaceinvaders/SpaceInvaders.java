@@ -39,7 +39,7 @@ public class SpaceInvaders {
             + "\t\tExample: " + args[0] + " client verbose\n\n";
 
     if (args.length < 1) {
-      LOGGER.info(help);
+      System.out.println(help);
       return;
     }
 
@@ -58,7 +58,7 @@ public class SpaceInvaders {
 
     switch (args[0]) {
       case "help":
-        LOGGER.info(help);
+        System.out.println(help);
         break;
       case "client":
         Client client = new Client();
@@ -67,13 +67,14 @@ public class SpaceInvaders {
       case "server":
         try {
           if (args.length < 2) {
-            LOGGER.info(help);
+            System.out.println(help);
             return;
           }
           Server server = new Server(Integer.parseInt(args[1]));
           ServiceController controller = new StandardController(server);
           ExecutorService controllerExecutor = Executors.newSingleThreadExecutor();
           Future<Void> controllerFuture = controllerExecutor.submit(controller);
+          System.out.println("Server started.\nEnter 'quit' to stop.\n");
           server.call();
           controllerFuture.get();
           controllerExecutor.shutdownNow();
@@ -82,7 +83,7 @@ public class SpaceInvaders {
         }
         break;
       default:
-        LOGGER.info(help);
+        System.out.println(help);
         break;
     }
   }
