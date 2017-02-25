@@ -46,8 +46,11 @@ public class PaintingVisitor implements GraphicalEntityVisitor {
   public void visit(Player player) {
     graphics.drawImage(player.getAvatar(player.getAvatarNumber()),player.getX(),player.getY(),
         config.player().getWidth(),config.player().getHeight(),imgObserver);
-    graphics.drawString(player.getName(),player.getX(),player.getY() + config.player().getHeight()
-        + config.player().getHeight() / 4);
+    int nameWidth = graphics.getFontMetrics().stringWidth(player.getName());
+    graphics.drawString(
+        player.getName(),
+        player.getX() + config.player().getWidth() / 2 - nameWidth / 2,
+        player.getY() + config.player().getHeight() + config.player().getHeight() / 3);
   }
 
   @Override
