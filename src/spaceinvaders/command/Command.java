@@ -2,14 +2,23 @@ package spaceinvaders.command;
 
 import com.google.gson.Gson;
 
-/**  Command to be executed by the client or by the server. */
+/**
+ * Command to be executed on the client or the server side.
+ *
+ * <p>Commands are sent over the network, and are serialized using the json format.
+ */
 public abstract class Command {
   private static final transient Gson GSON = new Gson();
 
   private final transient ProtocolEnum protocol;
   private final String name;
 
-  public Command(String name, ProtocolEnum protocol) {
+
+  /**
+   * @param name the name of the command, used for identification (usually the name of the class).
+   * @param protocol specifies the internet protocol used to send the command.
+   */
+  protected Command(String name, ProtocolEnum protocol) {
     this.name = name;
     this.protocol = protocol;
   }
@@ -30,6 +39,6 @@ public abstract class Command {
   /** Execute the command. */
   public abstract void execute();
 
-  /** Set the object upon which execution takes place. */
+  /** Set the object which is going to handle the execution of the command. */
   public abstract void setExecutor(Object executor);
 }
