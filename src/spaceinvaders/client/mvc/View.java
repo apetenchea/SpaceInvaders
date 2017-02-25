@@ -29,7 +29,7 @@ public interface View {
   /** Display an error message. */
   public void displayError(Exception exception);
 
-  /** Flush all changes to the view. */
+  /** Make all changes take effect. */
   public void flush();
  
   /** Show the game frame. */
@@ -50,33 +50,60 @@ public interface View {
   /** Players lost. */
   public void youLost();
 
-  /** Change player score, by adding {@code value}. */
+  /**
+   * Change player score, by adding {@code value}.
+   */
   public void changeScore(int playerId, int value);
 
-  /** Associate the IDs of players with their names. */
+  /**
+   * Associate the ids of players with their names.
+   *
+   * @param players a list of 2-tuples of the form {player id, player name}.
+   */
   public void setPlayerNames(List<Couple<Integer,String>> players);
 
-  /** Set entities that appear in the frame. */
+  /**
+   * Set all entities which shall appear in the frame.
+   *
+   * @param content list of entities.
+   */
   public void setFrameContent(List<Entity> content);
 
-  /** Move an entity. */
+  /**
+   * Move an entity.
+   *
+   * @param entityId id of the entity to be moved.
+   * @param newX new coordinate on the x-axis.
+   * @param newY new coordinate on the y-axis.
+   */
   public void moveEntity(int entityId, int newX, int newY);
 
-  /** Spawn an entity. */
+  /**
+   * Create a new entity.
+   *
+   * @param id entity id.
+   * @param type type of the entity.
+   * @param posX x-axis coordinate of the entity.
+   * @param posY y-axis coordinate of the entity.
+   */
   public void spawnEntity(int id, EntityEnum type, int posX, int posY);
 
-  /** Remove an entity. */
+  /**
+   * Remove an entity.
+   *
+   * @param id entity id.
+   */
   public void wipeOutEntity(int id);
 
   /**
    * Translate in space a group of entities.
    *
-   * @param type - type of the group.
-   * @param offsetX - offset on X Axis.
-   * @param offsetY - offset on Y Axis.
+   * @param type type of the group.
+   * @param offsetX offset on x-axis.
+   * @param offsetY offset on y-axis.
    */
   public void translateGroup(EntityEnum type, int offsetX, int offsetY);
 
-  /** Destroy. */
+  /** Free resources. */
   public void shutdown();
 }

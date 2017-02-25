@@ -18,9 +18,9 @@ class SoundManager {
   }
 
   /**
-   * @param file - path to the sound resource.
+   * @param file path to the sound resource.
    *
-   * @throws NullPointerException - if argument is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   private void playSound(String file) {
     if (file == null) {

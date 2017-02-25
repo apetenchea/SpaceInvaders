@@ -13,17 +13,18 @@ public interface Controller extends Observer {
   /**
    * Register a view with this controller. 
    *
-   * @param view the view to be registered
+   * @param view the view to be registered.
    */
   public void registerView(View view);
 
   /**
-   * @return the model registered with this controller.
+   * Get the {@link spaceinvaders.client.mvc.Model} registered with this controller.
    */
   public Model getModel(); 
 
   /**
-   * @return a list of all views registered with this controller.
+   * Get a list of all {@link spaceinvaders.client.mvc.View views} registered with this
+   * controller.
    */
   public List<View> getViews();
 }

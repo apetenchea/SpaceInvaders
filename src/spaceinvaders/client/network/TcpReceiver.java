@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
-/** Receives data over TCP and forwards it. */
+/** Receives data throught the TCP protocol. */
 class TcpReceiver implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(TcpReceiver.class.getName());
   private final BufferedReader reader;
@@ -19,10 +19,13 @@ class TcpReceiver implements Service<Void> {
   private final ServiceState state = new ServiceState();
 
   /**
-   * Construct a receiver that will communicate through {@code socket}.
+   * Construct a receiver that will communicate through the open {@code socket}.
    *
-   * @throws IOException - if the input stream cannot be opened, or if the socket is not connected.
-   * @throws NullPointerException - if any of the arguments is {@code null}.
+   * @param socket an open socket through which data is received.
+   * @param incomingQueue a queue used to transfer incoming data.
+   *
+   * @throws IOException if the input stream cannot be opened, or if the socket is not connected.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public TcpReceiver(Socket socket, TransferQueue<String> incomingQueue) throws IOException {
     if (socket == null || incomingQueue == null) {
@@ -33,6 +36,7 @@ class TcpReceiver implements Service<Void> {
     state.set(true);
   }
 
+  /** Begin reading from the socket. */
   @Override
   public Void call() throws IOException {
     while (state.get()) {

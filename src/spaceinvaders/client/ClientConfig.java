@@ -13,7 +13,7 @@ import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.InvalidServerAddressException;
 import spaceinvaders.exceptions.InvalidUserNameException;
 
-/** Used to maintain the configuration of the client. */
+/** Used to hold the configuration of the client. */
 public class ClientConfig {
   private static final transient Logger LOGGER = Logger.getLogger(ClientConfig.class.getName());
   private static transient ClientConfig singleton;
@@ -29,7 +29,7 @@ public class ClientConfig {
 
   private ClientConfig() {}
 
-  /** Get a ClientConfig instance. */
+  /** Singleton. */
   public static synchronized ClientConfig getInstance() {
     if (singleton == null) {
       try {
@@ -42,10 +42,10 @@ public class ClientConfig {
   }
 
   /**
-   * @throws IOException - if an error occurs while reading the configuration file.
-   * @throws OutOfMemoryError - if the configuration file is too large.
-   * @throws InvalidPathException - if the configuration file cannot be found.
-   * @throws JsonSyntaxException - if the json not valid.
+   * @throws IOException if an error occurs while reading the configuration file.
+   * @throws OutOfMemoryError if the configuration file is too large.
+   * @throws InvalidPathException if the configuration file cannot be found.
+   * @throws JsonSyntaxException if the json not valid.
    */
   private static ClientConfig readConfig() throws IOException {
     Config config = Config.getInstance();

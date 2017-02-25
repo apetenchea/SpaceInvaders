@@ -24,9 +24,9 @@ public abstract class GraphicalEntity implements Cloneable, Drawable {
   /**
    * Load all avatars for a graphical entity.
    *
-   * @param imgPath - list of paths to all images.
+   * @param imgPath list of paths to all images.
    *
-   * @throws NullPointerException - if argument is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   protected GraphicalEntity(List<String> imgPath) {
     if (imgPath == null) {
@@ -65,8 +65,8 @@ public abstract class GraphicalEntity implements Cloneable, Drawable {
   /**
    * Change the coordinates.
    * 
-   * @param newX - new coordinate on X Axis.
-   * @param newY - new coordinate on Y Axis.
+   * @param newX new coordinate on x-axis.
+   * @param newY new coordinate on y-axis.
    */
   public void relocate(int newX, int newY) {
     body.setPos(newX,newY);
@@ -75,8 +75,8 @@ public abstract class GraphicalEntity implements Cloneable, Drawable {
   /**
    * Translate the entity in space.
    *
-   * @param offsetX - offset on X Axis.
-   * @param offsetY - offset on Y Axis.
+   * @param offsetX - offset on x-axis.
+   * @param offsetY - offset on y-axis.
    */
   public void translate(int offsetX, int offsetY) {
     body.setPos(body.getX() + offsetX,body.getY() + offsetY);
@@ -87,7 +87,7 @@ public abstract class GraphicalEntity implements Cloneable, Drawable {
   }
 
   /**
-   * Get the avatar corresponding to the order in the {@code imgPath} provided in the constructor.
+   * Get the avatar corresponding to {@code index}.
    *
    * @throws IndexOutOfBoundsException - if {@code index} is out of bounds. 
    */
@@ -100,7 +100,7 @@ public abstract class GraphicalEntity implements Cloneable, Drawable {
   }
 
   /**
-   * @throws NullPointerException - if the entity does not have any coordinates.
+   * @throws NullPointerException if the entity does not have a body.
    */
   protected int getX() {
     if (body == null) {
@@ -110,7 +110,7 @@ public abstract class GraphicalEntity implements Cloneable, Drawable {
   }
 
   /**
-   * @throws NullPointerException - if the entity does not have any coordinates.
+   * @throws NullPointerException - if the entity does not have a body.
    */
   protected int getY() {
     if (body == null) {

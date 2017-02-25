@@ -28,7 +28,7 @@ import spaceinvaders.game.EntityEnum;
 import spaceinvaders.game.GameConfig;
 import spaceinvaders.utility.Couple;
 
-/** Displays the game. */
+/** Frame active during the game time. */
 public class GameGraphics implements UiObject {
   private static final Logger LOGGER = Logger.getLogger(GameGraphics.class.getName());
   private final ClientConfig config = ClientConfig.getInstance();
@@ -40,7 +40,7 @@ public class GameGraphics implements UiObject {
   private final JLabel controlsLbl = new JLabel();
   private final List<Couple<Integer,Integer>> score = new ArrayList<>();
   private final BufferedImage gameOverImg;
-  private final BufferedImage victoryImg;;
+  private final BufferedImage victoryImg;
   private List<Couple<Integer,String>> playerNames = new ArrayList<>();
 
   /** Construct an empty game frame. */
@@ -57,10 +57,10 @@ public class GameGraphics implements UiObject {
     contentPane.setBorder(new EmptyBorder(5,5,5,5));
     contentPane.setLayout(new BorderLayout(0,0));
 
-    controlsLbl.setText("<html>Controls:" +
-        "<br>ESC - exit" +
-        "<br>SPACE - shoot" +
-        "<br>LEFT/RIGHT - move</html>");
+    controlsLbl.setText("<html>Controls:"
+        + "<br>ESC - exit"
+        + "<br>SPACE - shoot"
+        + "<br>LEFT/RIGHT - move</html>");
 
     final JPanel messagePanel = new JPanel();
     Box box = Box.createVerticalBox();
@@ -75,7 +75,8 @@ public class GameGraphics implements UiObject {
     messagePanel.add(box);
     int screenWidth = (int) frame.getToolkit().getScreenSize().getWidth();
     int screenHeight = (int) frame.getToolkit().getScreenSize().getHeight();
-    messagePanel.setPreferredSize(new Dimension(screenWidth - config.frame().getWidth(),screenHeight));
+    messagePanel.setPreferredSize(
+        new Dimension(screenWidth - config.frame().getWidth(),screenHeight));
 
     gamePanel.setPreferredSize(new Dimension(config.frame().getWidth(),config.frame().getHeight()));
 
@@ -133,9 +134,9 @@ public class GameGraphics implements UiObject {
   /**
    * Match players ID's with names.
    *
-   * @param couples - a list of 2-tuples of the form {id,name}.
+   * @param couples a list of 2-tuples of the form {id, name}.
    *
-   * @throws NullPointerException - if argument is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   public void setPlayerNames(List<Couple<Integer,String>> couples) {
     if (couples == null) {
@@ -153,7 +154,7 @@ public class GameGraphics implements UiObject {
   /**
    * Set the text of the message label.
    *
-   * @throws NullPointerException - if argument is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   public void setMessage(String msg) {
     if (msg == null) {
@@ -188,7 +189,7 @@ public class GameGraphics implements UiObject {
   /**
    * Set the contents of the game frame.
    *
-   * @param content - a list of active entities in the game.
+   * @param content a list of active entities in the game.
    *
    * @throws NullPointerException - if argument is {@code null}.
    */

@@ -9,19 +9,22 @@ import java.util.logging.Logger;
 import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 
-/** Receive data over UDP. */
+/** Receive data throught the UDP protocol. */
 class UdpReceiver implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(UdpReceiver.class.getName());
-  private static final int MAX_PACKET_SIZE = 16 * 1024;
+  private static final int MAX_PACKET_SIZE = 256;
 
   private final ServiceState state = new ServiceState();
   private final DatagramSocket socket;
   private final TransferQueue<String> incomingQueue;
 
   /**
-   * Construct a receiver that will communicate through {@code socket}.
+   * Construct a receiver that will communicate through the open {@code socket}.
    *
-   * @throws NullPointerException - if any of the arguments is {@code null}.
+   * @param socket an open socket throught which data is received.
+   * @param incomingQueue a queue used to transfer received data.
+   *
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public UdpReceiver(DatagramSocket socket, TransferQueue<String> incomingQueue) {
     if (socket == null || incomingQueue == null) {
@@ -32,6 +35,7 @@ class UdpReceiver implements Service<Void> {
     state.set(true);
   }
 
+  /** Begin listening for incoming packets. */
   @Override
   public Void call() {
     while (state.get()) {

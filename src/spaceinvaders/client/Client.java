@@ -30,6 +30,7 @@ public class Client implements Service<Void> {
     controller.registerView(userView);
   }
 
+  /** Display the start of the application (the menu). */
   @Override
   public Void call() {
     userView.showMenu();

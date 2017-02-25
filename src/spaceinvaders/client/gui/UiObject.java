@@ -5,9 +5,9 @@ public interface UiObject {
   /** Free resources and never use the window again. */
   public void destroy();
 
-  /** Become invisible. */
+  /** Hide window. */
   public void hide();
 
-  /** Become visible. */
+  /** Show window. */
   public void show();
 }

@@ -4,13 +4,13 @@ import spaceinvaders.command.Command;
 import spaceinvaders.utility.Service;
 
 /**
- * Application logic.
+ * Decouples game logic from the rest of the application.
  *
  * @see spaceinvaders.client.mvc.Controller
  * @see spaceinvaders.client.mvc.View
  */
 public interface Model extends Service<Void> {
-  /** Couple a controller */
+  /** Couple a controller. */
   public void addController(Controller controller);
 
   /** Do a command. */

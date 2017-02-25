@@ -4,25 +4,28 @@ import static java.util.logging.Level.SEVERE;
 
 import java.util.Observable;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TransferQueue;
 import java.util.logging.Logger;
 import spaceinvaders.client.network.NetworkConnection;
 import spaceinvaders.command.Command;
 import spaceinvaders.command.CommandDirector;
 import spaceinvaders.command.client.ClientCommandBuilder;
+import spaceinvaders.exceptions.IllegalPortNumberException;
 import spaceinvaders.exceptions.SocketOpeningException;
-import spaceinvaders.utility.ServiceState;
 import spaceinvaders.utility.Service;
+import spaceinvaders.utility.ServiceState;
 
 /**
  * Provides the game data.
  *
- * <p>Gateway to the server.
+ * <p>This is a gateway to the server. It is used to get data out of the server and feed it into
+ * the controller. Every command that is sent to the server goes through here.
  */
 public class GameModel implements Model {
   private static final Logger LOGGER = Logger.getLogger(GameModel.class.getName());
@@ -42,11 +45,11 @@ public class GameModel implements Model {
   /**
    * Initialize a new game.
    *
-   * @throws SocketOpeningException - if the connection could not be established.
-   * @throws ExecutionException - if an exception occurs during execution.
-   * @throws InterruptedException - if the service is interrupted prior to shutdown.
-   * @throws IllegalPortNumberException - if the port parameter is not a valid port value.
-   * @throws RejectedExecutionException - if a task cannot be scheduled for execution.
+   * @throws SocketOpeningException if the connection could not be established.
+   * @throws ExecutionException if an exception occurs during execution.
+   * @throws InterruptedException if the service is interrupted prior to shutdown.
+   * @throws IllegalPortNumberException if the port parameter is not a valid port value.
+   * @throws RejectedExecutionException if a task cannot be scheduled for execution.
    */
   @Override
   public Void call() throws SocketOpeningException, ExecutionException,
@@ -78,9 +81,9 @@ public class GameModel implements Model {
   /**
    * Couple {@code contoller} with this model.
    *
-   * <p>The controller will receive updates.
+   * <p>The controller will receive updates from this model.
    *
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   @Override
   public void addController(Controller controller) {
@@ -93,7 +96,7 @@ public class GameModel implements Model {
   /**
    * Send a command to the server.
    *
-   * @throws NullPointerException - if there is no connection.
+   * @throws NullPointerException if there is no connection.
    */
   @Override
   public void doCommand(Command command) {
@@ -105,8 +108,6 @@ public class GameModel implements Model {
 
   @Override
   public void exitGame() {
-    LOGGER.info("Game is over.");
-
     connectionState.set(false);
     gameState.set(false);
     if (connection != null) {
@@ -139,9 +140,9 @@ public class GameModel implements Model {
     private final ServiceState state = new ServiceState();
 
     /** 
-     * Start converting and forwarding data.
+     * Start deserializing and forwarding data.
      *
-     * @throws InterruptedException - if the service is interrupted prior to shutdown.
+     * @throws InterruptedException if the service is interrupted prior to shutdown.
      */
     @Override
     public Void call() throws InterruptedException {

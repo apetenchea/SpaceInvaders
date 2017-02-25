@@ -36,10 +36,10 @@ public class ResourcesConfig {
   }
 
   /**
-   * @throws IOException - if an error occurs while reading the configuration file.
-   * @throws OutOfMemoryError - if the configuration file is too large.
-   * @throws InvalidPathException - if the configuration file cannot be found.
-   * @throws JsonSyntaxException - if the json not valid.
+   * @throws IOException if an error occurs while reading the configuration file.
+   * @throws OutOfMemoryError if the configuration file is too large.
+   * @throws InvalidPathException if the configuration file cannot be found.
+   * @throws JsonSyntaxException if the json not valid.
    */
   private static ResourcesConfig readConfig() throws IOException {
     Config config = Config.getInstance();
@@ -49,11 +49,11 @@ public class ResourcesConfig {
   }
 
   /**
-   * @param type - the type of entity.
+   * @param type the type of entity.
    * 
    * @return list of paths to all avatars.
    * 
-   * @throws NullPointerException - if the argument is {@code null} or the entity type does not
+   * @throws NullPointerException if the argument is {@code null} or the entity type does not
    *     have any avatars.
    */
   public List<String> getAvatars(EntityEnum type) {

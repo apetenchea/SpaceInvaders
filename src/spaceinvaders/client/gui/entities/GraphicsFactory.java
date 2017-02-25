@@ -38,11 +38,11 @@ public class GraphicsFactory {
   /**
    * Evolve an {@link Entity} into a {@link GraphicalEntity}.
    *
-   * @param entity - the base entity.
+   * @param entity the base entity.
    *
-   * @return - the {@link GraphicalEntity} wrapped around the {@code Entity}.
+   * @return a {@link GraphicalEntity} wrapped around a clone of the {@code entity}.
    *
-   * @throws NullPointerException - if the argument is {@code null} or the entity cannot be created.
+   * @throws NullPointerException if the argument is {@code null} or the entity cannot be created.
    */
   public GraphicalEntity create(Entity entity) {
     GraphicalEntity value = entitiesMap.get(entity.getType());

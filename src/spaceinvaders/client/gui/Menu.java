@@ -33,7 +33,7 @@ public class Menu implements UiObject {
   private final JSpinner teamSizeSpn = new JSpinner(
       new SpinnerNumberModel(1,1,CONFIG.getMaxPlayers(),1));
 
-  /** Construct a new menu with the default values. */
+  /** Construct a default menu. */
   public Menu() {
     menuFrame.setSize(500,500);
     menuFrame.setResizable(false);
@@ -77,9 +77,9 @@ public class Menu implements UiObject {
   }
 
   /**
-   * Put the values entered in the form into the config.
+   * Save the values entered in the form into the config.
    *
-   * @throws IllegalPortNumberException - if the port field contains illegal data.
+   * @throws IllegalPortNumberException if the port field contains illegal data.
    */
   public void setConfig() {
     CONFIG.setTeamSize((Integer) teamSizeSpn.getValue());

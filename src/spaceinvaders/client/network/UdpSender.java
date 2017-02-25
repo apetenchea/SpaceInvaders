@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import spaceinvaders.command.Command;
 import spaceinvaders.utility.Chain;
 
-/** Send commands over UDP. */
+/** Send commands using the UDP protocol. */
 class UdpSender implements Chain<Command> {
   private static final Logger LOGGER = Logger.getLogger(UdpSender.class.getName());
 
@@ -18,9 +18,9 @@ class UdpSender implements Chain<Command> {
   private Chain<Command> nextChain;
 
   /**
-   * Construct a sender that will communicate through {@code socket}.
+   * Construct a sender that will communicate through the open {@code socket}.
    *
-   * @throws NullPointerException - if the specified socket is {@code null}.
+   * @throws NullPointerException if the specified socket is {@code null}.
    */
   public UdpSender(DatagramSocket socket) throws IOException {
     if (socket == null) {
@@ -30,7 +30,7 @@ class UdpSender implements Chain<Command> {
   }
 
   /**
-   * @throws NullPointerException - if {@code command} is {@code null}.
+   * @throws NullPointerException if {@code command} is {@code null}.
    */
   @Override
   public void handle(Command command) {

@@ -24,7 +24,11 @@ import spaceinvaders.utility.Service;
 import spaceinvaders.utility.ServiceState;
 import spaceinvaders.utility.Chain;
 
-/** Network connection with the server. */
+/**
+ * Network connection with the server.
+ *
+ * <p>Establishes a connection and handles I/O operations.
+ */
 public class NetworkConnection implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(NetworkConnection.class.getName());
 
@@ -41,12 +45,12 @@ public class NetworkConnection implements Service<Void> {
   /**
    * Configure a new network connection.
    *
-   * @param incomingQueue - used for transfering incoming data.
+   * @param incomingQueue used for transfering incoming data.
    *
-   * @throws SocketOpeningException - if a socket could not be opened.
-   * @throws IllegalPortNumberException - if the port parameter is not a valid port value.
-   * @throws NullPointerException - if the argument is {@code null}.
-   * @throws SecurityException - if a security manager doesn't allow an operation.
+   * @throws SocketOpeningException if a socket could not be opened.
+   * @throws IllegalPortNumberException if the port parameter is not a valid port value.
+   * @throws NullPointerException if argument is {@code null}.
+   * @throws SecurityException if a security manager doesn't allow an operation.
    */
   public NetworkConnection(TransferQueue<String> incomingQueue) throws SocketOpeningException {
     ClientConfig config = ClientConfig.getInstance();
@@ -94,9 +98,9 @@ public class NetworkConnection implements Service<Void> {
   /**
    * Start network I/O.
    *
-   * @throws ExecutionException - if an exception occurs during execution.
-   * @throws InterruptedException - if the service is interrupted prior to shutdown.
-   * @throws RejectedExecutionException - if the task cannot be executed.
+   * @throws ExecutionException if an exception occurs during execution.
+   * @throws InterruptedException if the service is interrupted prior to shutdown.
+   * @throws RejectedExecutionException if the task cannot be executed.
    */
   @Override
   public Void call() throws ExecutionException, InterruptedException {
@@ -125,6 +129,11 @@ public class NetworkConnection implements Service<Void> {
     return null;
   }
 
+  /**
+   * Free resources.
+   *
+   * <p>Close all open sockets and shutdown executors. This instance cannot be used again.
+   */
   @Override
   public void shutdown() {
     state.set(false);
@@ -144,7 +153,7 @@ public class NetworkConnection implements Service<Void> {
   /**
    * Send a command to the server.
    *
-   * @throws NullPointerException - if {@code command} is {@code null}.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public void send(Command command) {
     sender.handle(command);

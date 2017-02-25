@@ -8,17 +8,17 @@ import java.net.Socket;
 import spaceinvaders.command.Command;
 import spaceinvaders.utility.Chain;
 
-/** Send commands over TCP. */
+/** Send commands throught the TCP protocol. */
 class TcpSender implements Chain<Command> {
   private final PrintWriter writer;
   private Chain<Command> nextChain;
 
   /**
-   * Construct a sender that will use the socket {@code socket}.
+   * Construct a sender that will use the open {@code socket}.
    *
-   * @throws IOException - if the output stream cannot be created or if the socket is
+   * @throws IOException if the output stream cannot be created or if the socket is
    *     not connected.
-   * @throws NullPointerException - if the specified socket is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   public TcpSender(Socket socket) throws IOException {
     if (socket == null) {
@@ -28,7 +28,7 @@ class TcpSender implements Chain<Command> {
   }
 
   /**
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   @Override
   public void handle(Command command) {

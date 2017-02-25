@@ -30,7 +30,7 @@ import spaceinvaders.utility.Couple;
 /**
  * Main panel of the game.
  *
- * <p>Contains all the visible elements of the game. Controls painting and repainting.
+ * <p>Contains all the visible elements of the game environment. Controls painting and repainting.
  */
 @SuppressWarnings("serial")
 class GamePanel extends JPanel {
@@ -66,6 +66,7 @@ class GamePanel extends JPanel {
     }
   }
 
+  /** Prepare the panel for a new game. */
   public void init() {
     gameOn = true;
     playerAvatarNumber = 0;
@@ -77,7 +78,10 @@ class GamePanel extends JPanel {
   /**
    * End the game and draw an image in the center.
    *
-   * @throws NullPointerException - if argument is {@code null}.
+   * <p>Game entities are being wiped out, and the image will remain in the center of the panel
+   * until {@link #init() init} is called.
+   *
+   * @throws NullPointerException if argument is {@code null}.
    */
   public void showImage(BufferedImage centerImg) {
     if (centerImg == null) {
@@ -96,7 +100,12 @@ class GamePanel extends JPanel {
   /**
    * Refresh all entities by checking them against a list of updates.
    *
-   * @throws NullPointerException - if argument is {@code null}.
+   * <p>Entities which are not found in the list of updates are removed, and new entities which are
+   * found only in the list of updates are added. The coordinates of entities are changed
+   * accordingly. After this method is executed, the new set of entities is going to be equal with
+   * the list of updates.
+   *
+   * @throws NullPointerException if argument is {@code null}.
    */
   public void refreshEntities(List<Entity> updates) {
     if (updates == null) {
@@ -142,10 +151,10 @@ class GamePanel extends JPanel {
   }
 
   /**
-   * @param id - player ID.
-   * @param name - player name.
+   * @param id player ID.
+   * @param name player name.
    *
-   * @throws NullPointerException - if an argument is {@code null} of if the {@code id} could not
+   * @throws NullPointerException if an argument is {@code null} of if the {@code id} could not
    *     be found.
    */
   public void setPlayer(int id, String name) {
@@ -163,11 +172,11 @@ class GamePanel extends JPanel {
   /**
    * Change the spatial coordinates of an entity.
    *
-   * @param id - entity ID.
-   * @param newX - new coordinate on X Axis.
-   * @param newY - new coordinate on Y Axis.
+   * @param id entity ID.
+   * @param newX new coordinate on x-axis.
+   * @param newY new coordinate on y-axis.
    *
-   * @throws NullPointerException - if {@code id} could not be found.
+   * @throws NullPointerException if {@code id} could not be found.
    */
   public void relocateEntity(int id, int newX, int newY) {
     final GraphicalEntity entity = entityMap.get(id);
@@ -182,10 +191,10 @@ class GamePanel extends JPanel {
    *
    * <p>If an entity already exists with the {@code id}, it is overwritten.
    *
-   * @param id - entity ID.
-   * @param type - type of the entity.
-   * @param posX - coordinate on X Axis.
-   * @param posY - coordinate on Y Axis.
+   * @param id entity ID.
+   * @param type type of the entity.
+   * @param posX coordinate on x-axis.
+   * @param posY coordinate on y-axis.
    */
   public void spawnEntity(int id, EntityEnum type, int posX, int posY) {
     entitiesLock.writeLock().lock();
@@ -199,9 +208,11 @@ class GamePanel extends JPanel {
   /**
    * Remove an entity.
    *
-   * @param id - ID of the entity to be removed.
+   * <p>The entity is not going to be displayed any more, after the next repaint.
    *
-   * @throws NullPointerException - if the {@code id} could not be found.
+   * @param id ID of the entity to be removed.
+   *
+   * @throws NullPointerException if the {@code id} could not be found.
    */
   public void wipeOutEntity(int id) {
     entitiesLock.writeLock().lock();
@@ -220,9 +231,9 @@ class GamePanel extends JPanel {
   /**
    * Translate an entire group of entities, all of the same {@code type}.
    *
-   * @param type - type of all entities in the group.
-   * @param offsetX - offset on X Axis.
-   * @param offsetY - offset on Y Axis.
+   * @param type type of all entities in the group.
+   * @param offsetX offset on X Axis.
+   * @param offsetY offset on Y Axis.
    */
   public void translateGroup(EntityEnum type, int offsetX, int offsetY) {
     entitiesLock.readLock().lock();

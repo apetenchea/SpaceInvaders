@@ -43,7 +43,9 @@ public class GameController implements Controller {
   private final ExecutorService modelStateChecker = Executors.newSingleThreadExecutor();
   private Boolean shuttingDown = false;
 
-  /** Construct a controller and couple it with a model. */
+  /**
+   * Couple the controller with a {@link spaceinvaders.client.mvc.Model}.
+   */
   public GameController(Model model) {
     model.addController(this);
     this.model = model;
