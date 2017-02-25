@@ -78,14 +78,10 @@ public class Connection implements Service<Void> {
         }
         break;
       }
-
-      LOGGER.fine("TCP: " + data);
-
       if (data == null) {
         // EOF.
         throw new IOException();
       }
-
       try {
         director.makeCommand(data);
         if (!incomingCommandQueue.offer(director.getCommand())) {

@@ -28,7 +28,7 @@ import spaceinvaders.server.player.Player;
 import spaceinvaders.utility.AutoSwitch;
 import spaceinvaders.utility.Service;
 
-/** Handles user input and advances the game simulation. */
+/** Provides methods for handling player input and advancing the game simulation. */
 public class GameLoop implements Service<Void> {
   private static final int GUARD_PIXELS = 32;
 
@@ -47,12 +47,12 @@ public class GameLoop implements Service<Void> {
   private boolean gameOver = false;
 
   /**
-   * @param team - human players.
-   * @param world - game environment.
-   * @param rng - pseudorandom number generator.
-   * @param threadPool - used for running auto-switches.
+   * @param team human players.
+   * @param world game environment.
+   * @param rng pseudorandom number generator.
+   * @param threadPool used for running auto-switches.
    *
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public GameLoop(List<Player> team, World world, Random rng, ExecutorService threadPool) {
     if (team == null || world == null || rng == null || threadPool == null) {
@@ -68,7 +68,7 @@ public class GameLoop implements Service<Void> {
   /**
    * Start auto-switches.
    *
-   * @throws RejectedExecutionException - if the task cannot be executed.
+   * @throws RejectedExecutionException if a subtask cannot be executed.
    */
   @Override
   public Void call() {
@@ -123,6 +123,11 @@ public class GameLoop implements Service<Void> {
     }
   }
 
+  /**
+   * Move a player one step to the left.
+   *
+   * @param id the ID of the player.
+   */
   public void movePlayerLeft(int id) {
     Iterator<LogicEntity> it = world.getIterator(PLAYER);
     while (it.hasNext()) {
@@ -133,6 +138,11 @@ public class GameLoop implements Service<Void> {
     }
   }
 
+  /**
+   * Move a player one step to the right.
+   *
+   * @param id the ID of the player.
+   */
   public void movePlayerRight(int id) {
     Iterator<LogicEntity> it = world.getIterator(EntityEnum.PLAYER);
     while (it.hasNext()) {
@@ -157,6 +167,11 @@ public class GameLoop implements Service<Void> {
         new MoveEntityCommand(entity.getId(),newX,newY));
   }
 
+  /**
+   * A player shoots a bullet.
+   *
+   * @param id the ID of the shooter.
+   */
   public void playerShoot(int id) {
     Iterator<LogicEntity> it = world.getIterator(EntityEnum.PLAYER);
     while (it.hasNext()) {
@@ -173,9 +188,7 @@ public class GameLoop implements Service<Void> {
     }
   }
 
-  /**
-   * Advance the game simulation one step.
-   */
+  /** Advance the game simulation one step. */
   public void update() {
     entitiesMove();
     entitiesShoot();

@@ -36,9 +36,7 @@ public class GameManager implements Observer, Service<Void> {
   private final ServiceState state = new ServiceState();
   private final ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 
-  /**
-   * Construct a game manager for handling games of max {@value #MAX_TEAM_SIZE} players.
-   */ 
+  /** Construct a game manager with all teams set to 0 players. */ 
   public GameManager() {
     for (int index = 0; index < MAX_TEAM_SIZE; ++index) {
       teams.add(new ArrayList<Player>(index));
@@ -46,6 +44,7 @@ public class GameManager implements Observer, Service<Void> {
     state.set(true);
   }
 
+  /** Receive a player which is ready to join a team. */
   @Override
   public void update(Observable observable, Object obj) {
     if (!(obj instanceof Player)) {
@@ -88,7 +87,9 @@ public class GameManager implements Observer, Service<Void> {
   /**
    * Continuous checking of currently running games.
    *
-   * @throws InterruptedException - if the service is interrupted prior to shutdown.
+   * <p>When a game has ended, its resources are freed.
+   *
+   * @throws InterruptedException if the service is interrupted prior to shutdown.
    */
   @Override
   public Void call() throws InterruptedException {

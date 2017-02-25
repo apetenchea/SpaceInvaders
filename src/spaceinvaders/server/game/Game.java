@@ -11,8 +11,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 import spaceinvaders.command.Command;
 import spaceinvaders.command.client.FlushScreenCommand;
-import spaceinvaders.command.client.PlayersWonCommand;
 import spaceinvaders.command.client.PlayersLostCommand;
+import spaceinvaders.command.client.PlayersWonCommand;
 import spaceinvaders.command.client.QuitGameCommand;
 import spaceinvaders.command.client.RefreshEntitiesCommand;
 import spaceinvaders.command.client.SetPlayerNamesCommand;
@@ -29,7 +29,7 @@ import spaceinvaders.utility.ServiceState;
 /**
  * The actual gameplay.
  *
- * <p>All game logic and physics happen here.
+ * <p>The game loop is being run here.
  */
 class Game implements Service<Void> {
   private static final Logger LOGGER = Logger.getLogger(Game.class.getName());
@@ -45,10 +45,10 @@ class Game implements Service<Void> {
   /**
    * Create a new game.
    *
-   * @param team - players joining this game.
-   * @param threadPool - used to for game threads.
+   * @param team players joining this game.
+   * @param threadPool used to for game threads.
    *
-   * @throws NullPointerException - if any of the arguments is {@code null}
+   * @throws NullPointerException if any of the arguments is {@code null}
    */
   public Game(List<Player> team, ExecutorService threadPool) {
     if (team == null || threadPool == null) {
@@ -77,10 +77,15 @@ class Game implements Service<Void> {
   }
 
   /**
-   * Play the game.
+   * Start the game.
    *
-   * @throws ExecutionException - if an exception occurs during execution.
-   * @throws InterruptedException - if the service is interrupted prior to shutdown.
+   * <p>The game loop is executed in the following manner:<br>
+   * - process the user input<br>
+   * - update the game state (advance the game simulation)<br>
+   * - send the output
+   *
+   * @throws ExecutionException if an exception occurs during execution.
+   * @throws InterruptedException if the service is interrupted prior to shutdown.
    */
   @Override
   public Void call() throws ExecutionException, InterruptedException {
@@ -149,11 +154,13 @@ class Game implements Service<Void> {
       distributeCommand(new QuitGameCommand());
       shutdown();
     }
+
     LOGGER.info("Game " + hashCode() + " terminated");
 
     return null; 
   }
 
+  /** Close the connections of all players in the team and stop all running subtasks.*/
   @Override
   public void shutdown() {
     state.set(false);
@@ -164,9 +171,9 @@ class Game implements Service<Void> {
   }
 
   /**
-   * Forward {@code command} to the players.
+   * Forward {@code command} to all the team.
    *
-   * @throws NullPointerException - if the argument is {@code null}.
+   * @throws NullPointerException if the argument is {@code null}.
    */
   private void distributeCommand(Command command) {
     if (command == null) {
