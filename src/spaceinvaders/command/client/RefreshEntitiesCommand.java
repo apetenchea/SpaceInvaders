@@ -18,8 +18,16 @@ public class RefreshEntitiesCommand extends Command {
     super(RefreshEntitiesCommand.class.getName(),TCP);
   }
 
+  /**
+   * @param entities list containing the entities which should remain after the refresh.
+   *
+   * @throws NullPointerException if argument is {@code null}.
+   */
   public RefreshEntitiesCommand(List<Entity> entities) {
     this();
+    if (entities == null) {
+      throw new NullPointerException();
+    }
     this.entities = entities;
   }
 
@@ -35,6 +43,7 @@ public class RefreshEntitiesCommand extends Command {
     if (executor instanceof Controller) {
       this.executor = (Controller) executor;
     } else {
+      // This should never happen.
       throw new AssertionError();
     }
   }

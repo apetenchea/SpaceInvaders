@@ -17,8 +17,16 @@ public class SetPlayerNamesCommand extends Command {
     super(SetPlayerNamesCommand.class.getName(),TCP);
   }
 
+  /**
+   * @param idToName a list containing 2-tuples of the form {player id, player name}.
+   *
+   * @throws NullPointerException if argument is {@code null}.
+   */
   public SetPlayerNamesCommand(List<Couple<Integer,String>> idToName) {
     this();
+    if (idToName == null) {
+      throw new NullPointerException();
+    }
     this.idToName = idToName;
   }
 
@@ -34,6 +42,7 @@ public class SetPlayerNamesCommand extends Command {
     if (executor instanceof Controller) {
       this.executor = (Controller) executor;
     } else {
+      // This should never happen.
       throw new AssertionError();
     }
   }

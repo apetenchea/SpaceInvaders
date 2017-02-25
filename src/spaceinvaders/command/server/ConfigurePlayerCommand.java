@@ -16,8 +16,18 @@ public class ConfigurePlayerCommand extends Command {
     super(ConfigurePlayerCommand.class.getName(),TCP);
   }
 
+  /**
+   * @param playerName the name which the player chooses to have.
+   * @param teamSize the size of the time which the player wants to join.
+   * @param receivingUdpPort the UDP port on which the player is going to listen.
+   *
+   * @throws NullPointerException if an argument is {@code null}.
+   */
   public ConfigurePlayerCommand(String playerName, int teamSize, int receivingUdpPort) {
     this();
+    if (playerName == null) {
+      throw new NullPointerException();
+    }
     this.playerName = playerName;
     this.teamSize = teamSize;
     this.receivingUdpPort = receivingUdpPort;
@@ -35,6 +45,7 @@ public class ConfigurePlayerCommand extends Command {
     if (executor instanceof Player) {
       this.executor = (Player) executor;
     } else {
+      // This should never happen.
       throw new AssertionError();
     }
   }

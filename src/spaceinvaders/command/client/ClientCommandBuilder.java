@@ -2,7 +2,7 @@ package spaceinvaders.command.client;
 
 import spaceinvaders.command.CommandBuilder;
 
-/** Builds commands for the client. */
+/** Builds commands wich are going to be executed on the client side. */
 public class ClientCommandBuilder extends CommandBuilder {
   /** Construct the builder with all the available commands. */
   public ClientCommandBuilder() {

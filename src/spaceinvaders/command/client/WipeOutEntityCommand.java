@@ -6,7 +6,7 @@ import spaceinvaders.client.mvc.Controller;
 import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 
-/** Wipe out a destroyed player from the screen. */
+/** Wipe out a destroyed entity from the screen. */
 public class WipeOutEntityCommand extends Command {
   private transient Controller executor;
   private int entityId;
@@ -15,6 +15,9 @@ public class WipeOutEntityCommand extends Command {
     super(WipeOutEntityCommand.class.getName(),TCP);
   }
 
+  /**
+   * @param entityId the id of the entity to be removed.
+   */
   public WipeOutEntityCommand(int entityId) {
     this();
     this.entityId = entityId;

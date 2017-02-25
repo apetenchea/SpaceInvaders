@@ -5,7 +5,7 @@ import static spaceinvaders.command.ProtocolEnum.UDP;
 import spaceinvaders.command.Command;
 import spaceinvaders.server.game.GameLoop;
 
-/** Move a player to the left. */
+/** Move a player one step left. */
 public class MovePlayerLeftCommand extends Command {
   private transient GameLoop executor;
   private Integer id;
@@ -14,6 +14,9 @@ public class MovePlayerLeftCommand extends Command {
     super(MovePlayerLeftCommand.class.getName(),UDP);
   }
 
+  /**
+   * @param id player id.
+   */
   public MovePlayerLeftCommand(int id) {
     this();
     this.id = id;

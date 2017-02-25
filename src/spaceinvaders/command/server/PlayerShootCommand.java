@@ -14,6 +14,9 @@ public class PlayerShootCommand extends Command {
     super(PlayerShootCommand.class.getName(),UDP);
   }
 
+  /**
+   * @param id player id.
+   */
   public PlayerShootCommand(int id) {
     this();
     this.id = id;
@@ -29,6 +32,7 @@ public class PlayerShootCommand extends Command {
     if (executor instanceof GameLoop) {
       this.executor = (GameLoop) executor;
     } else {
+      // This should never happen.
       throw new AssertionError();
     }
   }

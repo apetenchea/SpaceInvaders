@@ -7,7 +7,7 @@ import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 import spaceinvaders.game.EntityEnum;
 
-/** Move a group of entities relative to their position. */
+/** Move a all entities belonging to a groupe, relative to their current position. */
 public class TranslateGroupCommand extends Command {
   private transient Controller executor;
   private EntityEnum type;
@@ -18,8 +18,18 @@ public class TranslateGroupCommand extends Command {
     super(TranslateGroupCommand.class.getName(),UDP);
   }
 
+  /**
+   * @param type entities type.
+   * @param offsetX offset on the x-axis.
+   * @param offsetY offset on the y-axis.
+   *
+   * @throws NullPointerException if an argument is {@code null}.
+   */
   public TranslateGroupCommand(EntityEnum type, int offsetX, int offsetY) {
     this();
+    if (type == null) {
+      throw new NullPointerException();
+    }
     this.type = type;
     this.offsetX = offsetX;
     this.offsetY = offsetY;

@@ -4,7 +4,7 @@ import com.google.gson.JsonSyntaxException;
 import spaceinvaders.exceptions.CommandNotFoundException;
 
 /**
- * Used to convert JSON data into {@link spaceinvaders.command.Command}..
+ * Used to convert JSON data into {@link spaceinvaders.command.Command}.
  *
  * @see spaceinvaders.command.CommandBuilder
  */
@@ -24,11 +24,11 @@ public class CommandDirector {
   }
 
   /**
-   * Convert the {@code json} into a {@link Command}.
+   * Convert the {@code json} into a {@link spaceinvaders.command.Command}.
    *
-   * @throws JsonSyntaxException - if the specified JSON is invalid.
-   * @throws CommandNotFoundException - if the command could not be recognized.
-   * @throws NullPointerException - if the json is {@code null}.
+   * @throws JsonSyntaxException if the specified JSON is invalid.
+   * @throws CommandNotFoundException if the command could not be recognized.
+   * @throws NullPointerException if argument is {@code null}.
    */
   public void makeCommand(String json) throws JsonSyntaxException, CommandNotFoundException {
     if (json == null) {

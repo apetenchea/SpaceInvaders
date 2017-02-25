@@ -7,7 +7,7 @@ import spaceinvaders.client.mvc.View;
 import spaceinvaders.command.Command;
 import spaceinvaders.game.EntityEnum;
 
-/** Spawn an entity. */
+/** Create a new entity. */
 public class SpawnEntityCommand extends Command {
   private transient Controller executor;
   private Integer id;
@@ -20,6 +20,11 @@ public class SpawnEntityCommand extends Command {
   }
 
   /**
+   * @param id entity id.
+   * @param type entity type.
+   * @param posX x-axis coordinate.
+   * @param posY y-axis coordinate.
+   *
    * @throws NullPointerException - if an argument is {@code null}.
    */
   public SpawnEntityCommand(int id, EntityEnum type, int posX, int posY) {

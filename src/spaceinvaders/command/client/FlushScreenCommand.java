@@ -26,6 +26,7 @@ public class FlushScreenCommand extends Command {
     if (executor instanceof Controller) {
       this.executor = (Controller) executor;
     } else {
+      // This should never happen.
       throw new AssertionError();
     }
   }

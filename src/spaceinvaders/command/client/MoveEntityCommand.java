@@ -17,6 +17,11 @@ public class MoveEntityCommand extends Command {
     super(MoveEntityCommand.class.getName(),UDP);
   }
 
+  /**
+   * @param entityId id of the entity to be moved.
+   * @param newX new x-axis coordinate.
+   * @param newY new y-axis coordinate.
+   */
   public MoveEntityCommand(int entityId, int newX, int newY) {
     this();
     this.entityId = entityId;

@@ -16,6 +16,10 @@ public class ChangeScoreCommand extends Command {
     super(ChangeScoreCommand.class.getName(),UDP);
   }
 
+  /**
+   * @param playerId the id of the player.
+   * @param change a value with which the score is changed.
+   */
   public ChangeScoreCommand(int playerId, int change) {
     this();
     this.playerId = playerId;
@@ -34,6 +38,7 @@ public class ChangeScoreCommand extends Command {
     if (executor instanceof Controller) {
       this.executor = (Controller) executor;
     } else {
+      // This should never happen.
       throw new AssertionError();
     }
   }
