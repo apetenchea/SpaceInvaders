@@ -40,10 +40,10 @@ public class GameConfig {
   }
 
   /**
-   * @throws IOException - if an error occurs while reading the configuration file.
-   * @throws OutOfMemoryError - if the configuration file is too large.
-   * @throws InvalidPathException - if the configuration file cannot be found.
-   * @throws JsonSyntaxException - if the json not valid.
+   * @throws IOException if an error occurs while reading the configuration file.
+   * @throws OutOfMemoryError if the configuration file is too large.
+   * @throws InvalidPathException if the configuration file cannot be found.
+   * @throws JsonSyntaxException if the json not valid.
    */
   private static GameConfig readConfig() throws IOException {
     Config config = Config.getInstance();

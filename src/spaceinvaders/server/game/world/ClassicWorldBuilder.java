@@ -10,7 +10,7 @@ import spaceinvaders.game.EntityEnum;
 import spaceinvaders.game.GameConfig;
 
 /**
- * Builds parts of the {@link World}.
+ * Builds parts of the {@link spaceinvaders.server.game.world.World}.
  */
 public class ClassicWorldBuilder implements WorldBuilder {
   private final GameConfig config = GameConfig.getInstance();
@@ -81,8 +81,7 @@ public class ClassicWorldBuilder implements WorldBuilder {
   }
 
   /**
-   * {@b Warning:}
-   * Must be called after the players have been built.
+   * {@strong Warning:} Must be called after the players have been built.
    */
   @Override
   public void buildShields() {

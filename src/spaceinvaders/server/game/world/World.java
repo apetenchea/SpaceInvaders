@@ -11,12 +11,12 @@ import java.util.Map;
 import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;
 
-/** Holds all characters that interact in the game. */
+/** Contains all characters that interact in the game. */
 public class World implements WorldPlan {
   private Map<EntityEnum,List<LogicEntity>> entityMap = new HashMap<>();
 
   /**
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   @Override
   public void setEntities(EntityEnum type, List<LogicEntity> entities) {
@@ -27,11 +27,9 @@ public class World implements WorldPlan {
   }
 
   /**
-   * Returns an iterator over the entities of the given {@code type}.
-   *
    * @return an iterator or {@code null} if the specified entity type could not be found.
    *
-   * @throws NullPointerException - if argument is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   @Override
   public Iterator<LogicEntity> getIterator(EntityEnum type) {
@@ -43,9 +41,9 @@ public class World implements WorldPlan {
   }
 
   /**
-   * Returns the number of entities of a given type.
+   * Returns the number of entities of a given {@code type}.
    *
-   * @throws NullPointerException - if argument is {@code null}.
+   * @throws NullPointerException if argument is {@code null}.
    */
   public int count(EntityEnum type) {
     if (type == null) {
@@ -56,8 +54,10 @@ public class World implements WorldPlan {
   }
 
   /**
-   * @param bulletX - X coordinate.
-   * @param bulletY - Y coordinate.
+   * Create an {@link spaceinvaders.server.game.world.InvaderBullet}.
+   *
+   * @param bulletX X coordinate.
+   * @param bulletY Y coordinate.
    *
    * @return the newly created bullet.
    */
@@ -73,9 +73,11 @@ public class World implements WorldPlan {
   }
 
   /**
-   * @param shooterId - ID of the player who shot the bullet.
-   * @param bulletX - X coordinate.
-   * @param bulletY - Y coordinate.
+   * Create a {@link spaceinvaders.server.game.world.PlayerBullet}.
+   *
+   * @param shooterId ID of the player who shot the bullet.
+   * @param bulletX X coordinate.
+   * @param bulletY Y coordinate.
    *
    * @return the newly created bullet.
    */
@@ -91,6 +93,8 @@ public class World implements WorldPlan {
   }
 
   /**
+   * Get all entities.
+   *
    * @return a list of all currently active entities.
    */
   public List<Entity> getEntities() {

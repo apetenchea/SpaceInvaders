@@ -9,9 +9,9 @@ public class PlayerBullet extends LogicEntity {
   private final Integer shooterId;
 
   /**
-   * @param shooterId - id of the player who shot the bullet.
-   * @param posX - X coordinate.
-   * @param posY - Y coordinate.
+   * @param shooterId id of the player who shot the bullet.
+   * @param posX X coordinate.
+   * @param posY Y coordinate.
    */
   public PlayerBullet(int shooterId, int posX, int posY) {
     super(PLAYER_BULLET,posX,posY,

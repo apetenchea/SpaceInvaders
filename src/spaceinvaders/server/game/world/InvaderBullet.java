@@ -7,8 +7,8 @@ import spaceinvaders.game.GameConfig;
 /** Bullet shot by an invader. */
 public class InvaderBullet extends LogicEntity {
   /**
-   * @param posX - X coordinate.
-   * @param posY - Y coordinate.
+   * @param posX X coordinate.
+   * @param posY Y coordinate.
    */
   public InvaderBullet(int posX, int posY) {
     super(INVADER_BULLET,posX,posY,

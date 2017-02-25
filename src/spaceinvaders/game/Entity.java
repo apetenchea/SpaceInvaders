@@ -10,12 +10,12 @@ public class Entity implements Cloneable {
   private Couple<Integer,Integer> pos;
 
   /**
-   * @param type - the type of the entity.
-   * @param id - the id of the entity.
-   * @param posX - x coordinate.
-   * @param posY - y coordinate.
+   * @param type the type of the entity.
+   * @param id the id of the entity.
+   * @param posX x coordinate.
+   * @param posY y coordinate.
    *
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   public Entity(EntityEnum type, int id, int posX, int posY) {
     if (type == null) {
@@ -27,9 +27,9 @@ public class Entity implements Cloneable {
   }
 
   /**
-   * @param type - the type of the entity.
-   * @param posX - x coordinate.
-   * @param posY - y coordinate.
+   * @param type the type of the entity.
+   * @param posX x coordinate.
+   * @param posY y coordinate.
    *
    * @throws NullPointerException - if an argument is {@code null}.
    */

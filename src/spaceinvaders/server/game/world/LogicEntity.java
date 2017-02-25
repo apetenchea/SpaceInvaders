@@ -9,13 +9,13 @@ public class LogicEntity {
   private final Integer height;
 
   /**
-   * @param type - type of the entity.
-   * @param posX - the X coordinate.
-   * @param posY - the Y coordinate.
-   * @param width - the width of the entity.
-   * @param height - the height of the entity.
+   * @param type type of the entity.
+   * @param posX the X coordinate.
+   * @param posY the Y coordinate.
+   * @param width the width of the entity.
+   * @param height the height of the entity.
    *
-   * @throws NullPointerException - if an argument is {@code null}.
+   * @throws NullPointerException if an argument is {@code null}.
    */
   protected LogicEntity(EntityEnum type, int posX, int posY, int width, int height) {
     if (type == null) {
@@ -44,7 +44,7 @@ public class LogicEntity {
   }
 
   /**
-   * Return an {@link Entity} representation, which is at the lowest level.
+   * @return an {@link Entity} representation, which is the base level of representation.
    */
   public Entity getBase() {
     return body;

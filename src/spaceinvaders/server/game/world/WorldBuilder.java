@@ -12,5 +12,8 @@ interface WorldBuilder {
 
   public void buildBullets();
 
+  /**
+   * Get the last {@link spaceinvaders.server.game.world.World} built.
+   */
   public World getWorld();
 }

@@ -7,8 +7,8 @@ import spaceinvaders.game.GameConfig;
 /** A shield protecting the player. */
 public class Shield extends LogicEntity {
   /**
-   * @param posX - X coordinate.
-   * @param posY - Y coordinate.
+   * @param posX X coordinate.
+   * @param posY Y coordinate.
    */
   public Shield(int posX, int posY) {
     super(SHIELD,posX,posY,
