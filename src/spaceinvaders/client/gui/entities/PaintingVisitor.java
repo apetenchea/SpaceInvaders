@@ -12,8 +12,8 @@ import spaceinvaders.game.GameConfig;
 /** Paints a GraphicalEntity on the screen. */
 public class PaintingVisitor implements GraphicalEntityVisitor {
   private final GameConfig config = GameConfig.getInstance();
-  private Graphics graphics;
-  private ImageObserver imgObserver;
+  private final Graphics graphics;
+  private final ImageObserver imgObserver;
 
   /**
    * @param graphics graphics context.
@@ -46,7 +46,7 @@ public class PaintingVisitor implements GraphicalEntityVisitor {
   public void visit(Player player) {
     graphics.drawImage(player.getAvatar(player.getAvatarNumber()),player.getX(),player.getY(),
         config.player().getWidth(),config.player().getHeight(),imgObserver);
-    int nameWidth = graphics.getFontMetrics().stringWidth(player.getName());
+    final int nameWidth = graphics.getFontMetrics().stringWidth(player.getName());
     graphics.drawString(
         player.getName(),
         player.getX() + config.player().getWidth() / 2 - nameWidth / 2,
