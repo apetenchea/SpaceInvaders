@@ -1,0 +1,47 @@
+{
+	"entityMap": {
+		"PLAYER": {
+			"width": 64,
+			"height": 62
+		},
+		"INVADER_BULLET": {
+			"width": 22,
+			"height": 24
+		},
+		"INVADER": {
+			"width": 64,
+			"height": 28
+		},
+		"PLAYER_BULLET": {
+			"width": 8,
+			"height": 24
+		},
+		"SHIELD": {
+			"width": 32,
+			"height": 22
+		}
+	},
+	"predictable": false,
+	"invaderRows": 4,
+	"invaderCols": 7,
+	"invadersShootingFactor": 300,
+	"shieldsPerPlayer": 3,
+	"frame": {
+		"width": 1280,
+		"height": 760
+	},
+	"speed": {
+		"invader": {
+			"distance": 24,
+			"rate": 900
+		},
+		"player": {
+			"distance": 12,
+			"rate": 0
+		},
+		"bullet": {
+			"distance": 4,
+			"rate": 50
+		}
+	}
+}
