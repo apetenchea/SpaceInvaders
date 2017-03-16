@@ -2,10 +2,7 @@ package spaceinvaders.game;
 
 import static java.util.logging.Level.SEVERE;
 
-import com.google.gson.Gson;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.logging.Logger;
 import spaceinvaders.Config;

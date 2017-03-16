@@ -4,12 +4,10 @@ import static java.util.logging.Level.SEVERE;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import spaceinvaders.Config;
 import spaceinvaders.game.Entity;
 import spaceinvaders.game.EntityEnum;

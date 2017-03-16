@@ -83,7 +83,7 @@ public class GameView implements View {
 
   @Override
   public void youWon() {
-    game.setMessage("Congratulations! Your team is victorious!");
+    game.setMessage("<html>Congratulations!<br>Your team is victorious!</html>");
     game.showVictoryImage();
   }
 

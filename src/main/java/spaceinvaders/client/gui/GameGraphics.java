@@ -10,12 +10,10 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -32,12 +30,11 @@ import spaceinvaders.utility.Couple;
 /** Frame active during the game time. */
 public class GameGraphics implements UiObject {
   private static final Logger LOGGER = Logger.getLogger(GameGraphics.class.getName());
-  private final ClientConfig config = ClientConfig.getInstance();
   private final ResourcesConfig resources = ResourcesConfig.getInstance();
   private final JFrame frame = new JFrame("SpaceInvaders");
   private final GamePanel gamePanel = new GamePanel();
   private final JLabel messageLbl = new JLabel();
-  private final JLabel[] scoreLbl = new JLabel[1 + config.getMaxPlayers()]; 
+  private final JLabel[] scoreLbl = new JLabel[1 + ClientConfig.getInstance().getMaxPlayers()]; 
   private final JLabel controlsLbl = new JLabel();
   private final List<Couple<Integer,Integer>> score = new ArrayList<>();
   private final BufferedImage gameOverImg;
@@ -47,11 +44,12 @@ public class GameGraphics implements UiObject {
   /** Construct an empty game frame. */
   public GameGraphics() {
     final GameConfig config = GameConfig.getInstance();
+    final int msgPanelWidth = 200;
 
+    frame.setSize(msgPanelWidth + config.frame().getWidth(),config.frame().getHeight());
     frame.setResizable(false);
     frame.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     /* Full screen. */
-    frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
     frame.setUndecorated(true);
 
     final JPanel contentPane = new JPanel();
@@ -74,10 +72,8 @@ public class GameGraphics implements UiObject {
     }
     scoreLbl[0].setText("Score");
     messagePanel.add(box);
-    final int screenWidth = (int) frame.getToolkit().getScreenSize().getWidth();
-    final int screenHeight = (int) frame.getToolkit().getScreenSize().getHeight();
     messagePanel.setPreferredSize(
-        new Dimension(screenWidth - config.frame().getWidth(),screenHeight));
+        new Dimension(msgPanelWidth,config.frame().getHeight()));
 
     gamePanel.setPreferredSize(new Dimension(config.frame().getWidth(),config.frame().getHeight()));
 

@@ -60,12 +60,10 @@ public class ClassicWorldBuilder implements WorldBuilder {
     }
 
     final int frameW = config.frame().getWidth();
-    final int frameH = config.frame().getHeight();
     final int playerW = config.player().getWidth();
-    final int playerH = config.player().getHeight();
     final int jumpX = playerW * 3;
     final int witdthOffset = (frameW - (teamSize - 1) * jumpX  - teamSize * playerW) / 2;
-    final int heightOffset = frameH - playerH / 4;
+    final int heightOffset = getPlayerHeightOffset();
 
     if (witdthOffset <= 0) {
       throw new AssertionError();
@@ -91,14 +89,12 @@ public class ClassicWorldBuilder implements WorldBuilder {
       throw new AssertionError();
     }
 
-    final int frameH = config.frame().getHeight();
     final int shieldW = config.shield().getWidth();
     final int shieldH = config.shield().getHeight();
     final int playerW = config.player().getWidth();
-    final int playerH = config.player().getHeight();
     final int shieldsPerPlayer = config.getShieldsPerPlayer();
     final int widthOffset = playerW / 2 - shieldW / 2 - shieldW * (shieldsPerPlayer / 2);
-    final int heightOffset = frameH - playerH / 4 - shieldH * 2;
+    final int heightOffset = getPlayerHeightOffset() - shieldH * 2;
 
     List<LogicEntity> shields = new ArrayList<>();
     while (it.hasNext()) {
@@ -121,5 +117,10 @@ public class ClassicWorldBuilder implements WorldBuilder {
   @Override
   public World getWorld() {
     return (World) world;
+  }
+
+  private int getPlayerHeightOffset() {
+    int playerH = config.player().getHeight();
+    return config.frame().getHeight() - playerH - playerH / 2 - playerH / 3;
   }
 }
