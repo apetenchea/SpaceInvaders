@@ -4,7 +4,7 @@
 I've always wondered what is going on behind a multiplayer game, so I decided to make one in order to find out!
 Inspired by the well known classic, up to 3 players may team up in an online battle agains the invaders.
 
-![Screenshot]("https://github.com/apetenchea/SpaceInvaders/blob/master/Screenshot.png")
+![Screenshot]("https://github.com/apetenchea/SpaceInvaders/blob/master/Screenshot.png?raw=true" "Screenshot")
 
 The required Java version is [**Java 8**](http://www.oracle.com/technetwork/java/javase/overview/java8-2100321.html) or newer.
 
