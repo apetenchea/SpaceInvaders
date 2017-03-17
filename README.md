@@ -1,6 +1,6 @@
 # SpaceInvaders - a multiplayer game made from scratch.
-I've always wondered what is behind a multiplayer game, so I decided to make one in order to find out!
-Inspired by the well known classic, up to 3 players may team up agains the invaders.
+I've always wondered what is going on behind a multiplayer game, so I decided to make one in order to find out!
+Inspired by the well known classic, up to 3 players may team up in an online battle agains the invaders.
 
 ## Building
 
