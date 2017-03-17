@@ -12,7 +12,7 @@ Using maven:
 mvn package
 ```
 
-Just compiling the source into `.class` files:
+Just compiling the source into *.class* files:
 1. Go to where the source files are (src/main/java)
 2. Run:
   ```Shell
@@ -32,12 +32,12 @@ Starting up:
 java -jar spaceinvaders*.jar server port [verbose]
 ```
 The script [server.sh](https://github.com/apetenchea/SpaceInvaders/blob/master/server.sh) contains an example of how to start a server on your machine, on port 5412. If you add the ***verbose*** argument, the logging is going to be more verbose.
-Using the `.jar` file is recommended. Because when running a `.jar` Java handles resourced differently from when you are running `.class` files, a small modification in the code is required in the second case.
+Using the *.jar* file is recommended. Because when running a `.jar` Java handles resourced differently from when you are running *.class* files, a small modification in the code is required in the second case.
 In the class [Config](https://github.com/apetenchea/SpaceInvaders/blob/master/src/main/java/spaceinvaders/Config.java), there is a field:
 ```Java
 private static final transient Boolean JAR_FILE = true;
 ```
-This field must be set to `false` in case the target is not a `.jar` file.
+This field must be set to `false` in case the target is not a *.jar* file.
 
 ### Client
 Starting up:
