@@ -65,4 +65,4 @@ Icons made by <a href="http://www.freepik.com" title="Freepik">Freepik</a>, <a h
 Some of the original icons were edited by [luciamoga](https://github.com/luciamoga).
 
 ## Screenshot
-[![Screenshot.png](https://s29.postimg.org/xo0zasl13/Screenshot.png)](https://postimg.org/image/tew98mhrn/)
+[![Screenshot.png](https://github.com/apetenchea/SpaceInvaders/blob/master/screenshot.png)]
