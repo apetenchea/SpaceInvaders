@@ -45,7 +45,7 @@ Starting up:
 java -jar spaceinvaders*.jar client [verbose]
 ```
 
-The script [client.sh](https://github.com/apetenchea/SpaceInvaders/blob/master/client.sh) contains an example of how to run the client. If you add ***verbose*** as an argument, the logging is going to be more verbose. In order to play the game, you must choose an username, how many player your team shall you team have, and then connect to a running server.
+The script [client.sh](https://github.com/apetenchea/SpaceInvaders/blob/master/client.sh) contains an example of how to run the client. If you add ***verbose*** as an argument, the logging is going to be more verbose. In order to play the game, you must choose an username, how many players your team shall you team have, and then connect to a running server.
 
 ## Configuration files
 - [app.json](https://github.com/apetenchea/SpaceInvaders/blob/master/src/main/resources/config/app.json) contains runtime information about the application. In case of a lan party, the ***lanGame*** field should be set to ***true***, thus configuring the game to prefer the UDP protocol over TCP.
